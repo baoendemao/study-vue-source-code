@@ -31,7 +31,7 @@
 
     ```
 * VsCode调试工具
-    * ![图片](https://github.com/baoendemao/study-vue-source-code/tree/master/images/vscode-debug-vue.jpeg)
+    * ![avatar](https://github.com/baoendemao/study-vue-source-code/blob/master/images/vscode-debug-vue.jpeg)
 * babel本地环境搭建
     * [见webpack-summary/babel部分](https://github.com/baoendemao/webpack-summary/tree/master/docs/babel.md)
     ```
