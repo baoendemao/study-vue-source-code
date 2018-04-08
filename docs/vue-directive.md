@@ -7,3 +7,7 @@
     'filter'
     ]
     ```
+* vue中的常用指令
+    * v-for
+    * v-if
+    * v-show

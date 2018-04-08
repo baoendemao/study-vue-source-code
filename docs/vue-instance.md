@@ -9,8 +9,8 @@
         });
         ```
     * data是怎么绑定到viewModel上的 ？
-    	* 通过Object.defineProperty(), 示例见[demo](https://github.com/baoendemao/study-vue-source-code/tree/master/demos/use-vue/bind-data.js) 
-    * 构造函数定义见vue源码[src/core/instance/index.js](https://github.com/vuejs/vue/blob/dev/src/core/instance/index.js)
+    	* 通过Object.defineProperty()[demo点这里](https://github.com/baoendemao/study-vue-source-code/tree/master/demos/use-vue/bind-data.js) 
+    * 构造函数定义见vue源码src/core/instance/index.js[源码点这里](https://github.com/vuejs/vue/blob/dev/src/core/instance/index.js)
 	    ```
 	    // new Vue()只接收一个参数, options为对象
 	    function Vue (options) {

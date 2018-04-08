@@ -14,7 +14,7 @@
 * [vue的路由](https://github.com/baoendemao/study-vue-source-code/tree/master/docs/vue-router.md)
 * [vue的指令](https://github.com/baoendemao/study-vue-source-code/tree/master/docs/vue-directive.md)
 
-#### 源码学习推荐几个方便的操作
+#### 推荐几个有帮助的操作
 * 如何从git commit的记录来学习源码
     * git log命令可以查看push的commit编码（可以git log重定向到某个文件，以后每次方便查找）
     * git checkout commit编码的前六位
@@ -33,7 +33,7 @@
 * VsCode调试工具
     * ![avatar](https://github.com/baoendemao/study-vue-source-code/blob/master/images/vscode-debug-vue.jpeg)
 * babel本地环境搭建
-    * [见webpack-summary/babel部分](https://github.com/baoendemao/webpack-summary/tree/master/docs/babel.md)
+    * 参见[webpack-summary/babel部分](https://github.com/baoendemao/webpack-summary/tree/master/docs/babel.md)
     ```
     // 由于node对ES6的支持不好，可以使用babel-node命令执行
     study-vue-source-code/demos/use-vue $ babel-node --presets es2015   ./use-vue.js

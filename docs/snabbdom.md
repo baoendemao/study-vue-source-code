@@ -66,11 +66,11 @@
         * patch(vnode, newVnode)
             * 比较vnode和newVnode, 将不同的部分渲染到container dom容器中，相同的部分不变
 * 理解snabbdom vnode的抽象数据结构
-    * 具体参见[snabbdom的源码vnode.ts](https://github.com/snabbdom/snabbdom/blob/master/src/vnode.ts)
+    * 具体参见snabbdom的源码src/vnode.ts[源码点这里](https://github.com/snabbdom/snabbdom/blob/master/src/vnode.ts)
 ```
 ```
 * 理解snabbdom dom树的相关操作
-    * 官方源码具体参见[snabbdom.ts](https://github.com/snabbdom/snabbdom/blob/master/src/snabbdom.ts)
+    * 源码具体参见src/snabbdom.ts[源码点这里](https://github.com/snabbdom/snabbdom/blob/master/src/snabbdom.ts)
     * 源码注释 
     ```
 
