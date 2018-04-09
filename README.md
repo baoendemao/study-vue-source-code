@@ -13,6 +13,7 @@
 * [vue的生命周期](https://github.com/baoendemao/study-vue-source-code/tree/master/docs/vue-life-cycle.md)
 * [vue的路由](https://github.com/baoendemao/study-vue-source-code/tree/master/docs/vue-router.md)
 * [vue的指令](https://github.com/baoendemao/study-vue-source-code/tree/master/docs/vue-directive.md)
+* [vue的组件](https://github.com/baoendemao/study-vue-source-code/tree/master/docs/vue-component.md)
 
 #### 推荐几个有帮助的操作
 * 如何从git commit的记录来学习源码

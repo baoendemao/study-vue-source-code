@@ -11,6 +11,7 @@
 
 /*  */
 
+// 为什么要用Object.freeze定义空对象，而不直接使用{}
 var emptyObject = Object.freeze({});
 
 // these helpers produces better vm code in JS engines due to their
@@ -105,6 +106,9 @@ function toNumber (val) {
 /**
  * Make a map and return a function for checking if a key
  * is in that map.
+ * 
+ * 例如： 调用makeMap('key,ref,slot,slot-scope,is')，则生成如下的map
+ *   {key: true, ref: true, slot: true, slot-scope: true, is: true}
  */
 function makeMap (
   str,
@@ -132,6 +136,7 @@ var isReservedAttribute = makeMap('key,ref,slot,slot-scope,is');
 
 /**
  * Remove an item from an array
+ * 从数组arr中删除item
  */
 function remove (arr, item) {
   if (arr.length) {
@@ -152,6 +157,8 @@ function hasOwn (obj, key) {
 
 /**
  * Create a cached version of a pure function.
+ * 创建一个纯函数， 目的是拓展一个函数？
+ * 为什么？
  */
 function cached (fn) {
   var cache = Object.create(null);
@@ -162,15 +169,17 @@ function cached (fn) {
 }
 
 /**
- * Camelize a hyphen-delimited string.
+ * Camelize a hyphen-delimited string.   
+ * 将字符串转换成驼峰形式
+ * 例如: camelize('df-abcd-eee')  结果是："dfAbcdEee"
  */
-var camelizeRE = /-(\w)/g;
+var camelizeRE = /-(\w)/g;    // -后面紧跟着的字符，变成大写字母
 var camelize = cached(function (str) {
   return str.replace(camelizeRE, function (_, c) { return c ? c.toUpperCase() : ''; })
 });
 
 /**
- * Capitalize a string.
+ * Capitalize a string.  字符串首字母大写
  */
 var capitalize = cached(function (str) {
   return str.charAt(0).toUpperCase() + str.slice(1)
@@ -178,6 +187,9 @@ var capitalize = cached(function (str) {
 
 /**
  * Hyphenate a camelCase string.
+ * 将大写字母，替换成-小写的形式
+ * 例如： hyphenate('dfABCDdf');  结果是："df-a-b-c-ddf"
+ * 为什么？
  */
 var hyphenateRE = /\B([A-Z])/g;
 var hyphenate = cached(function (str) {
@@ -193,6 +205,7 @@ var hyphenate = cached(function (str) {
  */
 
 /* istanbul ignore next */
+// 如果Function.prototype.bind不存在，使用call和apply自己实现bind函数
 function polyfillBind (fn, ctx) {
   function boundFn (a) {
     var l = arguments.length;
@@ -207,6 +220,7 @@ function polyfillBind (fn, ctx) {
   return boundFn
 }
 
+// 原生的bind
 function nativeBind (fn, ctx) {
   return fn.bind(ctx)
 }
@@ -217,6 +231,7 @@ var bind = Function.prototype.bind
 
 /**
  * Convert an Array-like object to a real Array.
+ * 类数组对象转换成为真正的数组，可以自己选择起始下标索引start
  */
 function toArray (list, start) {
   start = start || 0;
@@ -230,6 +245,7 @@ function toArray (list, start) {
 
 /**
  * Mix properties into target object.
+ * 在to对象里添加_from对象没有的，但是如果两者共有的，此值会被_from的值覆盖
  */
 function extend (to, _from) {
   for (var key in _from) {
@@ -240,6 +256,8 @@ function extend (to, _from) {
 
 /**
  * Merge an Array of Objects into a single Object.
+ * 将对象数组合并成一个单独的对象， 后者的对象会覆盖前面对象的属性
+ * 例如： var o = [{a: 1, b : 2}, {a: 11, c: 3}]; 结果是： {a: 11, b: 2, c: 3}
  */
 function toObject (arr) {
   var res = {};
@@ -270,6 +288,7 @@ var identity = function (_) { return _; };
 
 /**
  * Generate a static keys string from compiler modules.
+ * 为什么？
  */
 function genStaticKeys (modules) {
   return modules.reduce(function (keys, m) {
@@ -280,6 +299,7 @@ function genStaticKeys (modules) {
 /**
  * Check if two values are loosely equal - that is,
  * if they are plain objects, do they have the same shape?
+ * 检查两个变量是否相等，注意object类型之间的比较
  */
 function looseEqual (a, b) {
   if (a === b) { return true }
@@ -294,10 +314,10 @@ function looseEqual (a, b) {
           return looseEqual(e, b[i])
         })
       } else if (!isArrayA && !isArrayB) {
-        var keysA = Object.keys(a);
-        var keysB = Object.keys(b);
-        return keysA.length === keysB.length && keysA.every(function (key) {
-          return looseEqual(a[key], b[key])
+          var keysA = Object.keys(a);
+          var keysB = Object.keys(b);
+          return keysA.length === keysB.length && keysA.every(function (key) {
+            return looseEqual(a[key], b[key])   // 递归
         })
       } else {
         /* istanbul ignore next */
@@ -314,6 +334,7 @@ function looseEqual (a, b) {
   }
 }
 
+// 获取val在arr里的下标索引， arr中的值可能是引用，引用里可能还有引用
 function looseIndexOf (arr, val) {
   for (var i = 0; i < arr.length; i++) {
     if (looseEqual(arr[i], val)) { return i }
@@ -323,6 +344,7 @@ function looseIndexOf (arr, val) {
 
 /**
  * Ensure a function is called only once.
+ * 保证函数只调用一次， 为什么？
  */
 function once (fn) {
   var called = false;
@@ -334,14 +356,17 @@ function once (fn) {
   }
 }
 
+// 服务器渲染标志
 var SSR_ATTR = 'data-server-rendered';
 
+// 组件相关
 var ASSET_TYPES = [
   'component',
   'directive',
   'filter'
 ];
 
+// 生命周期钩子
 var LIFECYCLE_HOOKS = [
   'beforeCreate',
   'created',
@@ -358,6 +383,7 @@ var LIFECYCLE_HOOKS = [
 
 /*  */
 
+// 为什么？ 什么的配置？
 var config = ({
   /**
    * Option merge strategies (used in core/util/options)
@@ -450,6 +476,7 @@ var config = ({
 
 /**
  * Check if a string starts with $ or _
+ * 是否是保留字，以$或者_开头
  */
 function isReserved (str) {
   var c = (str + '').charCodeAt(0);
@@ -487,11 +514,10 @@ function parsePath (path) {
 }
 
 /*  */
-
 // can we use __proto__?
 var hasProto = '__proto__' in {};
 
-// Browser environment sniffing
+// Browser environment sniffing   浏览器环境
 var inBrowser = typeof window !== 'undefined';
 var inWeex = typeof WXEnvironment !== 'undefined' && !!WXEnvironment.platform;
 var weexPlatform = inWeex && WXEnvironment.platform.toLowerCase();
@@ -506,6 +532,8 @@ var isChrome = UA && /chrome\/\d+/.test(UA) && !isEdge;
 // Firefox has a "watch" function on Object.prototype...
 var nativeWatch = ({}).watch;
 
+// 通过传递 passive 为 true 来明确告诉浏览器，事件处理程序不会调用 preventDefault 来阻止默认滑动行为，防止浏览器的卡顿
+// 此事件解释详细见博客：  https://blog.csdn.net/shenlei19911210/article/details/70198771
 var supportsPassive = false;
 if (inBrowser) {
   try {
@@ -522,7 +550,7 @@ if (inBrowser) {
 
 // this needs to be lazy-evaled because vue may be required before
 // vue-server-renderer can set VUE_ENV
-var _isServer;
+var _isServer;   
 var isServerRendering = function () {
   if (_isServer === undefined) {
     /* istanbul ignore if */
@@ -540,7 +568,8 @@ var isServerRendering = function () {
 // detect devtools
 var devtools = inBrowser && window.__VUE_DEVTOOLS_GLOBAL_HOOK__;
 
-/* istanbul ignore next */
+/* istanbul ignore next */  
+// 判断是否是本地函数
 function isNative (Ctor) {
   return typeof Ctor === 'function' && /native code/.test(Ctor.toString())
 }
@@ -549,6 +578,7 @@ var hasSymbol =
   typeof Symbol !== 'undefined' && isNative(Symbol) &&
   typeof Reflect !== 'undefined' && isNative(Reflect.ownKeys);
 
+// ES6的Set实现，如果没有Set则自己实现
 var _Set;
 /* istanbul ignore if */ // $flow-disable-line
 if (typeof Set !== 'undefined' && isNative(Set)) {
@@ -628,6 +658,7 @@ var formatComponentName = (noop);
     )
   };
 
+  // 字符串str重复n词
   var repeat = function (str, n) {
     var res = '';
     while (n) {
@@ -638,6 +669,17 @@ var formatComponentName = (noop);
     return res
   };
 
+ /**
+  * 根据viewModel的$parent属性找到父组件，然后组织调用栈的结构，从上往下依次是由子到父
+  * 打印错误堆栈
+  * 例如： vue.runtime.esm.js:574 [Vue warn]: Error in render: "TypeError: Cannot read property 'relativeUrl' of undefined"
+
+found in
+
+---> <DetailBanner> at D:\workspace\web-front-end\xxxxx\src\views\conference\detail\detail.banner.vue
+       <Detail> at D:\workspace\web-front-end\xxxxx\src\views\conference\detail\detail.vue
+         <Root>
+  */
   generateComponentTrace = function (vm) {
     if (vm._isVue && vm.$parent) {
       var tree = [];
@@ -676,6 +718,7 @@ var uid = 0;
 /**
  * A dep is an observable that can have multiple
  * directives subscribing to it.
+ * 观察者，可以有多个指令订阅它
  */
 var Dep = function Dep () {
   this.id = uid++;
@@ -687,7 +730,7 @@ Dep.prototype.addSub = function addSub (sub) {
 };
 
 Dep.prototype.removeSub = function removeSub (sub) {
-  remove(this.subs, sub);
+  remove(this.subs, sub);   // 从数组this.subs中删除sub
 };
 
 Dep.prototype.depend = function depend () {
@@ -810,6 +853,7 @@ function cloneVNode (vnode) {
  * dynamically accessing methods on Array prototype
  */
 
+// 以Array.prototype重新创建一个新的对象，目的重写Array的方法
 var arrayProto = Array.prototype;
 var arrayMethods = Object.create(arrayProto);
 
@@ -4595,6 +4639,7 @@ function initMixin (Vue) {
       // internal component options needs special treatment.
       initInternalComponent(vm, options);
     } else {
+      // options里没有传_isComponent属性
       vm.$options = mergeOptions(
         resolveConstructorOptions(vm.constructor),
         options || {},
@@ -4713,6 +4758,7 @@ function Vue (options) {
   ) {
     warn('Vue is a constructor and should be called with the `new` keyword');
   }
+  console.log('debug 1 ==================================');
   this._init(options);
 }
 
@@ -5279,6 +5325,7 @@ var isTextInputType = makeMap('text,number,password,search,email,tel,url');
 
 /**
  * Query an element selector if it's not an element already.
+ * 查询el，如果没找到，则创建一个新的div返回
  */
 function query (el) {
   if (typeof el === 'string') {

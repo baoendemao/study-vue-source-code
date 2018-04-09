@@ -20,6 +20,7 @@ new Vue({
 ```
 * 模板字符串是如何转换成html结构的？
   * 通过render()函数，将模板template看作字符串
+  * 通过render函数，先生成抽象语法树(AST)，然后将AST转换成render函数, render函数返回vdom
 
 * 在模板中绑定数据 => 数据和视图分离
   * 现象
