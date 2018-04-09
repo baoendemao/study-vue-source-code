@@ -3,11 +3,11 @@
  * (c) 2014-2018 Evan You
  * Released under the MIT License.
  */
-(function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
-	typeof define === 'function' && define.amd ? define(factory) :
-	(global.Vue = factory());
-}(this, (function () { 'use strict';
+// (function (global, factory) {
+// 	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
+// 	typeof define === 'function' && define.amd ? define(factory) :
+// 	(global.Vue = factory());
+// }(this, (function () { 'use strict';
 
 /*  */
 
@@ -107,7 +107,7 @@ function toNumber (val) {
  * Make a map and return a function for checking if a key
  * is in that map.
  * 
- * 例如： 调用makeMap('key,ref,slot,slot-scope,is')，则生成如下的map
+ * 例如： 执行makeMap('key,ref,slot,slot-scope,is')，则生成如下的map
  *   {key: true, ref: true, slot: true, slot-scope: true, is: true}
  */
 function makeMap (
@@ -344,7 +344,7 @@ function looseIndexOf (arr, val) {
 
 /**
  * Ensure a function is called only once.
- * 保证函数只调用一次， 为什么？
+ * 保证函数只执行一次， 为什么？
  */
 function once (fn) {
   var called = false;
@@ -532,7 +532,7 @@ var isChrome = UA && /chrome\/\d+/.test(UA) && !isEdge;
 // Firefox has a "watch" function on Object.prototype...
 var nativeWatch = ({}).watch;
 
-// 通过传递 passive 为 true 来明确告诉浏览器，事件处理程序不会调用 preventDefault 来阻止默认滑动行为，防止浏览器的卡顿
+// 通过传递 passive 为 true 来明确告诉浏览器，事件处理程序不会执行 preventDefault 来阻止默认滑动行为，防止浏览器的卡顿
 // 此事件解释详细见博客：  https://blog.csdn.net/shenlei19911210/article/details/70198771
 var supportsPassive = false;
 if (inBrowser) {
@@ -670,7 +670,7 @@ var formatComponentName = (noop);
   };
 
  /**
-  * 根据viewModel的$parent属性找到父组件，然后组织调用栈的结构，从上往下依次是由子到父
+  * 根据viewModel的$parent属性找到父组件，然后组织栈的结构，从上往下依次是由子到父
   * 打印错误堆栈
   * 例如： vue.runtime.esm.js:574 [Vue warn]: Error in render: "TypeError: Cannot read property 'relativeUrl' of undefined"
 
@@ -754,11 +754,15 @@ Dep.target = null;
 var targetStack = [];
 
 function pushTarget (_target) {
+  console.log('执行函数  pushTarget()  ');
+
   if (Dep.target) { targetStack.push(Dep.target); }
   Dep.target = _target;
 }
 
 function popTarget () {
+  console.log('执行函数  popTarget()  ');
+
   Dep.target = targetStack.pop();
 }
 
@@ -799,6 +803,7 @@ var VNode = function VNode (
   this.isAsyncPlaceholder = false;
 };
 
+
 var prototypeAccessors = { child: { configurable: true } };
 
 // DEPRECATED: alias for componentInstance for backwards compat.
@@ -818,6 +823,7 @@ var createEmptyVNode = function (text) {
   return node
 };
 
+// 创建文本vNode
 function createTextVNode (val) {
   return new VNode(undefined, undefined, undefined, String(val))
 }
@@ -1072,6 +1078,8 @@ function defineReactive (
  * already exist.
  */
 function set (target, key, val) {
+  console.log('执行函数  set()');
+
   if ("development" !== 'production' &&
     (isUndef(target) || isPrimitive(target))
   ) {
@@ -1107,6 +1115,8 @@ function set (target, key, val) {
  * Delete a property and trigger change if necessary.
  */
 function del (target, key) {
+  console.log('执行函数  del()');
+
   if ("development" !== 'production' &&
     (isUndef(target) || isPrimitive(target))
   ) {
@@ -1139,6 +1149,8 @@ function del (target, key) {
  * we cannot intercept array element access like property getters.
  */
 function dependArray (value) {
+  console.log('执行函数  dependArray()');
+
   for (var e = (void 0), i = 0, l = value.length; i < l; i++) {
     e = value[i];
     e && e.__ob__ && e.__ob__.dep.depend();
@@ -1176,6 +1188,8 @@ var strats = config.optionMergeStrategies;
  * Helper that recursively merges two data objects together.
  */
 function mergeData (to, from) {
+  console.log('执行函数  mergeData()');
+
   if (!from) { return to }
   var key, toVal, fromVal;
   var keys = Object.keys(from);
@@ -1200,6 +1214,8 @@ function mergeDataOrFn (
   childVal,
   vm
 ) {
+  console.log('执行函数  mergeDataOrFn()');
+
   if (!vm) {
     // in a Vue.extend merge, both should be functions
     if (!childVal) {
@@ -1242,6 +1258,8 @@ strats.data = function (
   childVal,
   vm
 ) {
+  console.log('执行函数  strats.data()');
+
   if (!vm) {
     if (childVal && typeof childVal !== 'function') {
       "development" !== 'production' && warn(
@@ -1266,6 +1284,8 @@ function mergeHook (
   parentVal,
   childVal
 ) {
+  console.log('执行函数  mergeHook()');
+
   return childVal
     ? parentVal
       ? parentVal.concat(childVal)
@@ -1292,6 +1312,8 @@ function mergeAssets (
   vm,
   key
 ) {
+  console.log('执行函数  mergeAssets()');
+
   var res = Object.create(parentVal || null);
   if (childVal) {
     "development" !== 'production' && assertObjectType(key, childVal, vm);
@@ -1317,6 +1339,8 @@ strats.watch = function (
   vm,
   key
 ) {
+  console.log('执行函数  strats.watch()');
+
   // work around Firefox's Object.prototype.watch...
   if (parentVal === nativeWatch) { parentVal = undefined; }
   if (childVal === nativeWatch) { childVal = undefined; }
@@ -1353,6 +1377,8 @@ strats.computed = function (
   vm,
   key
 ) {
+  console.log('执行函数  strats.computed()');
+
   if (childVal && "development" !== 'production') {
     assertObjectType(key, childVal, vm);
   }
@@ -1377,12 +1403,19 @@ var defaultStrat = function (parentVal, childVal) {
  * Validate component names
  */
 function checkComponents (options) {
+  console.log()
+  console.log('执行函数  checkComponents()');
+
+  console.log('options');
+  console.log(options);
   for (var key in options.components) {
     validateComponentName(key);
   }
 }
 
 function validateComponentName (name) {
+  console.log('执行函数  validateComponentName()');
+
   if (!/^[a-zA-Z][\w-]*$/.test(name)) {
     warn(
       'Invalid component name: "' + name + '". Component names ' +
@@ -1403,6 +1436,8 @@ function validateComponentName (name) {
  * Object-based format.
  */
 function normalizeProps (options, vm) {
+  console.log('执行函数  normalizeProps()');
+
   var props = options.props;
   if (!props) { return }
   var res = {};
@@ -1440,6 +1475,8 @@ function normalizeProps (options, vm) {
  * Normalize all injections into Object-based format
  */
 function normalizeInject (options, vm) {
+  console.log('执行函数  normalizeInject()');
+
   var inject = options.inject;
   if (!inject) { return }
   var normalized = options.inject = {};
@@ -1467,6 +1504,8 @@ function normalizeInject (options, vm) {
  * Normalize raw function directives into object format.
  */
 function normalizeDirectives (options) {
+  console.log('执行函数  normalizeDirectives()');
+
   var dirs = options.directives;
   if (dirs) {
     for (var key in dirs) {
@@ -1479,6 +1518,8 @@ function normalizeDirectives (options) {
 }
 
 function assertObjectType (name, value, vm) {
+  console.log('执行函数  assertObjectType()');
+
   if (!isPlainObject(value)) {
     warn(
       "Invalid value for option \"" + name + "\": expected an Object, " +
@@ -1497,6 +1538,16 @@ function mergeOptions (
   child,
   vm
 ) {
+  console.log();
+  console.log('执行函数  mergeOptions()');
+
+  console.log('parent: ');
+  console.log(parent);
+  console.log('child: ');
+  console.log(child);
+  console.log('vm: ');
+  console.log(vm);
+
   {
     checkComponents(child);
   }
@@ -1528,6 +1579,8 @@ function mergeOptions (
     }
   }
   function mergeField (key) {
+    console.log('执行函数  mergeField()');
+
     var strat = strats[key] || defaultStrat;
     options[key] = strat(parent[key], child[key], vm, key);
   }
@@ -1575,6 +1628,8 @@ function validateProp (
   propsData,
   vm
 ) {
+  console.log('执行函数  validateProp()');
+
   var prop = propOptions[key];
   var absent = !hasOwn(propsData, key);
   var value = propsData[key];
@@ -1612,6 +1667,8 @@ function validateProp (
  * Get the default value of a prop.
  */
 function getPropDefaultValue (vm, prop, key) {
+  console.log('执行函数  getPropDefaultValue()');
+
   // no default, return undefined
   if (!hasOwn(prop, 'default')) {
     return undefined
@@ -1651,6 +1708,8 @@ function assertProp (
   vm,
   absent
 ) {
+  console.log('执行函数  assertProp()');
+
   if (prop.required && absent) {
     warn(
       'Missing required prop: "' + name + '"',
@@ -1697,6 +1756,8 @@ function assertProp (
 var simpleCheckRE = /^(String|Number|Boolean|Function|Symbol)$/;
 
 function assertType (value, type) {
+  console.log('执行函数  assertType()');
+
   var valid;
   var expectedType = getType(type);
   if (simpleCheckRE.test(expectedType)) {
@@ -1734,6 +1795,8 @@ function isSameType (a, b) {
 }
 
 function getTypeIndex (type, expectedTypes) {
+  console.log('执行函数  getTypeIndex()');
+
   if (!Array.isArray(expectedTypes)) {
     return isSameType(expectedTypes, type) ? 0 : -1
   }
@@ -1748,6 +1811,8 @@ function getTypeIndex (type, expectedTypes) {
 /*  */
 
 function handleError (err, vm, info) {
+  console.log('执行函数  handleError()');
+
   if (vm) {
     var cur = vm;
     while ((cur = cur.$parent)) {
@@ -1768,6 +1833,8 @@ function handleError (err, vm, info) {
 }
 
 function globalHandleError (err, vm, info) {
+  console.log('执行函数  globalHandleError()');
+
   if (config.errorHandler) {
     try {
       return config.errorHandler.call(null, err, vm, info)
@@ -2155,6 +2222,8 @@ function extractPropsFromVNodeData (
   Ctor,
   tag
 ) {
+  console.log('执行函数  extractPropsFromVNodeData()');
+
   // we are only extracting raw values here.
   // validation and default values are handled in the child
   // component itself.
@@ -2488,8 +2557,12 @@ function updateComponentListeners (
 }
 
 function eventsMixin (Vue) {
+  console.log('执行函数 eventsMixin()');
+
   var hookRE = /^hook:/;
   Vue.prototype.$on = function (event, fn) {
+    console.log('执行函数  Vue.prototype.$on()');
+
     var this$1 = this;
 
     var vm = this;
@@ -2509,6 +2582,8 @@ function eventsMixin (Vue) {
   };
 
   Vue.prototype.$once = function (event, fn) {
+    console.log('执行函数  Vue.prototype.$once()');
+
     var vm = this;
     function on () {
       vm.$off(event, on);
@@ -2520,6 +2595,8 @@ function eventsMixin (Vue) {
   };
 
   Vue.prototype.$off = function (event, fn) {
+    console.log('执行函数  Vue.prototype.$off()');
+
     var this$1 = this;
 
     var vm = this;
@@ -2560,6 +2637,8 @@ function eventsMixin (Vue) {
   };
 
   Vue.prototype.$emit = function (event) {
+    console.log('执行函数  Vue.prototype.$emit()');
+
     var vm = this;
     {
       var lowerCaseEvent = event.toLowerCase();
@@ -2600,6 +2679,8 @@ function resolveSlots (
   children,
   context
 ) {
+  console.log('执行函数  resolveSlots()');
+
   var slots = {};
   if (!children) {
     return slots
@@ -2637,6 +2718,8 @@ function resolveSlots (
 }
 
 function isWhitespace (node) {
+  console.log('执行函数  isWhitespace()');
+
   return (node.isComment && !node.asyncFactory) || node.text === ' '
 }
 
@@ -2644,6 +2727,8 @@ function resolveScopedSlots (
   fns, // see flow/vnode
   res
 ) {
+  console.log('执行函数  resolveScopedSlots()');
+
   res = res || {};
   for (var i = 0; i < fns.length; i++) {
     if (Array.isArray(fns[i])) {
@@ -2661,6 +2746,10 @@ var activeInstance = null;
 var isUpdatingChildComponent = false;
 
 function initLifecycle (vm) {
+  console.log('');
+  console.log('执行函数  initLifecycle()  ');
+  console.log(vm);
+
   var options = vm.$options;
 
   // locate first non-abstract parent
@@ -2687,7 +2776,10 @@ function initLifecycle (vm) {
 }
 
 function lifecycleMixin (Vue) {
+  console.log('执行函数  lifecycleMixin()');
   Vue.prototype._update = function (vnode, hydrating) {
+    console.log('执行函数  Vue.prototype._update()');
+
     var vm = this;
     if (vm._isMounted) {
       callHook(vm, 'beforeUpdate');
@@ -2706,6 +2798,7 @@ function lifecycleMixin (Vue) {
         vm.$options._parentElm,
         vm.$options._refElm
       );
+      console.log(vm.$el);
       // no need for the ref nodes after initial patch
       // this prevents keeping a detached DOM tree in memory (#5851)
       vm.$options._parentElm = vm.$options._refElm = null;
@@ -2730,6 +2823,8 @@ function lifecycleMixin (Vue) {
   };
 
   Vue.prototype.$forceUpdate = function () {
+    console.log('执行函数  Vue.prototype.$forceUpdate()');
+
     var vm = this;
     if (vm._watcher) {
       vm._watcher.update();
@@ -2737,6 +2832,8 @@ function lifecycleMixin (Vue) {
   };
 
   Vue.prototype.$destroy = function () {
+    console.log('执行函数  Vue.prototype.$destroy()');
+
     var vm = this;
     if (vm._isBeingDestroyed) {
       return
@@ -2785,6 +2882,7 @@ function mountComponent (
   el,
   hydrating
 ) {
+  console.log('执行函数  mountComponent()  ');
   vm.$el = el;
   if (!vm.$options.render) {
     vm.$options.render = createEmptyVNode;
@@ -2956,6 +3054,9 @@ function deactivateChildComponent (vm, direct) {
 }
 
 function callHook (vm, hook) {
+  console.log('执行函数  callHook()  ');
+  console.log('hook is:  ');
+  console.log(hook);
   // #7573 disable dep collection when invoking lifecycle hooks
   pushTarget();
   var handlers = vm.$options[hook];
@@ -2991,6 +3092,8 @@ var index = 0;
  * Reset the scheduler's state.
  */
 function resetSchedulerState () {
+  console.log('执行函数  resetSchedulerState()  ');
+
   index = queue.length = activatedChildren.length = 0;
   has = {};
   {
@@ -3003,6 +3106,8 @@ function resetSchedulerState () {
  * Flush both queues and run the watchers.
  */
 function flushSchedulerQueue () {
+  console.log('执行函数  flushSchedulerQueue()  ');
+
   flushing = true;
   var watcher, id;
 
@@ -3058,6 +3163,8 @@ function flushSchedulerQueue () {
 }
 
 function callUpdatedHooks (queue) {
+  console.log('执行函数  callUpdatedHooks()  ');
+
   var i = queue.length;
   while (i--) {
     var watcher = queue[i];
@@ -3073,6 +3180,8 @@ function callUpdatedHooks (queue) {
  * The queue will be processed after the entire tree has been patched.
  */
 function queueActivatedComponent (vm) {
+  console.log('执行函数  queueActivatedComponent()  ');
+
   // setting _inactive to false here so that a render function can
   // rely on checking whether it's in an inactive tree (e.g. router-view)
   vm._inactive = false;
@@ -3080,6 +3189,8 @@ function queueActivatedComponent (vm) {
 }
 
 function callActivatedHooks (queue) {
+  console.log('执行函数  callActivatedHooks()  ');
+
   for (var i = 0; i < queue.length; i++) {
     queue[i]._inactive = true;
     activateChildComponent(queue[i], true /* true */);
@@ -3092,6 +3203,8 @@ function callActivatedHooks (queue) {
  * pushed when the queue is being flushed.
  */
 function queueWatcher (watcher) {
+  console.log('执行函数  queueWatcher()  ');
+
   var id = watcher.id;
   if (has[id] == null) {
     has[id] = true;
@@ -3130,6 +3243,8 @@ var Watcher = function Watcher (
   options,
   isRenderWatcher
 ) {
+  console.log('执行函数  Watcher()  ');
+
   this.vm = vm;
   if (isRenderWatcher) {
     vm._watcher = this;
@@ -3177,6 +3292,8 @@ var Watcher = function Watcher (
  * Evaluate the getter, and re-collect dependencies.
  */
 Watcher.prototype.get = function get () {
+  console.log('执行函数  Watcher.prototype.get()  ');
+
   pushTarget(this);
   var value;
   var vm = this.vm;
@@ -3204,6 +3321,8 @@ Watcher.prototype.get = function get () {
  * Add a dependency to this directive.
  */
 Watcher.prototype.addDep = function addDep (dep) {
+  console.log('执行函数  Watcher.prototype.addDep()  ');
+
   var id = dep.id;
   if (!this.newDepIds.has(id)) {
     this.newDepIds.add(id);
@@ -3218,6 +3337,8 @@ Watcher.prototype.addDep = function addDep (dep) {
  * Clean up for dependency collection.
  */
 Watcher.prototype.cleanupDeps = function cleanupDeps () {
+  console.log('执行函数  Watcher.prototype.cleanupDeps()  ');
+
     var this$1 = this;
 
   var i = this.deps.length;
@@ -3242,6 +3363,8 @@ Watcher.prototype.cleanupDeps = function cleanupDeps () {
  * Will be called when a dependency changes.
  */
 Watcher.prototype.update = function update () {
+  console.log('执行函数  Watcher.prototype.update()  ');
+
   /* istanbul ignore else */
   if (this.lazy) {
     this.dirty = true;
@@ -3257,6 +3380,8 @@ Watcher.prototype.update = function update () {
  * Will be called by the scheduler.
  */
 Watcher.prototype.run = function run () {
+  console.log('执行函数  Watcher.prototype.run()  ');
+
   if (this.active) {
     var value = this.get();
     if (
@@ -3288,6 +3413,8 @@ Watcher.prototype.run = function run () {
  * This only gets called for lazy watchers.
  */
 Watcher.prototype.evaluate = function evaluate () {
+  console.log('执行函数  Watcher.prototype.evaluate()  ');
+
   this.value = this.get();
   this.dirty = false;
 };
@@ -3296,6 +3423,8 @@ Watcher.prototype.evaluate = function evaluate () {
  * Depend on all deps collected by this watcher.
  */
 Watcher.prototype.depend = function depend () {
+  console.log('执行函数  Watcher.prototype.depend()  ');
+
     var this$1 = this;
 
   var i = this.deps.length;
@@ -3308,6 +3437,8 @@ Watcher.prototype.depend = function depend () {
  * Remove self from all dependencies' subscriber list.
  */
 Watcher.prototype.teardown = function teardown () {
+  console.log('执行函数  Watcher.prototype.teardown()  ');
+
     var this$1 = this;
 
   if (this.active) {
@@ -3335,6 +3466,8 @@ var sharedPropertyDefinition = {
 };
 
 function proxy (target, sourceKey, key) {
+  console.log('执行函数  proxy()  ');
+
   sharedPropertyDefinition.get = function proxyGetter () {
     return this[sourceKey][key]
   };
@@ -3345,6 +3478,8 @@ function proxy (target, sourceKey, key) {
 }
 
 function initState (vm) {
+  console.log('执行函数  initState()  ');
+
   vm._watchers = [];
   var opts = vm.$options;
   if (opts.props) { initProps(vm, opts.props); }
@@ -3361,6 +3496,8 @@ function initState (vm) {
 }
 
 function initProps (vm, propsOptions) {
+  console.log('执行函数  initProps()  ');
+
   var propsData = vm.$options.propsData || {};
   var props = vm._props = {};
   // cache prop keys so that future props updates can iterate using Array
@@ -3409,6 +3546,8 @@ function initProps (vm, propsOptions) {
 }
 
 function initData (vm) {
+  console.log('执行函数  initData()  ');
+
   var data = vm.$options.data;
   data = vm._data = typeof data === 'function'
     ? getData(data, vm)
@@ -3451,6 +3590,8 @@ function initData (vm) {
 }
 
 function getData (data, vm) {
+  console.log('执行函数  getData()  ');
+
   // #7573 disable dep collection when invoking data getters
   pushTarget();
   try {
@@ -3466,6 +3607,8 @@ function getData (data, vm) {
 var computedWatcherOptions = { lazy: true };
 
 function initComputed (vm, computed) {
+  console.log('执行函数  initComputed()  ');
+
   // $flow-disable-line
   var watchers = vm._computedWatchers = Object.create(null);
   // computed properties are just getters during SSR
@@ -3511,6 +3654,8 @@ function defineComputed (
   key,
   userDef
 ) {
+  console.log('执行函数  defineComputed()  ');
+
   var shouldCache = !isServerRendering();
   if (typeof userDef === 'function') {
     sharedPropertyDefinition.get = shouldCache
@@ -3540,6 +3685,8 @@ function defineComputed (
 }
 
 function createComputedGetter (key) {
+  console.log('执行函数  createComputedGetter()  ');
+
   return function computedGetter () {
     var watcher = this._computedWatchers && this._computedWatchers[key];
     if (watcher) {
@@ -3555,6 +3702,8 @@ function createComputedGetter (key) {
 }
 
 function initMethods (vm, methods) {
+  console.log('执行函数  initMethods()  ');
+
   var props = vm.$options.props;
   for (var key in methods) {
     {
@@ -3583,6 +3732,8 @@ function initMethods (vm, methods) {
 }
 
 function initWatch (vm, watch) {
+  console.log('执行函数  initWatch()  ');
+
   for (var key in watch) {
     var handler = watch[key];
     if (Array.isArray(handler)) {
@@ -3601,6 +3752,8 @@ function createWatcher (
   handler,
   options
 ) {
+  console.log('执行函数  createWatcher()  ');
+
   if (isPlainObject(handler)) {
     options = handler;
     handler = handler.handler;
@@ -3612,6 +3765,7 @@ function createWatcher (
 }
 
 function stateMixin (Vue) {
+  console.log('执行函数  stateMixin()');
   // flow somehow has problems with directly declared definition object
   // when using Object.defineProperty, so we have to procedurally build up
   // the object here.
@@ -3661,6 +3815,8 @@ function stateMixin (Vue) {
 /*  */
 
 function initProvide (vm) {
+  console.log('执行函数  initProvide()  ');
+
   var provide = vm.$options.provide;
   if (provide) {
     vm._provided = typeof provide === 'function'
@@ -3670,6 +3826,8 @@ function initProvide (vm) {
 }
 
 function initInjections (vm) {
+  console.log('执行函数  initInjections()  ');
+
   var result = resolveInject(vm.$options.inject, vm);
   if (result) {
     toggleObserving(false);
@@ -4059,6 +4217,8 @@ function FunctionalRenderContext (
         vnode.fnScopeId = options._scopeId;
         vnode.fnContext = parent;
       }
+      console.log('vnode is : ');
+      console.log(vnode);
       return vnode
     };
   } else {
@@ -4545,6 +4705,7 @@ function initRender (vm) {
 }
 
 function renderMixin (Vue) {
+  console.log('执行函数  renderMixin()');
   // install runtime convenience helpers
   installRenderHelpers(Vue.prototype);
 
@@ -4617,10 +4778,20 @@ function renderMixin (Vue) {
 var uid$3 = 0;
 
 function initMixin (Vue) {
+  console.log('执行函数 initMixin()');
+
+  // options为new Vue()调用时传的参数
   Vue.prototype._init = function (options) {
+    console.log('');
+    console.log('执行函数 Vue.prototype._init()');
+
     var vm = this;
+    console.log('this is:')    
+    console.log(this);
+    console.log(this instanceof Vue);  // true
+
     // a uid
-    vm._uid = uid$3++;
+    vm._uid = uid$3++;    // ?？
 
     var startTag, endTag;
     /* istanbul ignore if */
@@ -4631,8 +4802,11 @@ function initMixin (Vue) {
     }
 
     // a flag to avoid this being observed
-    vm._isVue = true;
+    vm._isVue = true;    // ??
     // merge options
+    console.log('options is:');
+    console.log(options); 
+
     if (options && options._isComponent) {
       // optimize internal component instantiation
       // since dynamic options merging is pretty slow, and none of the
@@ -4640,6 +4814,9 @@ function initMixin (Vue) {
       initInternalComponent(vm, options);
     } else {
       // options里没有传_isComponent属性
+
+      console.log(vm.constructor === Vue);   // true
+
       vm.$options = mergeOptions(
         resolveConstructorOptions(vm.constructor),
         options || {},
@@ -4675,6 +4852,8 @@ function initMixin (Vue) {
 }
 
 function initInternalComponent (vm, options) {
+  console.log('执行函数  initInternalComponent()');
+
   var opts = vm.$options = Object.create(vm.constructor.options);
   // doing this because it's faster than dynamic enumeration.
   var parentVnode = options._parentVnode;
@@ -4696,7 +4875,13 @@ function initInternalComponent (vm, options) {
 }
 
 function resolveConstructorOptions (Ctor) {
+  console.log('');
+  console.log('执行函数 resolveConstructorOptions()');
+
+  console.log(Ctor === Vue);  // true
   var options = Ctor.options;
+  console.log(Ctor.options);
+
   if (Ctor.super) {
     var superOptions = resolveConstructorOptions(Ctor.super);
     var cachedSuperOptions = Ctor.superOptions;
@@ -4752,13 +4937,14 @@ function dedupe (latest, extended, sealed) {
   }
 }
 
-function Vue (options) {
+// options为new Vue()传的参数
+function Vue (options) {  
   if ("development" !== 'production' &&
     !(this instanceof Vue)
   ) {
     warn('Vue is a constructor and should be called with the `new` keyword');
   }
-  console.log('debug 1 ==================================');
+  console.log('debug 1 :进入 Vue 构造函数==================================');
   this._init(options);
 }
 
@@ -4771,7 +4957,11 @@ renderMixin(Vue);
 /*  */
 
 function initUse (Vue) {
+  console.log('执行函数 initUse()');
+
   Vue.use = function (plugin) {
+    console.log('执行函数 Vue.use()');
+
     var installedPlugins = (this._installedPlugins || (this._installedPlugins = []));
     if (installedPlugins.indexOf(plugin) > -1) {
       return this
@@ -4793,7 +4983,12 @@ function initUse (Vue) {
 /*  */
 
 function initMixin$1 (Vue) {
+  console.log('执行函数 initMixin$1()');
+
   Vue.mixin = function (mixin) {
+    console.log('执行函数 Vue.mixin()');
+    console.log(mixin);
+    console.log(this.options);
     this.options = mergeOptions(this.options, mixin);
     return this
   };
@@ -4814,6 +5009,8 @@ function initExtend (Vue) {
    * Class inheritance
    */
   Vue.extend = function (extendOptions) {
+    console.log('执行函数 Vue.extend()');
+
     extendOptions = extendOptions || {};
     var Super = this;
     var SuperId = Super.cid;
@@ -4878,6 +5075,8 @@ function initExtend (Vue) {
 }
 
 function initProps$1 (Comp) {
+  console.log('执行函数 initProps$1()');
+
   var props = Comp.options.props;
   for (var key in props) {
     proxy(Comp.prototype, "_props", key);
@@ -4885,6 +5084,8 @@ function initProps$1 (Comp) {
 }
 
 function initComputed$1 (Comp) {
+  console.log('执行函数 initComputed$1()');
+
   var computed = Comp.options.computed;
   for (var key in computed) {
     defineComputed(Comp.prototype, key, computed[key]);
@@ -4894,6 +5095,8 @@ function initComputed$1 (Comp) {
 /*  */
 
 function initAssetRegisters (Vue) {
+  console.log('执行函数 initAssetRegisters()');
+
   /**
    * Create asset registration methods.
    */
@@ -4926,10 +5129,14 @@ function initAssetRegisters (Vue) {
 /*  */
 
 function getComponentName (opts) {
+  console.log('执行函数 getComponentName()');
+
   return opts && (opts.Ctor.options.name || opts.tag)
 }
 
 function matches (pattern, name) {
+  console.log('执行函数 matches()');
+
   if (Array.isArray(pattern)) {
     return pattern.indexOf(name) > -1
   } else if (typeof pattern === 'string') {
@@ -4942,6 +5149,8 @@ function matches (pattern, name) {
 }
 
 function pruneCache (keepAliveInstance, filter) {
+  console.log('执行函数 pruneCache()');
+
   var cache = keepAliveInstance.cache;
   var keys = keepAliveInstance.keys;
   var _vnode = keepAliveInstance._vnode;
@@ -5086,16 +5295,30 @@ function initGlobalAPI (Vue) {
   Vue.delete = del;
   Vue.nextTick = nextTick;
 
+  /**
+   * 
+   *  初始化Vue.options
+   *  {components: {}, directives: {}, filters: {}, _base: Vue}
+   *
+   */
   Vue.options = Object.create(null);
   ASSET_TYPES.forEach(function (type) {
     Vue.options[type + 's'] = Object.create(null);
   });
+  console.log(Vue.options);
 
   // this is used to identify the "base" constructor to extend all plain-object
   // components with in Weex's multi-instance scenarios.
   Vue.options._base = Vue;
 
   extend(Vue.options.components, builtInComponents);
+  console.log('ASSET_TYPES:  ');
+  console.log(ASSET_TYPES);
+  console.log('builtInComponents:  ');
+  console.log(builtInComponents);
+  console.log(' ASSET_TYPES 和 builtInComponents 来初始化 Vue.options:');
+  console.log(Vue.options);
+
 
   initUse(Vue);
   initMixin$1(Vue);
@@ -10175,6 +10398,8 @@ function generate (
   ast,
   options
 ) {
+  console.log('执行函数  generate()');
+
   var state = new CodegenState(options);
   var code = ast ? genElement(ast, state) : '_c("div")';
   return {
@@ -10184,6 +10409,9 @@ function generate (
 }
 
 function genElement (el, state) {
+  console.log('执行函数  genElement()');
+
+  
   if (el.staticRoot && !el.staticProcessed) {
     return genStatic(el, state)
   } else if (el.once && !el.onceProcessed) {
@@ -10217,6 +10445,8 @@ function genElement (el, state) {
 
 // hoist static sub-trees out
 function genStatic (el, state) {
+  console.log('执行函数 genStatic()');
+  console.log(el);
   el.staticProcessed = true;
   state.staticRenderFns.push(("with(this){return " + (genElement(el, state)) + "}"));
   return ("_m(" + (state.staticRenderFns.length - 1) + (el.staticInFor ? ',true' : '') + ")")
@@ -10224,6 +10454,8 @@ function genStatic (el, state) {
 
 // v-once
 function genOnce (el, state) {
+  console.log('执行函数  genOnce()');
+
   el.onceProcessed = true;
   if (el.if && !el.ifProcessed) {
     return genIf(el, state)
@@ -10255,6 +10487,8 @@ function genIf (
   altGen,
   altEmpty
 ) {
+  console.log('执行函数  genIf()');
+
   el.ifProcessed = true; // avoid recursion
   return genIfConditions(el.ifConditions.slice(), state, altGen, altEmpty)
 }
@@ -10265,6 +10499,9 @@ function genIfConditions (
   altGen,
   altEmpty
 ) {
+  console.log('执行函数  genIfConditions()');
+
+  
   if (!conditions.length) {
     return altEmpty || '_e()'
   }
@@ -10278,6 +10515,8 @@ function genIfConditions (
 
   // v-if with v-once should generate code like (a)?_m(0):_m(1)
   function genTernaryExp (el) {
+    console.log('执行函数  genTernaryExp()');
+
     return altGen
       ? altGen(el, state)
       : el.once
@@ -10292,6 +10531,8 @@ function genFor (
   altGen,
   altHelper
 ) {
+  console.log('执行函数  genFor()');
+
   var exp = el.for;
   var alias = el.alias;
   var iterator1 = el.iterator1 ? ("," + (el.iterator1)) : '';
@@ -10319,6 +10560,8 @@ function genFor (
 }
 
 function genData$2 (el, state) {
+  console.log('执行函数  genData$2()');
+
   var data = '{';
 
   // directives first.
@@ -10397,6 +10640,8 @@ function genData$2 (el, state) {
 }
 
 function genDirectives (el, state) {
+  console.log('执行函数  genDirectives()');
+
   var dirs = el.directives;
   if (!dirs) { return }
   var res = 'directives:[';
@@ -10422,6 +10667,8 @@ function genDirectives (el, state) {
 }
 
 function genInlineTemplate (el, state) {
+  console.log('执行函数  genInlineTemplate()');
+
   var ast = el.children[0];
   if ("development" !== 'production' && (
     el.children.length !== 1 || ast.type !== 1
@@ -10438,6 +10685,8 @@ function genScopedSlots (
   slots,
   state
 ) {
+  console.log('执行函数  genScopedSlots()');
+
   return ("scopedSlots:_u([" + (Object.keys(slots).map(function (key) {
       return genScopedSlot(key, slots[key], state)
     }).join(',')) + "])")
@@ -10448,6 +10697,8 @@ function genScopedSlot (
   el,
   state
 ) {
+  console.log('执行函数  genScopedSlot()');
+
   if (el.for && !el.forProcessed) {
     return genForScopedSlot(key, el, state)
   }
@@ -10465,6 +10716,8 @@ function genForScopedSlot (
   el,
   state
 ) {
+  console.log('执行函数  genForScopedSlot()');
+
   var exp = el.for;
   var alias = el.alias;
   var iterator1 = el.iterator1 ? ("," + (el.iterator1)) : '';
@@ -10483,6 +10736,8 @@ function genChildren (
   altGenElement,
   altGenNode
 ) {
+  console.log('执行函数  genChildren()');
+  console.log(el);
   var children = el.children;
   if (children.length) {
     var el$1 = children[0];
@@ -10510,6 +10765,8 @@ function getNormalizationType (
   children,
   maybeComponent
 ) {
+  console.log('执行函数  getNormalizationType()');
+
   var res = 0;
   for (var i = 0; i < children.length; i++) {
     var el = children[i];
@@ -10530,10 +10787,15 @@ function getNormalizationType (
 }
 
 function needsNormalization (el) {
+  console.log('执行函数  needsNormalization()');
+
   return el.for !== undefined || el.tag === 'template' || el.tag === 'slot'
 }
 
 function genNode (node, state) {
+  console.log('执行函数 genNode()');
+  console.log(node);
+  console.log(state);
   if (node.type === 1) {
     return genElement(node, state)
   } if (node.type === 3 && node.isComment) {
@@ -10544,16 +10806,26 @@ function genNode (node, state) {
 }
 
 function genText (text) {
+  console.log('执行函数  genText()');
+
+  console.log(("_v(" + (text.type === 2
+    ? text.expression
+    : transformSpecialNewlines(JSON.stringify(text.text))) + ")"));
+
   return ("_v(" + (text.type === 2
     ? text.expression // no need for () because already wrapped in _s()
     : transformSpecialNewlines(JSON.stringify(text.text))) + ")")
 }
 
 function genComment (comment) {
+  console.log('执行函数  genComment()');
+
   return ("_e(" + (JSON.stringify(comment.text)) + ")")
 }
 
 function genSlot (el, state) {
+  console.log('执行函数  genSlot()');
+
   var slotName = el.slotName || '"default"';
   var children = genChildren(el, state);
   var res = "_t(" + slotName + (children ? ("," + children) : '');
@@ -10577,11 +10849,14 @@ function genComponent (
   el,
   state
 ) {
+  console.log('执行函数  genComponent()');
   var children = el.inlineTemplate ? null : genChildren(el, state, true);
   return ("_c(" + componentName + "," + (genData$2(el, state)) + (children ? ("," + children) : '') + ")")
 }
 
 function genProps (props) {
+  console.log('执行函数  genProps()');
+
   var res = '';
   for (var i = 0; i < props.length; i++) {
     var prop = props[i];
@@ -10620,6 +10895,8 @@ var stripStringRE = /'(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"|`(?:[^`\\]|\\.)*\$\{|\}
 
 // detect problematic expressions in a template
 function detectErrors (ast) {
+  console.log('执行函数  detectErrors()');
+
   var errors = [];
   if (ast) {
     checkNode(ast, errors);
@@ -10628,6 +10905,9 @@ function detectErrors (ast) {
 }
 
 function checkNode (node, errors) {
+  console.log('执行函数  checkNode()');
+  console.log( node instanceof VNode);  // false
+
   if (node.type === 1) {
     for (var name in node.attrsMap) {
       if (dirRE.test(name)) {
@@ -10654,6 +10934,8 @@ function checkNode (node, errors) {
 }
 
 function checkEvent (exp, text, errors) {
+  console.log('执行函数  checkEvent()');
+
   var stipped = exp.replace(stripStringRE, '');
   var keywordMatch = stipped.match(unaryOperatorsRE);
   if (keywordMatch && stipped.charAt(keywordMatch.index - 1) !== '$') {
@@ -10666,6 +10948,8 @@ function checkEvent (exp, text, errors) {
 }
 
 function checkFor (node, text, errors) {
+  console.log('执行函数  checkFor()');
+
   checkExpression(node.for || '', text, errors);
   checkIdentifier(node.alias, 'v-for alias', text, errors);
   checkIdentifier(node.iterator1, 'v-for iterator', text, errors);
@@ -10678,6 +10962,8 @@ function checkIdentifier (
   text,
   errors
 ) {
+  console.log('执行函数  checkIdentifier()');
+
   if (typeof ident === 'string') {
     try {
       new Function(("var " + ident + "=_"));
@@ -10688,6 +10974,8 @@ function checkIdentifier (
 }
 
 function checkExpression (exp, text, errors) {
+  console.log('执行函数  checkExpression()');
+
   try {
     new Function(("return " + exp));
   } catch (e) {
@@ -10709,7 +10997,14 @@ function checkExpression (exp, text, errors) {
 
 /*  */
 
+/**
+ * 第一个参数的形式如下： 
+ * with(this){return _c('div',{attrs:{"id":"app"}},[_c('div',[_v(_s(name))])])}
+ */
 function createFunction (code, errors) {
+  console.log('执行函数  createFunction()');
+  console.log(code);
+
   try {
     return new Function(code)
   } catch (err) {
@@ -10719,6 +11014,8 @@ function createFunction (code, errors) {
 }
 
 function createCompileToFunctionFn (compile) {
+  console.log('执行函数  createCompileToFunctionFn()');
+
   var cache = Object.create(null);
 
   return function compileToFunctions (
@@ -10726,6 +11023,8 @@ function createCompileToFunctionFn (compile) {
     options,
     vm
   ) {
+    console.log('执行函数  compileToFunctions()');
+
     options = extend({}, options);
     var warn$$1 = options.warn || warn;
     delete options.warn;
@@ -10807,11 +11106,16 @@ function createCompileToFunctionFn (compile) {
 /*  */
 
 function createCompilerCreator (baseCompile) {
+  console.log('执行函数  createCompilerCreator()');
+
   return function createCompiler (baseOptions) {
     function compile (
       template,
       options
     ) {
+      console.log('执行函数  compile()');
+      console.log(baseOptions);
+
       var finalOptions = Object.create(baseOptions);
       var errors = [];
       var tips = [];
@@ -10865,6 +11169,8 @@ var createCompiler = createCompilerCreator(function baseCompile (
   template,
   options
 ) {
+  console.log('执行函数  baseCompile()');
+
   var ast = parse(template.trim(), options);
   if (options.optimize !== false) {
     optimize(ast, options);
@@ -10880,6 +11186,9 @@ var createCompiler = createCompilerCreator(function baseCompile (
 /*  */
 
 var ref$1 = createCompiler(baseOptions);
+console.log('ref$1 is : ');
+console.log(ref$1);
+
 var compileToFunctions = ref$1.compileToFunctions;
 
 /*  */
@@ -10887,6 +11196,8 @@ var compileToFunctions = ref$1.compileToFunctions;
 // check whether current browser encodes a char inside attribute values
 var div;
 function getShouldDecode (href) {
+  console.log('执行函数  getShouldDecode()');
+
   div = div || document.createElement('div');
   div.innerHTML = href ? "<a href=\"\n\"/>" : "<div a=\"\n\"/>";
   return div.innerHTML.indexOf('&#10;') > 0
@@ -10900,6 +11211,8 @@ var shouldDecodeNewlinesForHref = inBrowser ? getShouldDecode(true) : false;
 /*  */
 
 var idToTemplate = cached(function (id) {
+  console.log('获取 内部idToTemplte');
+
   var el = query(id);
   return el && el.innerHTML
 });
@@ -10909,7 +11222,10 @@ Vue.prototype.$mount = function (
   el,
   hydrating
 ) {
-  el = el && query(el);
+  console.log('执行函数  Vue.prototype.$mount()');
+  console.log(el);   // 如果初始化 var myVm = new Vue({ el: '#app'})， 则el就是'#app'
+  el = el && query(el);  // 返回dom节点
+  console.log(el);     // dom节点，html结构，如 <div id="app"><div>{{name}}</div></div>
 
   /* istanbul ignore if */
   if (el === document.body || el === document.documentElement) {
@@ -10921,6 +11237,7 @@ Vue.prototype.$mount = function (
 
   var options = this.$options;
   // resolve template/el and convert to render function
+  console.log(options);
   if (!options.render) {
     var template = options.template;
     if (template) {
@@ -10963,6 +11280,7 @@ Vue.prototype.$mount = function (
       options.render = render;
       options.staticRenderFns = staticRenderFns;
 
+      console.log(options);
       /* istanbul ignore if */
       if ("development" !== 'production' && config.performance && mark) {
         mark('compile end');
@@ -10976,10 +11294,13 @@ Vue.prototype.$mount = function (
 /**
  * Get outerHTML of elements, taking care
  * of SVG elements in IE as well.
+ * 传入参数为dom节点， 返回dom节点的字符串形式  如 "<div id="app"><div>hello world</div></div>"
  */
 function getOuterHTML (el) {
+  console.log('执行函数  getOuterHTML()');
+  console.log(el);
   if (el.outerHTML) {
-    return el.outerHTML
+    return el.outerHTML    
   } else {
     var container = document.createElement('div');
     container.appendChild(el.cloneNode(true));
@@ -10988,7 +11309,13 @@ function getOuterHTML (el) {
 }
 
 Vue.compile = compileToFunctions;
+console.log(compileToFunctions);
 
-return Vue;
+// return Vue;
 
-})));
+// })));
+
+// var myVm = new Vue({ 
+//       el:'', 
+//       data:{ num : 220 }
+//  })
