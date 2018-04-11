@@ -11,12 +11,29 @@
     use vue
     <div id="app">
         <div>{{name}}</div>
+        <div>{{count}}</div>
+        <div @click="addCount()">click here</div>
     </div>
     <script>
         var myVm = new Vue({
             el: '#app',
             data: {
-                name: 'hello world'
+                name: 'hello world',
+                width: '10px',
+                count: 1
+            },
+            methods: {
+                setName: function() {
+                    this.name = 'hello world 2222'
+                },
+                addCount: function() {
+                    this.count++;
+                }
+            },
+            watch: {
+                name: function() {
+                    this.width = '10px 2222';
+                }
             }
         });
 

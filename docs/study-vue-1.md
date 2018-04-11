@@ -17,10 +17,10 @@ function Vue (options) {
 }
 ```
 
-options参数对象变量来接收用户传入的实参， 实参对象里我们可以定义一些属性：el，data，computed，methods，watch，created， mounted，components等等。
+options变量来接收用户传入的实参， 实参对象里我们可以定义许多约定好的属性：el，data，computed，methods，watch，created， mounted，components等等。
 从这个函数的开始大括号到结束大括号，该构造函数做了什么？ 
-简单来说，就是分别处理我们传入的实参对象属性，然后在Vue.prototype上实现了很多方法(接口)，并且在Vue和this上添加了很多属性。
-入口就是this._init()，该方法也是在Vue.prototype原型上实现的。
+简单来说，就是分别处理我们传入的实参对象属性，然后在Vue.prototype上实现了很多接口方法，并且在Vue上添加了很多全局API，this上添加了很多属性。
+从构造函数的函数体来看，入口就是this._init()，该方法也是在Vue.prototype原型上实现的。
 
 #### 从最熟悉的一个属性el挂载点开始说起 (比如el: #app)
 从this._init(options)进入Vue.prototype._init()函数：

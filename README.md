@@ -19,6 +19,7 @@
 * 源码和API官网一起看
     * [源码点这里](https://github.com/vuejs/vue)
     * [API官网点这里](https://cn.vuejs.org/v2/api/index.html)
+    * [Vue生命周期流程图](https://github.com/baoendemao/study-vue-source-code/blob/master/images/lifecycle.png)
 * 如何从git commit的记录来学习源码
     * git log命令可以查看push的commit编码（可以git log重定向到某个文件，以后每次方便查找）
     * git checkout commit编码的前六位
