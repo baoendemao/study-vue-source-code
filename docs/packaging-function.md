@@ -1,6 +1,6 @@
 文章主要记录学习Vue的过程，由于水平有限，有理解不对的地方，欢迎指出来，Thanks♪(･ω･)ﾉ
 
---
+---
 
 在Vue源码中，封装了很多优雅精辟的函数，本节主要介绍这些函数。
 
@@ -33,5 +33,15 @@ var _toString = Object.prototype.toString;
 function isPlainObject (obj) {
   return _toString.call(obj) === '[object Object]'
 }
+
+// 利用纯函数fn来实现缓存
+function cached (fn) {
+  var cache = Object.create(null);  // 缓存初始化为空对象
+  return (function cachedFn (str) {
+    var hit = cache[str];      // 因为纯函数只依赖输入，所以这边可以使用输入当做Key
+    return hit || (cache[str] = fn(str))  // 如果缓存中有，则取缓存中的，否则赋值给缓存相应的key，并返回。
+  })
+}
+
 
 ```
