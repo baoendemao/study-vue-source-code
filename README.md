@@ -14,7 +14,7 @@
 * [vue的路由](https://github.com/baoendemao/study-vue-source-code/tree/master/docs/vue-router.md)
 * [vue的指令](https://github.com/baoendemao/study-vue-source-code/tree/master/docs/vue-directive.md)
 * [vue的组件](https://github.com/baoendemao/study-vue-source-code/tree/master/docs/vue-component.md)
-* [Vue源码封装的常用函数](https://github.com/baoendemao/study-vue-source-code/tree/master/docs/packaging-function.md)
+* [Vue源码封装的函数](https://github.com/baoendemao/study-vue-source-code/tree/master/docs/packaging-function.md)
 
 #### 几个帮助到我学习vue的操作
 * 源码和API官网一起看

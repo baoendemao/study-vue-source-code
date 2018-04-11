@@ -43,5 +43,26 @@ function cached (fn) {
   })
 }
 
+// 根据输入的字符串str建立一个map，其中str约定以逗号分隔， 返回一个根据入参来对map取值的函数
+function makeMap (
+  str,
+  expectsLowerCase
+) {
+  var map = Object.create(null);   // 空对象
+  var list = str.split(','); 
+  for (var i = 0; i < list.length; i++) {
+    map[list[i]] = true;
+  }
+
+  return expectsLowerCase
+    ? function (val) { return map[val.toLowerCase()]; }
+    : function (val) { return map[val]; }
+}
+调用：
+var isPlainTextElement = makeMap('script,style,textarea', true);
+isPlainTextElement('style');    // true
+isPlainTextElement('div');      // undefined, 因为map中没有相应的key
+
+
 
 ```
