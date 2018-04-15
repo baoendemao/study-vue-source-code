@@ -8,7 +8,7 @@
 
 #### Vue
 * [new Vue实例](https://github.com/baoendemao/study-vue-source-code/tree/master/docs/vue-instance.md)
-* [vue的template更新](https://github.com/baoendemao/study-vue-source-code/tree/master/docs/vue-template-update.md)
+* [vue的template生成html](https://github.com/baoendemao/study-vue-source-code/tree/master/docs/vue-template-html.md)
 * [vdom和真实的dom对比](https://github.com/baoendemao/study-vue-source-code/tree/master/docs/vr-dom-compare.md)
 * [vue的生命周期](https://github.com/baoendemao/study-vue-source-code/tree/master/docs/vue-life-cycle.md)
 * [vue的路由](https://github.com/baoendemao/study-vue-source-code/tree/master/docs/vue-router.md)
