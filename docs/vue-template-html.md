@@ -1,5 +1,9 @@
 #### vue模板字符串解析
-* 首先理解ES6模板字符串, 参见[javascript总结/string部分](https://github.com/baoendemao/javascript-summary/tree/master/docs/string.md)
+* 理解Javascript的编译和执行过程
+  * 词法解析：经过分词和词法分析、语法解析转换成一个程序语法结构的树，即抽象语法树留（AST， abstract syntax tree）。在AST上的节点是JS的各个词法单元，如JS的关键字，变量等。
+  * 代码生成：将AST转换成可执行代码。
+  * 经过编译过程之后，最后执行JS代码。
+* 理解ES6模板字符串, 参见[javascript总结/string部分](https://github.com/baoendemao/javascript-summary/tree/master/docs/string.md)
 * 如何使用vue模板
 通过Vue.component注册组件的时候，初始化组件的模板。
 ```
