@@ -5,35 +5,60 @@
 在Vue源码中，封装了很多优雅精辟的函数，本节主要介绍这些函数。
 
 
-```
+* Object.freeze({})
 
+```
 // 不可以再添加新属性
 var emptyObject = Object.freeze({});
+```
 
+* isUndef()
+
+```
 function isUndef (v) {
   return v === undefined || v === null
 }
+```
 
+* isDef()
+
+```
 function isDef (v) {
   return v !== undefined && v !== null
 }
+```
 
+* isTrue()
+
+```
 // 判断真值，严格等于true
 function isTrue (v) {
   return v === true
 }
+```
 
+* isFalse()
+
+```
 // 判断假值，严格等于false
 function isFalse (v) {
   return v === false
 }
+```
 
+* isPlainObject()
+
+```
 // obj是纯对象的时候，返回true
 var _toString = Object.prototype.toString;
 function isPlainObject (obj) {
   return _toString.call(obj) === '[object Object]'
 }
+```
 
+* cached()
+
+```
 // 利用纯函数fn来实现缓存
 function cached (fn) {
   var cache = Object.create(null);  // 缓存初始化为空对象
@@ -42,8 +67,13 @@ function cached (fn) {
     return hit || (cache[str] = fn(str))  // 如果缓存中有，则取缓存中的，否则赋值给缓存相应的key，并返回。
   })
 }
+```
 
+* makeMap()
+
+```
 // 根据输入的字符串str建立一个map，其中str约定以逗号分隔， 返回一个根据入参来对map取值的函数
+// 例如： 执行makeMap('key,ref,slot,slot-scope,is')，则生成map {key: true, ref: true, slot: true, slot-scope: true, is: true}
 function makeMap (
   str,
   expectsLowerCase
@@ -63,6 +93,127 @@ var isPlainTextElement = makeMap('script,style,textarea', true);
 isPlainTextElement('style');    // true
 isPlainTextElement('div');      // undefined, 因为map中没有相应的key
 
+```
 
+* isHTMLTag()
 
+```
+// 方便判断字符串是否是html标签
+var isHTMLTag = makeMap(
+  'html,body,base,head,link,meta,style,title,' +
+  'address,article,aside,footer,header,h1,h2,h3,h4,h5,h6,hgroup,nav,section,' +
+  'div,dd,dl,dt,figcaption,figure,picture,hr,img,li,main,ol,p,pre,ul,' +
+  'a,b,abbr,bdi,bdo,br,cite,code,data,dfn,em,i,kbd,mark,q,rp,rt,rtc,ruby,' +
+  's,samp,small,span,strong,sub,sup,time,u,var,wbr,area,audio,map,track,video,' +
+  'embed,object,param,source,canvas,script,noscript,del,ins,' +
+  'caption,col,colgroup,table,thead,tbody,td,th,tr,' +
+  'button,datalist,fieldset,form,input,label,legend,meter,optgroup,option,' +
+  'output,progress,select,textarea,' +
+  'details,dialog,menu,menuitem,summary,' +
+  'content,element,shadow,template,blockquote,iframe,tfoot'
+);
+```
+
+* isReservedTag()
+
+```
+// 参数tag是否是保留字
+var isReservedTag = function (tag) {
+  return isHTMLTag(tag) || isSVG(tag)
+};
+```
+* isBuiltInTag()
+
+```
+var isBuiltInTag = makeMap('slot,component', true);
+```
+
+* query()
+
+```
+// 查询el，如果没找到，则返回一个新创建的dom元素
+function query (el) {
+  if (typeof el === 'string') {
+    var selected = document.querySelector(el);    // 形如：document.querySelector('div#app')
+    if (!selected) {
+      "development" !== 'production' && warn(
+        'Cannot find element: ' + el
+      );
+      return document.createElement('div')
+    }
+    return selected
+  } else {
+    return el
+  }
+}
+```
+
+* sharedPropertyDefinition
+
+```
+var sharedPropertyDefinition = {
+  enumerable: true,
+  configurable: true,
+  get: noop,
+  set: noop
+};
+
+/* 此处修改Object,defineProperty配置属性 */
+
+Object.defineProperty(obj, key, sharedPropertyDefinition);
+```
+
+* proxy
+
+```
+function proxy (target, sourceKey, key) {
+  sharedPropertyDefinition.get = function proxyGetter () {
+    return this[sourceKey][key]
+  };
+  sharedPropertyDefinition.set = function proxySetter (val) {
+    this[sourceKey][key] = val;
+  };
+  Object.defineProperty(target, key, sharedPropertyDefinition);
+}
+```
+
+* looseEqual()
+
+```
+// 比较a和b是否相等，注意引用对象之间的比较： 数组和纯对象
+function looseEqual (a, b) {
+
+  if (a === b) { return true }
+  
+  var isObjectA = isObject(a);
+  var isObjectB = isObject(b);
+
+  if (isObjectA && isObjectB) {
+    try {
+      var isArrayA = Array.isArray(a);
+      var isArrayB = Array.isArray(b);
+      if (isArrayA && isArrayB) {
+        return a.length === b.length && a.every(function (e, i) {
+          return looseEqual(e, b[i])
+        })
+      } else if (!isArrayA && !isArrayB) {
+          var keysA = Object.keys(a);
+          var keysB = Object.keys(b);
+          return keysA.length === keysB.length && keysA.every(function (key) {
+            return looseEqual(a[key], b[key])   // 递归
+        })
+      } else {
+        /* istanbul ignore next */
+        return false
+      }
+    } catch (e) {
+      /* istanbul ignore next */
+      return false
+    }
+  } else if (!isObjectA && !isObjectB) {
+    return String(a) === String(b)
+  } else {
+    return false
+  }
+}
 ```
