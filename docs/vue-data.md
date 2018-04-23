@@ -119,9 +119,10 @@ function proxy (target, sourceKey, key) {
 * observe()  走进MVVM
 
 ```
-// value即vm["_data"]
+// 对对象value中的属性进行双向数据绑定， 如果value中的某个属性也是对象，需要递归调用此函数
+// 对data的绑定中的value即vm["_data"]  
 function observe (value, asRootData) {
-
+   
   if (!isObject(value) || value instanceof VNode) {
     return
   }
@@ -146,8 +147,6 @@ function observe (value, asRootData) {
 }
 
 ```
-
-* 
 
 ```
 // 观察者构造函数
@@ -199,26 +198,28 @@ function defineReactive (
 
   var dep = new Dep();
 
-  var property = Object.getOwnPropertyDescriptor(obj, key);
+  // 获取obj[key]的每个属性描述符
+  var property = Object.getOwnPropertyDescriptor(obj, key);  
 
   if (property && property.configurable === false) {
     return
   }
 
   // cater for pre-defined getter/setters
-  var getter = property && property.get;
+  var getter = property && property.get;    // 取出之前定义的get
   if (!getter && arguments.length === 2) {
     val = obj[key];
   }
-  var setter = property && property.set; 
+  var setter = property && property.set;    // 取出之前定义的set
 
-  var childOb = !shallow && observe(val);
+  var childOb = !shallow && observe(val);   // 对obj[key]进行递归绑定
 
+  // 对vm['data']里的每个属性添加set和get方法
   Object.defineProperty(obj, key, {
     enumerable: true,
     configurable: true,
     get: function reactiveGetter () {
-      var value = getter ? getter.call(obj) : val;
+      var value = getter ? getter.call(obj) : val;  // 如果属性原本有get方法，则执行获取value
       if (Dep.target) {
         dep.depend();
         if (childOb) {
@@ -241,8 +242,7 @@ function defineReactive (
         customSetter();
       }
       if (setter) {
-                /*如果原本对象拥有setter方法则执行setter*/
-        setter.call(obj, newVal);
+        setter.call(obj, newVal);    // 如果属性原本有set，则执行原来的set
       } else {
         val = newVal;
       }
@@ -251,4 +251,39 @@ function defineReactive (
     }
   });
 }  
+```
+
+
+```
+
+var Dep = function Dep () {
+  this.id = uid++;
+  this.subs = [];   // 存放订阅者对象
+};
+
+// 添加订阅者
+Dep.prototype.addSub = function addSub (sub) {
+  this.subs.push(sub);   
+};
+
+// 移除订阅者
+Dep.prototype.removeSub = function removeSub (sub) {
+  remove(this.subs, sub);   
+};
+
+Dep.prototype.depend = function depend () {
+  if (Dep.target) {
+    Dep.target.addDep(this);
+  }
+};
+
+// 通知每个订阅者
+Dep.prototype.notify = function notify () {
+  // stabilize the subscriber list first
+  var subs = this.subs.slice();
+  for (var i = 0, l = subs.length; i < l; i++) {
+    subs[i].update();   
+  }
+};
+
 ```
