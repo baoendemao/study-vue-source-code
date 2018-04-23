@@ -2,8 +2,59 @@
 
 ---
 
-在Vue源码中，封装了很多优雅精辟的函数，本节主要介绍这些函数。
+在Vue源码中，封装了很多优雅精辟的函数，本节主要介绍这些函数, 希望可以帮助更好的理解vue源码。
 
+
+* looseEqual()
+
+```
+// 比较a和b是否相等，注意引用对象之间的比较： 数组和纯对象
+function looseEqual (a, b) {
+
+  if (a === b) { return true }
+  
+  var isObjectA = isObject(a);
+  var isObjectB = isObject(b);
+
+  if (isObjectA && isObjectB) {
+    try {
+      var isArrayA = Array.isArray(a);
+      var isArrayB = Array.isArray(b);
+      if (isArrayA && isArrayB) {
+        return a.length === b.length && a.every(function (e, i) {
+          return looseEqual(e, b[i])
+        })
+      } else if (!isArrayA && !isArrayB) {
+          var keysA = Object.keys(a);
+          var keysB = Object.keys(b);
+          return keysA.length === keysB.length && keysA.every(function (key) {
+            return looseEqual(a[key], b[key])   // 递归
+        })
+      } else {
+        /* istanbul ignore next */
+        return false
+      }
+    } catch (e) {
+      /* istanbul ignore next */
+      return false
+    }
+  } else if (!isObjectA && !isObjectB) {
+    return String(a) === String(b)
+  } else {
+    return false
+  }
+}
+```
+
+* hasOwn()
+
+```
+// 判断是对象自身属性，而不是来自于原型链
+var hasOwnProperty = Object.prototype.hasOwnProperty;
+function hasOwn (obj, key) {
+  return hasOwnProperty.call(obj, key)
+}
+```
 
 * Object.freeze({})
 
@@ -56,6 +107,15 @@ function isPlainObject (obj) {
 }
 ```
 
+* isObject()
+
+```
+// 判断是否是引用类型，主要是用来区分object类型和基本数据类型
+function isObject (obj) {
+  return obj !== null && typeof obj === 'object'
+}
+```
+
 * cached()
 
 ```
@@ -66,6 +126,16 @@ function cached (fn) {
     var hit = cache[str];      // 因为纯函数只依赖输入，所以这边可以使用输入当做Key
     return hit || (cache[str] = fn(str))  // 如果缓存中有，则取缓存中的，否则赋值给缓存相应的key，并返回。
   })
+}
+```
+
+* isReserved()
+
+```
+// 是否是保留字，以$或者_开头
+function isReserved (str) {
+  var c = (str + '').charCodeAt(0);
+  return c === 0x24 || c === 0x5F
 }
 ```
 
@@ -163,9 +233,10 @@ var sharedPropertyDefinition = {
 Object.defineProperty(obj, key, sharedPropertyDefinition);
 ```
 
-* proxy
+* proxy()
 
 ```
+// 将原本this[sourceKey][key], 代理到target[key]
 function proxy (target, sourceKey, key) {
   sharedPropertyDefinition.get = function proxyGetter () {
     return this[sourceKey][key]
@@ -175,45 +246,20 @@ function proxy (target, sourceKey, key) {
   };
   Object.defineProperty(target, key, sharedPropertyDefinition);
 }
+
+调用： proxy(vm, "_data", key);   // 将vm["_data"][key]属性代理到 vm[key]
 ```
 
-* looseEqual()
+* def()
 
 ```
-// 比较a和b是否相等，注意引用对象之间的比较： 数组和纯对象
-function looseEqual (a, b) {
-
-  if (a === b) { return true }
-  
-  var isObjectA = isObject(a);
-  var isObjectB = isObject(b);
-
-  if (isObjectA && isObjectB) {
-    try {
-      var isArrayA = Array.isArray(a);
-      var isArrayB = Array.isArray(b);
-      if (isArrayA && isArrayB) {
-        return a.length === b.length && a.every(function (e, i) {
-          return looseEqual(e, b[i])
-        })
-      } else if (!isArrayA && !isArrayB) {
-          var keysA = Object.keys(a);
-          var keysB = Object.keys(b);
-          return keysA.length === keysB.length && keysA.every(function (key) {
-            return looseEqual(a[key], b[key])   // 递归
-        })
-      } else {
-        /* istanbul ignore next */
-        return false
-      }
-    } catch (e) {
-      /* istanbul ignore next */
-      return false
-    }
-  } else if (!isObjectA && !isObjectB) {
-    return String(a) === String(b)
-  } else {
-    return false
-  }
+function def (obj, key, val, enumerable) {
+  Object.defineProperty(obj, key, {
+    value: val,
+    enumerable: !!enumerable,
+    writable: true,
+    configurable: true
+  });
 }
 ```
+
