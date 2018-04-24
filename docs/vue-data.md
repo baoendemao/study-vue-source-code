@@ -159,7 +159,7 @@ var Observer = function Observer (value) {
   def(value, '__ob__', this);    // value对象上新加属性_ob_, 即vm["_data"]上新加了属性__ob__
 
   if (Array.isArray(value)) {
-    // value如果是数组
+    // value如果是数组，需要对数组中的每个元素重新observe
 
     var augment = hasProto     
       ? protoAugment    
@@ -168,9 +168,18 @@ var Observer = function Observer (value) {
 
     this.observeArray(value);
   } else {
-    // value如果是对象
+    // value如果是对象, 直接使用Object.defineProperty对每个属性监听
 
     this.walk(value);
+  }
+};
+```
+
+```
+// 遍历数组的每个元素
+Observer.prototype.observeArray = function observeArray (items) {
+  for (var i = 0, l = items.length; i < l; i++) {
+    observe(items[i]);
   }
 };
 ```
@@ -246,7 +255,7 @@ function defineReactive (
       } else {
         val = newVal;
       }
-      childOb = !shallow && observe(newVal);
+      childOb = !shallow && observe(newVal);  // 对新值进行监听
       dep.notify();
     }
   });
