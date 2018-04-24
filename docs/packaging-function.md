@@ -263,3 +263,14 @@ function def (obj, key, val, enumerable) {
 }
 ```
 
+* extend()
+
+```
+// 在to对象里添加_from对象没有的，但是如果两者共有的，则to里相应key的值会被_from的值覆盖
+function extend (to, _from) {
+  for (var key in _from) {
+    to[key] = _from[key];
+  }
+  return to
+}
+```
