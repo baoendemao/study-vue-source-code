@@ -221,12 +221,15 @@ function query (el) {
 * sharedPropertyDefinition
 
 ```
+function noop (a, b, c) {}
+
 var sharedPropertyDefinition = {
   enumerable: true,
   configurable: true,
   get: noop,
   set: noop
 };
+
 
 /* 此处修改Object,defineProperty配置属性 */
 
@@ -236,7 +239,7 @@ Object.defineProperty(obj, key, sharedPropertyDefinition);
 * proxy()
 
 ```
-// 将原本this[sourceKey][key], 代理到target[key]
+// 将原本target[sourceKey][key], 代理到target[key]
 function proxy (target, sourceKey, key) {
   sharedPropertyDefinition.get = function proxyGetter () {
     return this[sourceKey][key]
@@ -273,4 +276,52 @@ function extend (to, _from) {
   }
   return to
 }
+```
+
+* toArray()
+
+```
+// 类数组对象list转换成真正的数组，从索引start开始
+function toArray (list, start) {
+  start = start || 0;
+  var i = list.length - start;
+  var ret = new Array(i);
+  while (i--) {
+    ret[i] = list[i + start];
+  }
+  return ret
+}
+```
+
+* toObject()
+
+```
+// 将对象数组合并成一个新的对象， 后面的对象会覆盖前面对象的属性
+function toObject (arr) {
+  var res = {};
+  for (var i = 0; i < arr.length; i++) {
+    if (arr[i]) {
+      extend(res, arr[i]);
+    }
+  }
+  return res
+}
+
+调用： 例如： var o = [{a: 1, b : 2}, {a: 11, c: 3}]; 结果是： {a: 11, b: 2, c: 3}
+```
+
+* remove()
+
+```
+// 从数组arr中删除item
+function remove (arr, item) {
+  if (arr.length) {
+    var index = arr.indexOf(item);
+    if (index > -1) {
+      return arr.splice(index, 1)
+    }
+  }
+}
+
+调用： remove(this.subs, sub);   // dep对象从subs中移除Watcher对象sub
 ```

@@ -152,7 +152,7 @@ function observe (value, asRootData) {
 // 观察者构造函数
 var Observer = function Observer (value) {
   this.value = value;
-  this.dep = new Dep();
+  this.dep = new Dep();   
   this.vmCount = 0;   
     
 
@@ -197,6 +197,7 @@ Observer.prototype.walk = function walk (obj) {
 
 
 ```
+//  使用Object.defineProperty对每个属性进行绑定
 function defineReactive (
   obj,
   key,
@@ -267,15 +268,15 @@ function defineReactive (
 
 var Dep = function Dep () {
   this.id = uid++;
-  this.subs = [];   // 存放订阅者对象
+  this.subs = [];   // 存放观察者Watcher对象
 };
 
-// 添加订阅者
+// 添加观察者
 Dep.prototype.addSub = function addSub (sub) {
-  this.subs.push(sub);   
+  this.subs.push(sub);    // push Watcher对象
 };
 
-// 移除订阅者
+// 移除观察者
 Dep.prototype.removeSub = function removeSub (sub) {
   remove(this.subs, sub);   
 };
@@ -286,7 +287,7 @@ Dep.prototype.depend = function depend () {
   }
 };
 
-// 通知每个订阅者
+// 通知每个watcher
 Dep.prototype.notify = function notify () {
   // stabilize the subscriber list first
   var subs = this.subs.slice();
