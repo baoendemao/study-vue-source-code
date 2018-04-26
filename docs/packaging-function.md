@@ -325,3 +325,14 @@ function remove (arr, item) {
 
 调用： remove(this.subs, sub);   // dep对象从subs中移除Watcher对象sub
 ```
+
+* trigger()
+
+```
+// 自定义事件type, el触发事件
+function trigger (el, type) {
+  var e = document.createEvent('HTMLEvents');   // 创建事件， e 就是被创建的 Event 对象
+  e.initEvent(type, true, true);    // 定义事件名为type
+  el.dispatchEvent(e);    //  触发对象el可以是任何元素或其他事件目标
+}
+```
