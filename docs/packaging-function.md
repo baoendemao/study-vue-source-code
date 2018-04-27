@@ -46,6 +46,18 @@ function looseEqual (a, b) {
 }
 ```
 
+* looseIndexOf()
+
+```
+// 找出数组arr中值等于val的索引
+function looseIndexOf (arr, val) {
+  for (var i = 0; i < arr.length; i++) {
+    if (looseEqual(arr[i], val)) { return i }
+  }
+  return -1
+}
+```
+
 * hasOwn()
 
 ```
@@ -120,6 +132,16 @@ var _toString = Object.prototype.toString;
 function isPlainObject (obj) {
   return _toString.call(obj) === '[object Object]'
 }
+```
+* toRawType()
+
+```
+// 获取值的原始类型字符串
+var _toString = Object.prototype.toString;
+function toRawType (value) {
+  return _toString.call(value).slice(8, -1)   // 从第八位到倒数第二位
+}
+例如： toRawType('hello')，返回"String"
 ```
 
 * isObject()
@@ -206,7 +228,11 @@ var isHTMLTag = makeMap(
 var isReservedTag = function (tag) {
   return isHTMLTag(tag) || isSVG(tag)
 };
+
+Vue.config.isReservedTag = isReservedTag;
+
 ```
+
 * isBuiltInTag()
 
 ```
@@ -374,19 +400,23 @@ function set (target, key, val) {
     warn(("Cannot set reactive property on undefined, null, or primitive value: " + ((target))));
   }
 
+  // 如果target是数组，则在key索引的位置替换成val， 
+  // 数组是通过在原生数组方法上修改实现响应式的，所以这里不需要trigger change notification, 所以直接return
   if (Array.isArray(target) && isValidArrayIndex(key)) {
     target.length = Math.max(target.length, key);
     target.splice(key, 1, val);
     return val
   }
 
+  // 如果key已经存在, return
   if (key in target && !(key in Object.prototype)) {
     target[key] = val;
     return val
   }
 
+  // 获得target对象上的Observer
   var ob = (target).__ob__;
-
+  
   if (target._isVue || (ob && ob.vmCount)) {
    
     "development" !== 'production' && warn(
@@ -395,11 +425,14 @@ function set (target, key, val) {
     );
     return val
   }
+
+  // 如果Observer不存在，则直接返回
   if (!ob) {
     target[key] = val;
     return val
   }
 
+  // 如果Observer存在，则trigger change notification
   defineReactive(ob.value, key, val);
   ob.dep.notify();
   return val
@@ -408,6 +441,7 @@ function set (target, key, val) {
 
 * mergeData()
 
+```
 function mergeData (to, from) {
 
   if (!from) { return to }
@@ -425,6 +459,7 @@ function mergeData (to, from) {
   }
   return to
 }
+```
 
 * mergeDataOrFn()
 
@@ -523,4 +558,181 @@ strats.data = function (
   return mergeDataOrFn(parentVal, childVal, vm)
 };
 
+function mergeHook (
+  parentVal,
+  childVal
+) {
+  return childVal
+    ? parentVal
+      ? parentVal.concat(childVal)
+      : Array.isArray(childVal)
+        ? childVal
+        : [childVal]
+    : parentVal
+}
+
+LIFECYCLE_HOOKS.forEach(function (hook) {
+  strats[hook] = mergeHook;
+});
+
+function mergeAssets (
+  parentVal,
+  childVal,
+  vm,
+  key
+) {
+  var res = Object.create(parentVal || null);
+  if (childVal) {
+    "development" !== 'production' && assertObjectType(key, childVal, vm);
+    return extend(res, childVal)
+  } else {
+    return res
+  }
+}
+
+ASSET_TYPES.forEach(function (type) {
+  strats[type + 's'] = mergeAssets;
+});
+
+strats.props =
+strats.methods =
+strats.inject =
+strats.computed = function (
+  parentVal,
+  childVal,
+  vm,
+  key
+) {
+  if (childVal && "development" !== 'production') {
+    assertObjectType(key, childVal, vm);
+  }
+  if (!parentVal) { return childVal }
+  var ret = Object.create(null);
+  extend(ret, parentVal);
+  if (childVal) { extend(ret, childVal); }
+  return ret
+};
+strats.provide = mergeDataOrFn;
+
+
+
+
+```
+
+* validateComponentName()
+
+```
+// 检测name是否是有效的组件名字
+function validateComponentName (name) {
+  if (!/^[a-zA-Z][\w-]*$/.test(name)) {
+    warn(
+      'Invalid component name: "' + name + '". Component names ' +
+      'can only contain alphanumeric characters and the hyphen, ' +
+      'and must start with a letter.'
+    );
+  }
+  if (isBuiltInTag(name) || config.isReservedTag(name)) {
+    warn(
+      'Do not use built-in or reserved HTML elements as component ' +
+      'id: ' + name
+    );
+  }
+}
+```
+* checkComponents()
+
+```
+// 检测options.components对象里的组件名字是否有效
+function checkComponents (options) {
+  for (var key in options.components) {
+    validateComponentName(key);
+  }
+}
+```
+* Dep 依赖收集
+
+```
+var Dep = function Dep () {
+  this.id = uid++;
+  this.subs = [];
+};
+
+Dep.prototype.addSub = function addSub (sub) {
+  console.log(sub instanceof Watcher)  // true
+  this.subs.push(sub);
+};
+
+Dep.prototype.removeSub = function removeSub (sub) {
+  remove(this.subs, sub);   // 从数组this.subs中删除sub
+};
+
+Dep.prototype.depend = function depend () {
+  if (Dep.target) {   // 注意target存在的时候才添加
+    Dep.target.addDep(this);
+  }
+};
+
+Dep.prototype.notify = function notify () {
+  var subs = this.subs.slice();
+  for (var i = 0, l = subs.length; i < l; i++) {
+    subs[i].update();
+  }
+};
+
+```
+
+* camelize()
+
+```
+var camelizeRE = /-(\w)/g;    // -后面紧跟着的字符，变成大写字母
+var camelize = cached(function (str) {
+  return str.replace(camelizeRE, function (_, c) { return c ? c.toUpperCase() : ''; })
+});
+
+例如: camelize('df-abcd-eee')  结果是："dfAbcdEee"
+```
+
+* normalizeProps()
+
+```
+// 处理传入的options.props格式化成对象
+function normalizeProps (options, vm) {
+  var props = options.props;
+  if (!props) { return }
+  var res = {};
+  var i, val, name;
+  
+  
+  if (Array.isArray(props)) {
+    // 如果props是数组，数组中的每个值必须是字符串, 将每个值作为key传给res返回
+
+    i = props.length;
+    while (i--) {
+      val = props[i];
+      if (typeof val === 'string') {
+        name = camelize(val);
+        res[name] = { type: null };
+      } else {
+        warn('props must be strings when using array syntax.');
+      }
+    }
+  } else if (isPlainObject(props)) {
+    // 如果props是对象，将相应的key/value传给res返回
+
+    for (var key in props) {
+      val = props[key];
+      name = camelize(key);
+      res[name] = isPlainObject(val)
+        ? val
+        : { type: val };
+    }
+  } else {
+    warn(
+      "Invalid value for option \"props\": expected an Array or an Object, " +
+      "but got " + (toRawType(props)) + ".",
+      vm
+    );
+  }
+  options.props = res;
+}
 ```

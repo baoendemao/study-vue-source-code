@@ -17,10 +17,12 @@
     <script>
         var myVm = new Vue({
             el: '#app',
-            data: {
-                name: 'hello world',
-                width: '10px',
-                count: 1
+            data: function() {
+                return {
+                    name: 'hello world',
+                    width: '10px',
+                    count: 1
+                }
             },
             methods: {
                 setName: function() {
@@ -34,6 +36,10 @@
                 name: function() {
                     this.width = '10px 2222';
                 }
+            },
+            mounted: function() {
+                console.log('in index.html: ');
+                console.log(this);
             }
         });
 
