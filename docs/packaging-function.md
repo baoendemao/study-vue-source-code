@@ -63,6 +63,21 @@ function hasOwn (obj, key) {
 var emptyObject = Object.freeze({});
 ```
 
+* isPrimitive()
+
+```
+// 是否是基本数据类型
+function isPrimitive (value) {
+  return (
+    typeof value === 'string' ||
+    typeof value === 'number' ||
+    // $flow-disable-line
+    typeof value === 'symbol' ||
+    typeof value === 'boolean'
+  )
+}
+```
+
 * isUndef()
 
 ```
@@ -278,6 +293,17 @@ function extend (to, _from) {
 }
 ```
 
+* isValidArrayIndex()
+
+```
+// 检查val是否是有效的数组下标
+function isValidArrayIndex (val) {
+  var n = parseFloat(String(val));
+  return n >= 0 && Math.floor(n) === n && isFinite(val)
+}
+```
+
+
 * toArray()
 
 ```
@@ -335,4 +361,166 @@ function trigger (el, type) {
   e.initEvent(type, true, true);    // 定义事件名为type
   el.dispatchEvent(e);    //  触发对象el可以是任何元素或其他事件目标
 }
+```
+
+* set()
+
+```
+function set (target, key, val) {
+
+  if ("development" !== 'production' &&
+    (isUndef(target) || isPrimitive(target))
+  ) {
+    warn(("Cannot set reactive property on undefined, null, or primitive value: " + ((target))));
+  }
+
+  if (Array.isArray(target) && isValidArrayIndex(key)) {
+    target.length = Math.max(target.length, key);
+    target.splice(key, 1, val);
+    return val
+  }
+
+  if (key in target && !(key in Object.prototype)) {
+    target[key] = val;
+    return val
+  }
+
+  var ob = (target).__ob__;
+
+  if (target._isVue || (ob && ob.vmCount)) {
+   
+    "development" !== 'production' && warn(
+      'Avoid adding reactive properties to a Vue instance or its root $data ' +
+      'at runtime - declare it upfront in the data option.'
+    );
+    return val
+  }
+  if (!ob) {
+    target[key] = val;
+    return val
+  }
+
+  defineReactive(ob.value, key, val);
+  ob.dep.notify();
+  return val
+}
+```
+
+* mergeData()
+
+function mergeData (to, from) {
+
+  if (!from) { return to }
+  var key, toVal, fromVal;
+  var keys = Object.keys(from);
+  for (var i = 0; i < keys.length; i++) {
+    key = keys[i];
+    toVal = to[key];
+    fromVal = from[key];
+    if (!hasOwn(to, key)) {
+      set(to, key, fromVal);
+    } else if (isPlainObject(toVal) && isPlainObject(fromVal)) {
+      mergeData(toVal, fromVal);
+    }
+  }
+  return to
+}
+
+* mergeDataOrFn()
+
+```
+function mergeDataOrFn (
+  parentVal,
+  childVal,
+  vm
+) {
+  if (!vm) {
+
+    // in a Vue.extend merge, both should be functions
+    if (!childVal) {
+      return parentVal
+    }
+    if (!parentVal) {
+      return childVal
+    }
+    // when parentVal & childVal are both present,
+    // we need to return a function that returns the
+    // merged result of both functions... no need to
+    // check if parentVal is a function here because
+    // it has to be a function to pass previous merges.
+    return function mergedDataFn () {
+      return mergeData(
+        typeof childVal === 'function' ? childVal.call(this, this) : childVal,
+        typeof parentVal === 'function' ? parentVal.call(this, this) : parentVal
+      )
+    }
+  } else {
+
+    return function mergedInstanceDataFn () {
+
+      // instance merge
+      var instanceData = typeof childVal === 'function'
+        ? childVal.call(vm, vm)
+        : childVal;
+      var defaultData = typeof parentVal === 'function'
+        ? parentVal.call(vm, vm)
+        : parentVal;
+      if (instanceData) {
+        return mergeData(instanceData, defaultData)
+      } else {
+        return defaultData
+      }
+    }
+  }
+}
+```
+
+* strats对象 => 存放合并父子各个属性的策略（strategys） 
+
+```
+
+// 默认合并策略： 第二个参数存在，则使用第二个，否则使用第一个参数
+var defaultStrat = function (parentVal, childVal) {   
+  return childVal === undefined
+    ? parentVal
+    : childVal
+};
+
+strats.el = strats.propsData = function (parent, child, vm, key) {
+    if (!vm) {
+      // 只有实例化之后才可以使用key这个option
+      warn(
+        "option \"" + key + "\" can only be used during instance " +
+        'creation with the `new` keyword.'
+      );
+    }
+    return defaultStrat(parent, child)
+};
+
+
+strats.data = function (
+  parentVal,
+  childVal,
+  vm
+) {
+
+  if (!vm) {
+    //  data选项必须是函数, 如果不是函数则只返回父的
+    if (childVal && typeof childVal !== 'function') {
+      
+      "development" !== 'production' && warn(
+        'The "data" option should be a function ' +
+        'that returns a per-instance value in component ' +
+        'definitions.',
+        vm
+      );
+
+      return parentVal
+    }
+    return mergeDataOrFn(parentVal, childVal)
+  }
+
+  return mergeDataOrFn(parentVal, childVal, vm)
+};
+
 ```
