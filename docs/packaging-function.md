@@ -736,3 +736,54 @@ function normalizeProps (options, vm) {
   options.props = res;
 }
 ```
+
+* stringifyObject()
+
+```
+// 获得所有的key值的字符串
+function stringifyObject (value) {
+  var res = '';
+  for (var key in value) {
+    if (value[key]) {
+      if (res) { res += ' '; }
+      res += key;
+    }
+  }
+  return res
+}
+
+```
+
+* stringifyClass()
+
+```
+function stringifyClass (value) {
+  if (Array.isArray(value)) {       // 数组
+    return stringifyArray(value)
+  }
+  if (isObject(value)) {             // 对象
+    return stringifyObject(value)
+  }
+  if (typeof value === 'string') {   // 字符串
+    return value
+  }
+  /* istanbul ignore next */
+  return ''                          // 其余类型return空字符串
+}
+```
+
+* stringifyArray()
+
+```
+function stringifyArray (value) {
+  var res = '';
+  var stringified;
+  for (var i = 0, l = value.length; i < l; i++) {
+    if (isDef(stringified = stringifyClass(value[i])) && stringified !== '') {
+      if (res) { res += ' '; }
+      res += stringified;
+    }
+  }
+  return res
+}
+```
