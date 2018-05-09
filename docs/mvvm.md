@@ -396,6 +396,7 @@ methodsToPatch.forEach(function (method) {
         break
     }
 
+    // 如果数组中插入了新元素，则对新元素observe
     if (inserted) { ob.observeArray(inserted); }
 
     // notify change
