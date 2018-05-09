@@ -68,6 +68,29 @@ function hasOwn (obj, key) {
 }
 ```
 
+* hasProto
+
+``` 
+var hasProto = '__proto__' in {};
+```
+
+* 浏览器环境
+
+```
+
+var inBrowser = typeof window !== 'undefined';     // 判断如果window存在，则inBrowser为true
+var inWeex = typeof WXEnvironment !== 'undefined' && !!WXEnvironment.platform;
+var weexPlatform = inWeex && WXEnvironment.platform.toLowerCase();
+var UA = inBrowser && window.navigator.userAgent.toLowerCase();
+var isIE = UA && /msie|trident/.test(UA);
+var isIE9 = UA && UA.indexOf('msie 9.0') > 0;
+var isEdge = UA && UA.indexOf('edge/') > 0;
+var isAndroid = (UA && UA.indexOf('android') > 0) || (weexPlatform === 'android');
+var isIOS = (UA && /iphone|ipad|ipod|ios/.test(UA)) || (weexPlatform === 'ios');
+var isChrome = UA && /chrome\/\d+/.test(UA) && !isEdge;
+
+```
+
 * Object.freeze({})
 
 ```
@@ -366,6 +389,7 @@ function proxy (target, sourceKey, key) {
 * def()
 
 ```
+// 在对象obj上定义属性key，value是val，enumerable是否可枚举
 function def (obj, key, val, enumerable) {
   Object.defineProperty(obj, key, {
     value: val,
@@ -373,6 +397,17 @@ function def (obj, key, val, enumerable) {
     writable: true,
     configurable: true
   });
+}
+```
+
+* copyAugment()
+
+```
+function copyAugment (target, src, keys) {
+  for (var i = 0, l = keys.length; i < l; i++) {
+    var key = keys[i];
+    def(target, key, src[key]);
+  }
 }
 ```
 
@@ -750,6 +785,21 @@ Dep.prototype.notify = function notify () {
   }
 };
 
+Dep.target = null;
+
+var targetStack = [];
+
+function pushTarget (_target) {
+  if (Dep.target) { 
+    targetStack.push(Dep.target); 
+  }
+  Dep.target = _target;
+}
+
+function popTarget () {
+  Dep.target = targetStack.pop();
+}
+
 ```
 
 * Watcher
@@ -939,6 +989,44 @@ Watcher.prototype.teardown = function teardown () {
       this$1.deps[i].removeSub(this$1);
     }
     this.active = false;
+  }
+};
+
+```
+
+* Observer
+
+```
+var Observer = function Observer (value) {
+
+  this.value = value;
+  this.dep = new Dep();
+  this.vmCount = 0;   
+   
+  def(value, '__ob__', this);
+
+  if (Array.isArray(value)) {
+    var augment = hasProto     
+      ? protoAugment    
+      : copyAugment;     
+    augment(value, arrayMethods, arrayKeys);
+
+    this.observeArray(value);
+  } else {
+    this.walk(value);
+  }
+};
+
+Observer.prototype.walk = function walk (obj) {
+  var keys = Object.keys(obj);
+  for (var i = 0; i < keys.length; i++) {
+    defineReactive(obj, keys[i]);
+  }
+};
+
+Observer.prototype.observeArray = function observeArray (items) {
+  for (var i = 0, l = items.length; i < l; i++) {
+    observe(items[i]);
   }
 };
 
@@ -1157,4 +1245,23 @@ function genNode (node, state) {
     return genText(node)
   }
 }
+```
+
+* isServerRendering
+
+```
+var _isServer;   
+var isServerRendering = function () {
+  if (_isServer === undefined) {
+    /* istanbul ignore if */
+    if (!inBrowser && !inWeex && typeof global !== 'undefined') {
+      // detect presence of vue-server-renderer and avoid
+      // Webpack shimming the process
+      _isServer = global['process'].env.VUE_ENV === 'server';
+    } else {
+      _isServer = false;
+    }
+  }
+  return _isServer
+};
 ```
