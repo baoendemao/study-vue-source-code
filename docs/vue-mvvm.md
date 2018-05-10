@@ -459,15 +459,16 @@ var Watcher = function Watcher (vm, expOrFn, cb, options, isRenderWatcher) {
   }
 
   vm._watchers.push(this);
-  // options
+
   if (options) {
-    this.deep = !!options.deep;
-    this.user = !!options.user;
+    this.deep = !!options.deep;   // 监听对象内部属性的改变
+    this.user = !!options.user;  
     this.lazy = !!options.lazy;
     this.sync = !!options.sync;
   } else {
     this.deep = this.user = this.lazy = this.sync = false;
   }
+
   this.cb = cb;
   this.id = ++uid$1; // uid for batching
   this.active = true;
@@ -665,7 +666,7 @@ Dep.prototype.notify = function notify () {
   }
 };
 
-Dep.target = null;
+Dep.target = null;   // Dep.target是全局的
 
 var targetStack = [];
 

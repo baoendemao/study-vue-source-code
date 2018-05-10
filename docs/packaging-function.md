@@ -530,6 +530,50 @@ function set (target, key, val) {
   ob.dep.notify();
   return val
 }
+
+Vue.prototype.$set = set;
+```
+
+* del()
+
+```
+function del (target, key) {
+  if ("development" !== 'production' &&
+    (isUndef(target) || isPrimitive(target))
+  ) {
+    warn(("Cannot delete reactive property on undefined, null, or primitive value: " + ((target))));
+  }
+
+  if (Array.isArray(target) && isValidArrayIndex(key)) {
+    target.splice(key, 1);
+    return
+  }
+  var ob = (target).__ob__;
+
+  if (target._isVue || (ob && ob.vmCount)) {
+    "development" !== 'production' && warn(
+      'Avoid deleting properties on a Vue instance or its root $data ' +
+      '- just set it to null.'
+    );
+    return
+  }
+
+  if (!hasOwn(target, key)) {
+    return
+  }
+
+  delete target[key];
+
+  if (!ob) {
+    return
+  }
+
+  ob.dep.notify();
+}
+
+Vue.prototype.$delete = del;
+
+
 ```
 
 * mergeData()
@@ -855,6 +899,7 @@ function stringifyArray (value) {
 * initGlobalAPI
 
 ```
+// 在new Vue()之前，全局初始化
 function initGlobalAPI (Vue) {
   var configDef = {};
   configDef.get = function () { return config; };
