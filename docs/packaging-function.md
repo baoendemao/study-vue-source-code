@@ -56,6 +56,71 @@ function looseIndexOf (arr, val) {
   }
   return -1
 }
+
+```
+
+
+
+* markStaticNode()
+
+```
+
+// 标记静态节点
+function markStaticNode (node, key, isOnce) {
+  node.isStatic = true;
+  node.key = key;
+  node.isOnce = isOnce;
+}
+
+```
+
+* markStatic()
+```
+// 对以tree为根的子树，标记静态子树
+function markStatic (tree, key, isOnce) {
+  if (Array.isArray(tree)) {
+    for (var i = 0; i < tree.length; i++) {
+      if (tree[i] && typeof tree[i] !== 'string') {
+        markStaticNode(tree[i], (key + "_" + i), isOnce);
+      }
+    }
+  } else {
+    markStaticNode(tree, key, isOnce);
+  }
+}
+```
+* markOnce()
+
+```
+// 标记节点为静态, 携带唯一的key
+function markOnce (tree, index, key) {
+  markStatic(tree, ("__once__" + index + (key ? ("_" + key) : "")), true);
+  return tree
+}
+
+```
+
+* toNumber()
+```
+// 将值转换成为number数值类型，如果转换失败，返回原始值。
+function toNumber (val) {
+  var n = parseFloat(val);
+  return isNaN(n) ? val : n
+}
+
+```
+
+* toString()
+```
+// 将值转换成字符串类型
+function toString (val) {
+  return val == null
+    ? ''
+    : typeof val === 'object'
+      ? JSON.stringify(val, null, 2)
+      : String(val)
+}
+
 ```
 
 * hasOwn()
