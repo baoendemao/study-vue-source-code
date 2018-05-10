@@ -1785,6 +1785,155 @@ var shouldDecodeNewlinesForHref = inBrowser ? getShouldDecode(true) : false;
 
 ```
 
+
+* 初始化strats对象 => 存放合并父子各个属性的策略（strategys） 
+
+```
+
+// 默认合并策略： 第二个参数存在，则使用第二个，否则使用第一个参数
+var defaultStrat = function (parentVal, childVal) {   
+  return childVal === undefined
+    ? parentVal
+    : childVal
+};
+```
+
+```
+
+strats.el = strats.propsData = function (parent, child, vm, key) {
+    if (!vm) {
+      // 只有实例化之后才可以使用key这个option
+      warn(
+        "option \"" + key + "\" can only be used during instance " +
+        'creation with the `new` keyword.'
+      );
+    }
+    return defaultStrat(parent, child)
+};
+```
+
+```
+
+strats.data = function (
+  parentVal,
+  childVal,
+  vm
+) {
+
+  if (!vm) {
+    //  data选项必须是函数, 如果不是函数则只返回父的
+    if (childVal && typeof childVal !== 'function') {
+      
+      "development" !== 'production' && warn(
+        'The "data" option should be a function ' +
+        'that returns a per-instance value in component ' +
+        'definitions.',
+        vm
+      );
+
+      return parentVal
+    }
+    return mergeDataOrFn(parentVal, childVal)
+  }
+
+  return mergeDataOrFn(parentVal, childVal, vm)
+};
+```
+
+```
+function mergeHook (
+  parentVal,
+  childVal
+) {
+  return childVal
+    ? parentVal
+      ? parentVal.concat(childVal)
+      : Array.isArray(childVal)
+        ? childVal
+        : [childVal]
+    : parentVal
+}
+```
+
+```
+var LIFECYCLE_HOOKS = [
+  'beforeCreate',
+  'created',
+  'beforeMount',
+  'mounted',
+  'beforeUpdate',
+  'updated',
+  'beforeDestroy',
+  'destroyed',
+  'activated',
+  'deactivated',
+  'errorCaptured'
+];
+
+LIFECYCLE_HOOKS.forEach(function (hook) {
+  strats[hook] = mergeHook;
+});
+```
+
+```
+function mergeAssets (
+  parentVal,
+  childVal,
+  vm,
+  key
+) {
+  var res = Object.create(parentVal || null);
+  if (childVal) {
+    "development" !== 'production' && assertObjectType(key, childVal, vm);
+    return extend(res, childVal)
+  } else {
+    return res
+  }
+}
+```
+
+```
+var ASSET_TYPES = [
+  'component',
+  'directive',
+  'filter'
+];
+
+
+ASSET_TYPES.forEach(function (type) {
+  strats[type + 's'] = mergeAssets;
+});
+```
+
+```
+strats.props =
+strats.methods =
+strats.inject =
+strats.computed = function (
+  parentVal,
+  childVal,
+  vm,
+  key
+) {
+  if (childVal && "development" !== 'production') {
+    assertObjectType(key, childVal, vm);
+  }
+  if (!parentVal) { return childVal }
+  var ret = Object.create(null);
+  extend(ret, parentVal);
+  if (childVal) { extend(ret, childVal); }
+  return ret
+};
+
+```
+
+```
+strats.provide = mergeDataOrFn;
+
+
+```
+<br/>
+
 #### 经过全局初始化后，此时的Vue.prototype:
 
 ```
