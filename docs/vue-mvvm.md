@@ -1,3 +1,7 @@
+文章主要记录学习Vue的过程，由于水平有限，有理解不对的地方，欢迎指出来，Thanks♪(･ω･)ﾉ
+
+---
+
 #### MVVM
 * 从Vue构造函数进入
 
@@ -687,7 +691,7 @@ function popTarget () {
 function queueWatcher (watcher) {
 
   var id = watcher.id;
-  
+
   if (has[id] == null) {
 
     has[id] = true;

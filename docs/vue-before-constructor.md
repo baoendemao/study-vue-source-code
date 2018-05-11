@@ -1,3 +1,7 @@
+文章主要记录学习Vue的过程，由于水平有限，有理解不对的地方，欢迎指出来，Thanks♪(･ω･)ﾉ
+
+---
+
 #### 全局初始化（ 即在进入Vue构造函数之前做了哪些初始化工作 ）
 * 初始化Version
 ```
@@ -5,8 +9,11 @@
 Vue.version = '2.5.16';
 
 ```
+
 * 初始化Dep构造函数
+
 * 初始化vNode
+
 ```
 var VNode = function VNode (tag, data, children, text, elm, context, componentOptions, asyncFactory) {
   this.tag = tag;
@@ -1380,7 +1387,7 @@ function nextTick (cb, ctx) {
       microTimerFunc();
     }
   }
-  
+
   if (!cb && typeof Promise !== 'undefined') {
     return new Promise(function (resolve) {
       _resolve = resolve;
