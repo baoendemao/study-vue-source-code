@@ -215,12 +215,15 @@ function isFalse (v) {
 * isPlainObject()
 
 ```
+
 // obj是纯对象的时候，返回true
 var _toString = Object.prototype.toString;
 function isPlainObject (obj) {
   return _toString.call(obj) === '[object Object]'
 }
+
 ```
+
 * toRawType()
 
 ```
@@ -257,11 +260,14 @@ function cached (fn) {
 * isReserved()
 
 ```
+
 // 是否是保留字，以$或者_开头
+// 0x24在ASCII码表中是$,  0x5F是_
 function isReserved (str) {
   var c = (str + '').charCodeAt(0);
   return c === 0x24 || c === 0x5F
 }
+
 ```
 
 * makeMap()
@@ -448,7 +454,8 @@ function proxy (target, sourceKey, key) {
   Object.defineProperty(target, key, sharedPropertyDefinition);
 }
 
-调用： proxy(vm, "_data", key);   // 将vm["_data"][key]属性代理到 vm[key]
+调用： proxy(vm, "_data", key);   // 将vm["_data"][key]属性代理到 vm[key], 之后改变vm.key, 就可以直接触发视图的更新
+
 ```
 
 * def()

@@ -665,7 +665,7 @@ function initInjections (vm) {
 }
 ```
 
-* initState() => 初始化vm的属性： _watchers
+* initState() => 初始化vm的属性： _watchers, _data
 
 ```
 
@@ -777,6 +777,8 @@ function initMethods (vm, methods) {
   }
 }
 ```
+<br/>
+initData() => 通过proxy()将vm['_data']上的属性直接代理到了vm上， 通过observe()将data中的属性变为可被观察的
 
 ```
 function initData (vm) {
@@ -795,14 +797,18 @@ function initData (vm) {
       vm
     );
   }
+
   var keys = Object.keys(data);
   var props = vm.$options.props;
   var methods = vm.$options.methods;
+
   var i = keys.length;
 
+  // 遍历data中的每一个属性
   while (i--) {
     var key = keys[i];
     {
+      // data中的每一个属性不可以和methods里的属性相同
       if (methods && hasOwn(methods, key)) {
         warn(
           ("Method \"" + key + "\" has already been defined as a data property."),
@@ -810,6 +816,8 @@ function initData (vm) {
         );
       }
     }
+
+    // data中的每一个属性不可以和props里的属性相同
     if (props && hasOwn(props, key)) {
       "development" !== 'production' && warn(
         "The data property \"" + key + "\" is already declared as a prop. " +
@@ -818,12 +826,36 @@ function initData (vm) {
       );
     } else if (!isReserved(key)) {    
 
-      proxy(vm, "_data", key);      // 将vm['_data'][key]直接代理到vm.key
-      console.log('代理后的vm:');
-      console.log(vm);
+      // 将vm['_data'][key]直接代理到vm.key, 之后改变vm.key, 就可以直接触发视图的更新
+      proxy(vm, "_data", key);      
+
     }
   }
+
   observe(data, true /* asRootData */);  
+}
+```
+
+```
+function getData (data, vm) {
+
+  // #7573 disable dep collection when invoking data getters
+  pushTarget();
+
+  try {
+
+    return data.call(vm, vm)
+
+  } catch (e) {
+
+    handleError(e, vm, "data()");
+    return {}
+
+  } finally {
+
+    popTarget();
+
+  }
 }
 ```
 

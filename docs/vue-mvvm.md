@@ -182,7 +182,7 @@ function proxy (target, sourceKey, key) {
 * observe()  走进MVVM
 
 ```
-// 对value进行MVVM, 返回与对象相关的Observer对象
+// 将value变成可被观察的, 返回与其相关的Observer对象
 function observe (value, asRootData) {
    
   // 只能观察对象(纯对象和数组)，且除了VNode对象之外的
