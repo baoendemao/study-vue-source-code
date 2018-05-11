@@ -27,10 +27,10 @@ Vue.prototype._init = function (options) {
       mark(startTag);
     }
 
-    // a flag to avoid this being observed
+    // 防止Vue实例自身被观察的标志
     vm._isVue = true;    
-    // merge options
 
+    // merge options
     if (options && options._isComponent) {
       // optimize internal component instantiation
       // since dynamic options merging is pretty slow, and none of the
@@ -48,6 +48,7 @@ Vue.prototype._init = function (options) {
     {
       initProxy(vm);
     }
+    
     // expose real self
     vm._self = vm;
 
@@ -194,19 +195,16 @@ function observe (value, asRootData) {
 
   if (hasOwn(value, '__ob__') && value.__ob__ instanceof Observer) {
 
-    // 如果value已经含有__ob__属性，则说明已经被观察过了，直接return ob
+    // 如果value已经含有__ob__属性，则说明已经被观察过了，直接return __ob__
     ob = value.__ob__;
 
-  } else if (
-    shouldObserve &&
-    !isServerRendering() &&
-    (Array.isArray(value) || isPlainObject(value)) &&
-    Object.isExtensible(value) &&
-    !value._isVue
-  ) {
+  } else if (shouldObserve && !isServerRendering() && (Array.isArray(value) || isPlainObject(value)) &&
+    Object.isExtensible(value) && !value._isVue) {
+
     // 针对对象和数组的MVVM
-    // 返回Observer对象ob，并且value对象里多了_ob_属性, value对象的每个属性都多了get/set方法
+    // 通过new Observer，使得value变成可被观察的，value对象里多了_ob_属性, value对象的每个属性都多了get/set方法
     ob = new Observer(value);   
+
   }
 
   if (asRootData && ob) {
@@ -223,12 +221,14 @@ function observe (value, asRootData) {
 ```
 // value是要被观察的数据
 var Observer = function Observer (value) {
+
   this.value = value;
+
   this.dep = new Dep();   
+
   this.vmCount = 0;   
     
-
-  def(value, '__ob__', this);    // value对象上新加属性_ob_, 值是当前的Observer实例
+  def(value, '__ob__', this);    // value对象上新加属性_ob_, 值是当前new出来的Observer实例
 
   if (Array.isArray(value)) {
     // value如果是数组，借用Array.prototype来对数组进行MVVM
@@ -242,9 +242,10 @@ var Observer = function Observer (value) {
     this.observeArray(value);
 
   } else {
-    // value如果是对象, 直接使用Object.defineProperty对每个属性监听
 
+    // value如果是对象, 通过defineReactive()使用Object.defineProperty使得每个属性变为可被观察的
     this.walk(value);
+
   }
 };
 ```
@@ -287,9 +288,11 @@ function defineReactive (obj, key, val, customSetter, shallow) {
 
   // cater for pre-defined getter/setters
   var getter = property && property.get;    // 取出之前定义的get
-  if (!getter && arguments.length === 2) {
+
+  if (!getter && arguments.length === 2) {  // 如果属性没有get方法，则直接获取属性对应key的值
     val = obj[key];
   }
+
   var setter = property && property.set;    // 取出之前定义的set
 
   var childOb = !shallow && observe(val);   // 对obj[key]进行递归绑定
@@ -302,7 +305,7 @@ function defineReactive (obj, key, val, customSetter, shallow) {
     get: function reactiveGetter () {
       var value = getter ? getter.call(obj) : val;  // 如果属性原本有get方法，则执行获取value
 
-      // 只有在有Dep.target时, 才进行依赖收集
+      // 只有Dep.target存在时, 才进行依赖收集
       if (Dep.target) {
         dep.depend();          // 将watcher添加到dep的subs数组中
         if (childOb) {
@@ -450,7 +453,25 @@ Dep.prototype.notify = function notify () {
 };
 
 ```
+<br/>
+dependArray() 
+<br/>
 
+```
+function dependArray (value) {
+
+  for (var e = (void 0), i = 0, l = value.length; i < l; i++) {
+
+    e = value[i];
+    e && e.__ob__ && e.__ob__.dep.depend();
+    if (Array.isArray(e)) {
+      dependArray(e);
+    }
+
+  }
+}
+
+```
 
 * 观察者Watcher
 
@@ -458,6 +479,7 @@ Dep.prototype.notify = function notify () {
 
 var Watcher = function Watcher (vm, expOrFn, cb, options, isRenderWatcher) {
   this.vm = vm;
+
   if (isRenderWatcher) {
     vm._watcher = this;
   }
@@ -499,14 +521,12 @@ var Watcher = function Watcher (vm, expOrFn, cb, options, isRenderWatcher) {
       );
     }
   }
-  this.value = this.lazy
-    ? undefined
-    : this.get();
+  this.value = this.lazy? undefined: this.get();
 };
 
 Watcher.prototype.get = function get () {
 
-  pushTarget(this);  
+  pushTarget(this);  // 将当前的Watcher实例赋值给Dep.target
 
   var value;
   var vm = this.vm;
@@ -670,7 +690,8 @@ Dep.prototype.notify = function notify () {
   }
 };
 
-Dep.target = null;   // Dep.target是全局的
+// Dep.target是全局的， 且存放唯一的Watcher实例，因为在任何时刻，当且仅当只有一个可被处理
+Dep.target = null;   
 
 var targetStack = [];
 
@@ -678,7 +699,7 @@ function pushTarget (_target) {
   if (Dep.target) { 
     targetStack.push(Dep.target); 
   }
-  Dep.target = _target;
+  Dep.target = _target;   
 }
 
 function popTarget () {
@@ -768,7 +789,9 @@ function set (target, key, val) {
 
   // 如果Observer存在，则trigger change notification
   defineReactive(ob.value, key, val);
+
   ob.dep.notify();
+
   return val
 }
 

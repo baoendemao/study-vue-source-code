@@ -17,7 +17,9 @@ var createEmptyVNode = function (text) {
 
   return node
 };
+
 ```
+
 * createTextVNode()
 
 ```
@@ -25,7 +27,9 @@ var createEmptyVNode = function (text) {
 function createTextVNode (val) {
   return new VNode(undefined, undefined, undefined, String(val))
 }
+
 ```
+
 * cloneVNode()
 
 ```
@@ -107,13 +111,11 @@ function _createElement (
   }
   var vnode, ns;
   if (typeof tag === 'string') {
-    // 如果tag是字符串, 例如div
     var Ctor;
     ns = (context.$vnode && context.$vnode.ns) || config.getTagNamespace(tag);
 
     if (config.isReservedTag(tag)) {
       // platform built-in elements
-     // 判断tag是否是保留标签
      
       vnode = new VNode(
         config.parsePlatformTagName(tag), data, children,

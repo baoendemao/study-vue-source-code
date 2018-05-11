@@ -348,17 +348,23 @@ function mergeDataOrFn (parentVal, childVal, vm) {
   }
 }
 ```
+<br/>
+mergeData() => 将from中有的，to里没有的属性，添加到to里，且通过set()变为可被观察的
+<br/>
 
 ```
 function mergeData (to, from) {
 
   if (!from) { return to }
+
   var key, toVal, fromVal;
   var keys = Object.keys(from);
+
   for (var i = 0; i < keys.length; i++) {
     key = keys[i];
     toVal = to[key];
     fromVal = from[key];
+
     if (!hasOwn(to, key)) {
       set(to, key, fromVal);
     } else if (isPlainObject(toVal) && isPlainObject(fromVal)) {
@@ -779,6 +785,7 @@ function initMethods (vm, methods) {
 ```
 <br/>
 initData() => 通过proxy()将vm['_data']上的属性直接代理到了vm上， 通过observe()将data中的属性变为可被观察的
+<br/>
 
 ```
 function initData (vm) {
@@ -840,7 +847,7 @@ function initData (vm) {
 function getData (data, vm) {
 
   // #7573 disable dep collection when invoking data getters
-  pushTarget();
+  pushTarget();  // 将全局Dep.target清空
 
   try {
 
@@ -978,7 +985,6 @@ Vue.prototype.$mount = function (el, hydrating) {
 
 #### 执行this._init()之后Vue实例vm （this）:
 ```
-Vue {_uid: 0, _isVue: true, $options: {…}, _renderProxy: Proxy, _self: Vue, …}
 $attrs
 $children
 $createElement
@@ -1000,16 +1006,16 @@ _inactive
 _isBeingDestroyed
 _isDestroyed
 _isMounted
-_isVue
+_isVue => 防止自身被观察
 _renderProxy
-_self
+_self => 指向Vue实例自身
 _staticTrees
 _uid
 _vnode
 _watcher
 _watchers
 $data
-$isServer
+$isServer => 是否是服务器端渲染
 $props
 $ssrContext
 get $attrs

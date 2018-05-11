@@ -82,19 +82,33 @@ Vue.prototype.$mount = function (el, hydrating) {
 
 
 ```
+* 第二个$mount 
+
+```
+Vue.prototype.$mount = function (el, hydrating) {
+ 
+  el = el && inBrowser ? query(el) : undefined;  
+
+  return mountComponent(this, el, hydrating)
+
+};
+
+var mount = Vue.prototype.$mount;
+
+```
 
 * mountComponent() => 初始化vm.$el
 
 ```
 function mountComponent (vm, el, hydrating) {
+
   vm.$el = el;
 
   if (!vm.$options.render) {
     vm.$options.render = createEmptyVNode;
+
     {
-      /* istanbul ignore if */
-      if ((vm.$options.template && vm.$options.template.charAt(0) !== '#') ||
-        vm.$options.el || el) {
+      if ((vm.$options.template && vm.$options.template.charAt(0) !== '#') || vm.$options.el || el) {
         warn(
           'You are using the runtime-only build of Vue where the template ' +
           'compiler is not available. Either pre-compile the templates into ' +
@@ -109,11 +123,11 @@ function mountComponent (vm, el, hydrating) {
       }
     }
   } 
+
   callHook(vm, 'beforeMount');
 
   var updateComponent;
 
-  /* istanbul ignore if */
   if ("development" !== 'production' && config.performance && mark) {
     updateComponent = function () {
       var name = vm._name;
@@ -143,9 +157,10 @@ function mountComponent (vm, el, hydrating) {
 
  
   if (vm.$vnode == null) {
-    vm._isMounted = true;
+    vm._isMounted = true;     // 声明周期走到mounted的标志
     callHook(vm, 'mounted');
   }
+
   return vm
 }  
 
