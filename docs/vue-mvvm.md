@@ -718,3 +718,102 @@ function queueWatcher (watcher) {
 }
 
 ```
+
+* set()
+
+```
+
+// Vue实例可以使用this.$set创建被可被观察的属性。
+// 为什么还要用这种this.$set()的方式添加属性？ 因为实例创建之后再添加属性，新添加的属性是不会被观察的。
+
+function set (target, key, val) {
+
+  if ("development" !== 'production' &&
+    (isUndef(target) || isPrimitive(target))
+  ) {
+    warn(("Cannot set reactive property on undefined, null, or primitive value: " + ((target))));
+  }
+
+  // 如果target是数组，则在key索引的位置替换成val， 
+  // 数组是通过在原生数组方法上修改实现响应式的，所以这里不需要trigger change notification, 所以直接return
+  if (Array.isArray(target) && isValidArrayIndex(key)) {
+    target.length = Math.max(target.length, key);
+    target.splice(key, 1, val);
+    return val
+  }
+
+  // 如果key已经存在, return
+  if (key in target && !(key in Object.prototype)) {
+    target[key] = val;
+    return val
+  }
+
+  // 获得target对象上的Observer
+  var ob = (target).__ob__;
+  
+  if (target._isVue || (ob && ob.vmCount)) {
+   
+    "development" !== 'production' && warn(
+      'Avoid adding reactive properties to a Vue instance or its root $data ' +
+      'at runtime - declare it upfront in the data option.'
+    );
+    return val
+  }
+
+  // 如果Observer不存在，则直接返回
+  if (!ob) {
+    target[key] = val;
+    return val
+  }
+
+  // 如果Observer存在，则trigger change notification
+  defineReactive(ob.value, key, val);
+  ob.dep.notify();
+  return val
+}
+
+Vue.prototype.$set = set;
+```
+
+* del()
+
+```
+// Vue实例删除属性，可以被观察到， this.$delete()
+function del (target, key) {
+  if ("development" !== 'production' &&
+    (isUndef(target) || isPrimitive(target))
+  ) {
+    warn(("Cannot delete reactive property on undefined, null, or primitive value: " + ((target))));
+  }
+
+  if (Array.isArray(target) && isValidArrayIndex(key)) {
+    target.splice(key, 1);
+    return
+  }
+  var ob = (target).__ob__;
+
+  if (target._isVue || (ob && ob.vmCount)) {
+    "development" !== 'production' && warn(
+      'Avoid deleting properties on a Vue instance or its root $data ' +
+      '- just set it to null.'
+    );
+    return
+  }
+
+  if (!hasOwn(target, key)) {
+    return
+  }
+
+  delete target[key];
+
+  if (!ob) {
+    return
+  }
+
+  ob.dep.notify();
+}
+
+Vue.prototype.$delete = del;
+
+
+```

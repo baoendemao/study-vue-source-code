@@ -15,7 +15,7 @@ function Vue (options) {
 }
 ```
 
-* this._init()调用 => 进入Vue.prototype_init() => 初始化vm.$options, vm._isVue, vm._self, vm._uid
+* this._init()调用 => 进入Vue.prototype_init() => 初始化vm.$options, vm._isVue, vm._self, vm._uid, 生命周期，事件，渲染render, props, data, computed, methods, watch被观察，$mount
 
 ```
 // 参数options是用户new Vue()传进来的对象
@@ -52,10 +52,12 @@ Vue.prototype._init = function (options) {
       );
       
     }
+
     /* istanbul ignore else */
     {
       initProxy(vm);
     }
+    
     // expose real self
     vm._self = vm;
 
@@ -69,7 +71,7 @@ Vue.prototype._init = function (options) {
 
     initInjections(vm); 
 
-    initState(vm);     // 初始化prop/data/computed/methods/watch被观察
+    initState(vm);     // 初始化props/data/computed/methods/watch被观察
 
     initProvide(vm);   
 

@@ -44,7 +44,118 @@ var VNode = function VNode (tag, data, children, text, elm, context, componentOp
 ```
 
 * 初始化Observer
+
 * 初始化各种map, makeMap()
+
+* 初始化异步任务处理机制
+
+```
+var microTimerFunc;
+var macroTimerFunc;
+var useMacroTask = false;
+
+if (typeof setImmediate !== 'undefined' && isNative(setImmediate)) {
+
+  macroTimerFunc = function () {
+    setImmediate(flushCallbacks);
+  };
+
+} else if (typeof MessageChannel !== 'undefined' && (
+
+  isNative(MessageChannel) ||
+  // PhantomJS
+  MessageChannel.toString() === '[object MessageChannelConstructor]'
+
+)) {
+
+  var channel = new MessageChannel();
+  var port = channel.port2;
+  channel.port1.onmessage = flushCallbacks;
+  macroTimerFunc = function () {
+    port.postMessage(1);
+  };
+
+} else {
+
+  /* istanbul ignore next */
+  macroTimerFunc = function () {
+    setTimeout(flushCallbacks, 0);
+  };
+
+}
+
+if (typeof Promise !== 'undefined' && isNative(Promise)) {
+
+  var p = Promise.resolve();
+
+  microTimerFunc = function () {
+    p.then(flushCallbacks);
+    // in problematic UIWebViews, Promise.then doesn't completely break, but
+    // it can get stuck in a weird state where callbacks are pushed into the
+    // microtask queue but the queue isn't being flushed, until the browser
+    // needs to do some other work, e.g. handle a timer. Therefore we can
+    // "force" the microtask queue to be flushed by adding an empty timer.
+    if (isIOS) { setTimeout(noop); }
+  };
+
+} else {
+
+  // fallback to macro
+  microTimerFunc = macroTimerFunc;
+
+}
+
+```
+
+```
+
+function withMacroTask (fn) {
+
+  return fn._withTask || (fn._withTask = function () {
+    useMacroTask = true;
+    var res = fn.apply(null, arguments);
+    useMacroTask = false;
+    return res
+  })
+
+}
+
+```
+
+```
+
+function nextTick (cb, ctx) {
+
+  var _resolve;
+  callbacks.push(function () {
+    if (cb) {
+      try {
+        cb.call(ctx);
+      } catch (e) {
+        handleError(e, ctx, 'nextTick');
+      }
+    } else if (_resolve) {
+      _resolve(ctx);
+    }
+  });
+  if (!pending) {
+    pending = true;
+    if (useMacroTask) {
+      macroTimerFunc();
+    } else {
+      microTimerFunc();
+    }
+  }
+
+  if (!cb && typeof Promise !== 'undefined') {
+    return new Promise(function (resolve) {
+      _resolve = resolve;
+    })
+  }
+}
+
+```
+
 * 初始化componentVNodeHooks
 ```
 var componentVNodeHooks = {
@@ -1364,41 +1475,11 @@ function initGlobalAPI (Vue) {
 
 ```
 
-```
-function nextTick (cb, ctx) {
-
-  var _resolve;
-  callbacks.push(function () {
-    if (cb) {
-      try {
-        cb.call(ctx);
-      } catch (e) {
-        handleError(e, ctx, 'nextTick');
-      }
-    } else if (_resolve) {
-      _resolve(ctx);
-    }
-  });
-  if (!pending) {
-    pending = true;
-    if (useMacroTask) {
-      macroTimerFunc();
-    } else {
-      microTimerFunc();
-    }
-  }
-
-  if (!cb && typeof Promise !== 'undefined') {
-    return new Promise(function (resolve) {
-      _resolve = resolve;
-    })
-  }
-}
-
-```
 
 * initUse() => 初始化Vue.use
+
 ```
+// 安装Vue插件
 function initUse (Vue) {
 
   Vue.use = function (plugin) {
@@ -1413,11 +1494,19 @@ function initUse (Vue) {
     var args = toArray(arguments, 1);   
     args.unshift(this);
 
+   
     if (typeof plugin.install === 'function') {
+
+       // 如果插件是一个对象，必须提供install方法
       plugin.install.apply(plugin, args);    
+
     } else if (typeof plugin === 'function') {
+
+      // 如果插件是一个函数，会被当做install方法
       plugin.apply(null, args);    
+
     }
+    
     installedPlugins.push(plugin);
     return this
   };
