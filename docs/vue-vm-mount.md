@@ -124,7 +124,7 @@ function mountComponent (vm, el, hydrating) {
     }
   } 
 
-  callHook(vm, 'beforeMount');
+  callHook(vm, 'beforeMount');   // 模板compile成render function之后，创建watcher之前
 
   var updateComponent;
 
@@ -158,7 +158,7 @@ function mountComponent (vm, el, hydrating) {
  
   if (vm.$vnode == null) {
     vm._isMounted = true;     // 声明周期走到mounted的标志
-    callHook(vm, 'mounted');
+    callHook(vm, 'mounted');  // 生成dom树之后
   }
 
   return vm

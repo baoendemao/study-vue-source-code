@@ -104,7 +104,7 @@ function initState (vm) {
 
 ```
 
-* 初始化data
+* 初始化data => 将data变为可被观察的
 
 ```
 function initData (vm) {
@@ -117,7 +117,7 @@ function initData (vm) {
     ? getData(data, vm)
     : data || {};       
 
-  // 用户传入的data必须是一个JS对象
+  // 用户传入的data必须是一个纯对象
   if (!isPlainObject(data)) {
     data = {};
     "development" !== 'production' && warn(
@@ -126,6 +126,7 @@ function initData (vm) {
       vm
     );
   }
+
   // proxy data on instance    
   var keys = Object.keys(data);   // 得到data里的属性数组
   var props = vm.$options.props;
@@ -159,7 +160,7 @@ function initData (vm) {
     }
   }
   // observe data
-  observe(data, true /* asRootData */);   // 开始观察者
+  observe(data, true /* asRootData */);   // data开始被观察，递归的
 }
 ```
 
@@ -195,14 +196,14 @@ function observe (value, asRootData) {
 
   if (hasOwn(value, '__ob__') && value.__ob__ instanceof Observer) {
 
-    // 如果value已经含有__ob__属性，则说明已经被观察过了，直接return __ob__
+    // 如果value已经含有__ob__属性，则说明已经被观察过了，直接return __ob__， 保证不会重复绑定新的Observer实例
     ob = value.__ob__;
 
   } else if (shouldObserve && !isServerRendering() && (Array.isArray(value) || isPlainObject(value)) &&
     Object.isExtensible(value) && !value._isVue) {
 
     // 针对对象和数组的MVVM
-    // 通过new Observer，使得value变成可被观察的，value对象里多了_ob_属性, value对象的每个属性都多了get/set方法
+    // 通过new Observer，使得value变成可被观察的：value对象里多了_ob_属性, value对象的每个属性都多了get/set方法
     ob = new Observer(value);   
 
   }
@@ -219,26 +220,28 @@ function observe (value, asRootData) {
 * Observer
 
 ```
-// value是要被观察的数据
+// 使得value(纯对象或数组)变为可被观察的，在其上添加__ob__属性，值是new出的Observer实例
+// 如果value是对象，则递归处理value的每个属性值变为可被观察的
+// 如果value是数组，则通过重新定义数组的7个方法，使得数组是可被观察的，然后递归处理数组的每个元素变为可被观察的
 var Observer = function Observer (value) {
 
-  this.value = value;
+  this.value = value;     // __ob__.value指向value对象自身
 
-  this.dep = new Dep();   
+  this.dep = new Dep();   // __ob__.dep
 
-  this.vmCount = 0;   
+  this.vmCount = 0;       // __ob__.vmCount
     
   def(value, '__ob__', this);    // value对象上新加属性_ob_, 值是当前new出来的Observer实例
 
   if (Array.isArray(value)) {
     // value如果是数组，借用Array.prototype来对数组进行MVVM
 
-    var augment = hasProto     
-      ? protoAugment    
-      : copyAugment;    
+    var augment = hasProto ? protoAugment : copyAugment;    
 
+    // 将arrayMethods的相应数组的操作，赋值到value对象上
     augment(value, arrayMethods, arrayKeys);
 
+    // 遍历数组value的每一个元素，进行observe
     this.observeArray(value);
 
   } else {
@@ -264,7 +267,7 @@ Observer.prototype.observeArray = function observeArray (items) {
 Observer.prototype.walk = function walk (obj) {
   var keys = Object.keys(obj);
   for (var i = 0; i < keys.length; i++) {
-    defineReactive(obj, keys[i]);
+    defineReactive(obj, keys[i]);   // 使得obj的属性keys[i]变成可被观察的
   }
 };
 
@@ -295,7 +298,8 @@ function defineReactive (obj, key, val, customSetter, shallow) {
 
   var setter = property && property.set;    // 取出之前定义的set
 
-  var childOb = !shallow && observe(val);   // 对obj[key]进行递归绑定
+  // 对obj[key]进行递归被观察（凡是其属性，属性的属性，属性的属性的属性...， 都依次被观察，添加__ob__属性，值为new 出来的新的Observer实例)
+  var childOb = !shallow && observe(val);   
 
   Object.defineProperty(obj, key, {
     enumerable: true,
@@ -307,7 +311,7 @@ function defineReactive (obj, key, val, customSetter, shallow) {
 
       // 只有Dep.target存在时, 才进行依赖收集
       if (Dep.target) {
-        dep.depend();          // 将watcher添加到dep的subs数组中
+        dep.depend();          // Dep.prototype.depend, 将watcher添加到dep的subs数组中
         if (childOb) {
           childOb.dep.depend();
           if (Array.isArray(value)) {
@@ -320,31 +324,43 @@ function defineReactive (obj, key, val, customSetter, shallow) {
 
     // 写的时候，触发reactiveSetter()方法
     set: function reactiveSetter (newVal) {
+
+      // getter获取旧的值
       var value = getter ? getter.call(obj) : val;
-      /* eslint-disable no-self-compare */
+      // 如果新值和旧的值是相等的，则不需要后面的notify
       if (newVal === value || (newVal !== newVal && value !== value)) {
         return
       }
+
       /* eslint-enable no-self-compare */
       if ("development" !== 'production' && customSetter) {
         customSetter();
       }
+
       if (setter) {
         setter.call(obj, newVal);    // 如果属性原本有set，则执行原来的set
       } else {
         val = newVal;
       }
-      childOb = !shallow && observe(newVal);  // 对新值进行监听
+
+      childOb = !shallow && observe(newVal);  // 新值需要可以被观察
+
       dep.notify();        // 通知所有的观察者watcher
     }
   });
 }  
+
+// Dep.target是全局的， 且存放唯一的Watcher实例，因为在任何时刻，当且仅当只有一个可被处理
+// 收集依赖完毕之后，需要置空Dep.target, 防止重复收集依赖
+Dep.target = null;  
 ```
 
 * 数组的MVVM
 
 ```
+// 不存在__proto__的情况：一个一个的覆盖target的属性
 // 针对Keys中的每个元素key, 在对象target上添加该key，值是src[key]
+// 调用： augment(value, arrayMethods, arrayKeys);
 function copyAugment (target, src, keys) {
   for (var i = 0, l = keys.length; i < l; i++) {
     var key = keys[i];
@@ -354,7 +370,8 @@ function copyAugment (target, src, keys) {
 ```
 
 ```
-// 直接在原型上修改， Vue中对数组的MVVM是通过Array.prototype上的操作数组的方法
+// 存在__proto__的情况：直接覆盖target的__proto__
+// 调用：augment(value, arrayMethods, arrayKeys);
 function protoAugment (target, src, keys) {
   target.__proto__ = src;
 }
@@ -399,7 +416,7 @@ methodsToPatch.forEach(function (method) {
         inserted = args;
         break
       case 'splice':
-        inserted = args.slice(2);
+        inserted = args.slice(2);  // splice的第三个参数是待插入的元素
         break
     }
 
@@ -418,13 +435,13 @@ var arrayKeys = Object.getOwnPropertyNames(arrayMethods);
 
 
 
-* 订阅者Dep
+* 订阅者Dep => 发布订阅模式
 
 ```
 
 var Dep = function Dep () {
-  this.id = uid++;      // dep对象的唯一标识
-  this.subs = [];       // 存放观察者Watcher对象
+  this.id = uid++;      // dep对象的唯一标识 => Watcher添加dep的时候，保证不重复添加dep
+  this.subs = [];       // 存放 (观察者Watcher对象)
 };
 
 // 添加观察者
@@ -438,8 +455,8 @@ Dep.prototype.removeSub = function removeSub (sub) {
 };
 
 Dep.prototype.depend = function depend () {
-  if (Dep.target) {
-    Dep.target.addDep(this);
+  if (Dep.target) {   
+    Dep.target.addDep(this);   // Watcher.prototype.addDep 
   }
 };
 
@@ -496,7 +513,7 @@ var Watcher = function Watcher (vm, expOrFn, cb, options, isRenderWatcher) {
   }
 
   this.cb = cb;
-  this.id = ++uid$1; // uid for batching
+  this.id = ++uid$1;    // uid for batching。id用来区分不同的Watcher，防止被重复放入watcher队列中。
   this.active = true;
   this.dirty = this.lazy; // for lazy watchers
   this.deps = [];
@@ -585,6 +602,7 @@ Watcher.prototype.cleanupDeps = function cleanupDeps () {
   this.newDeps.length = 0;
 };
 
+// Dep notify自己的subs数组中的所有watcher去修改相应的视图
 Watcher.prototype.update = function update () {
   /* istanbul ignore else */
   if (this.lazy) {
@@ -596,6 +614,7 @@ Watcher.prototype.update = function update () {
   }
 };
 
+// render渲染视图
 Watcher.prototype.run = function run () {
   if (this.active) {
     var value = this.get();
@@ -617,7 +636,7 @@ Watcher.prototype.run = function run () {
           handleError(e, this.vm, ("callback for watcher \"" + (this.expression) + "\""));
         }
       } else {
-        this.cb.call(this.vm, value, oldValue);
+        this.cb.call(this.vm, value, oldValue);   // 渲染操作
       }
     }
   }
@@ -665,7 +684,7 @@ Watcher.prototype.teardown = function teardown () {
 ```
 var Dep = function Dep () {
   this.id = uid++;
-  this.subs = [];
+  this.subs = [];     // 英文全拼是subscribers, 订阅者
 };
 
 Dep.prototype.addSub = function addSub (sub) {
@@ -679,7 +698,7 @@ Dep.prototype.removeSub = function removeSub (sub) {
 
 Dep.prototype.depend = function depend () {
   if (Dep.target) {            // 注意target存在的时候才添加
-    Dep.target.addDep(this);   // watcher原型上的addDep
+    Dep.target.addDep(this);   // Watcher.prototype.addDep 
   }
 };
 
@@ -689,9 +708,7 @@ Dep.prototype.notify = function notify () {
     subs[i].update();
   }
 };
-
-// Dep.target是全局的， 且存放唯一的Watcher实例，因为在任何时刻，当且仅当只有一个可被处理
-Dep.target = null;   
+ 
 
 var targetStack = [];
 
@@ -709,6 +726,9 @@ function popTarget () {
 ```
 
 ```
+var has = {};   // 全局的，存放watcher的id的map，存在某id则对应值为true
+
+// 观察者队列
 function queueWatcher (watcher) {
 
   var id = watcher.id;

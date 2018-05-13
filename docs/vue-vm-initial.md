@@ -784,7 +784,7 @@ function initMethods (vm, methods) {
 }
 ```
 <br/>
-initData() => 通过proxy()将vm['_data']上的属性直接代理到了vm上， 通过observe()将data中的属性变为可被观察的
+initData() => 初始化vm._data, 通过proxy()将vm._data上的属性直接代理到了vm上， 通过observe()将data中的属性变为可被观察的
 <br/>
 
 ```

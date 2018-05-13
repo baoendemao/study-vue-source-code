@@ -22,6 +22,9 @@ function initEvents (vm) {
 * updateDOMListeners()
 
 ```
+var target$1;   // 全局的, 要执行事件的目标dom对象
+
+
 function updateDOMListeners (oldVnode, vnode) {
   if (isUndef(oldVnode.data.on) && isUndef(vnode.data.on)) {
     return
