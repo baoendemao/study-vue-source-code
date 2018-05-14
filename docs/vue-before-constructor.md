@@ -1767,6 +1767,7 @@ function createCompilerCreator (baseCompile) {
 ```
 
 ```
+// 柯厘化
 function createCompileToFunctionFn (compile) {
 
   var cache = Object.create(null);
@@ -1796,7 +1797,7 @@ function createCompileToFunctionFn (compile) {
     }
 
     // check cache
-    var key = options.delimiters
+    var key = options.delimiters       // delimiters改变纯文本插入分隔符的用法
       ? String(options.delimiters) + template
       : template;
     if (cache[key]) {
@@ -1898,13 +1899,13 @@ Vue.compile = compileToFunctions;   // 全局API， 将模板字符串编译成r
 ```
 Vue.compile调用方式：
 
-var res = Vue.compile('<div><span>{{ msg }}</span></div>')
+var res = Vue.compile('<div><span>{{ msg }}</span></div>')  
 
 new Vue({
   data: {
     msg: 'hello'
   },
-  render: res.render,
+  render: res.render,     // render字段， 是一个function。 如果这边传入了render字段，就会跳过模板compile的过程，直接渲染。
   staticRenderFns: res.staticRenderFns
 })
 

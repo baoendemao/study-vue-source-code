@@ -51,6 +51,7 @@ Vue.prototype.$mount = function (el, hydrating) {
     } else if (el) {
       template = getOuterHTML(el);    
     }
+
     if (template) {
       /* istanbul ignore if */
       if ("development" !== 'production' && config.performance && mark) {
@@ -80,6 +81,21 @@ Vue.prototype.$mount = function (el, hydrating) {
   return mount.call(this, el, hydrating)
 };
 
+
+```
+
+```
+// new Vue没有传入render字段，也没有传入template字段，只能根据el字段来生成模板字符串
+// 函数作用： 根据el返回它自己的Html字符串，如果没有则内部创建
+function getOuterHTML (el) {
+  if (el.outerHTML) {
+    return el.outerHTML       
+  } else {
+    var container = document.createElement('div');
+    container.appendChild(el.cloneNode(true));
+    return container.innerHTML
+  }
+}
 
 ```
 * 第二个$mount 
@@ -124,7 +140,9 @@ function mountComponent (vm, el, hydrating) {
     }
   } 
 
-  callHook(vm, 'beforeMount');   // 模板compile成render function之后，创建watcher之前
+  // 模板compile成render function之后，创建watcher之前。
+  // 服务器端渲染不会被调用
+  callHook(vm, 'beforeMount');  
 
   var updateComponent;
 
@@ -189,34 +207,6 @@ function installRenderHelpers (target) {
 }
 ```
 
-* VNode构造函数
-```
-var VNode = function VNode (tag, data, children, text, elm, context, componentOptions, asyncFactory) {
-  this.tag = tag;
-  this.data = data;
-  this.children = children;
-  this.text = text;
-  this.elm = elm;
-  this.ns = undefined;
-  this.context = context;
-  this.fnContext = undefined;
-  this.fnOptions = undefined;
-  this.fnScopeId = undefined;
-  this.key = data && data.key;
-  this.componentOptions = componentOptions;
-  this.componentInstance = undefined;
-  this.parent = undefined;
-  this.raw = false;
-  this.isStatic = false;
-  this.isRootInsert = true;
-  this.isComment = false;
-  this.isCloned = false;
-  this.isOnce = false;
-  this.asyncFactory = asyncFactory;
-  this.asyncMeta = undefined;
-  this.isAsyncPlaceholder = false;
-}
-```
 
 * createTextVNode()
 ```

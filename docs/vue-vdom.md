@@ -2,7 +2,40 @@
 
 --
 
+#### 什么是vDom
+* virtual dom => vDom
+  * html结构可以抽象成一棵dom树，vdom亦是如此，而vnode就是树上挂着的各个节点的抽象数据结构，使用js对象来表示。
+  * 当数据发生变化的时候，首先修改js dom对象，而不是直接去修改真实的dom。
 #### 创建过程
+* VNode构造函数
+```
+var VNode = function VNode (tag, data, children, text, elm, context, componentOptions, asyncFactory) {
+  this.tag = tag;
+  this.data = data;
+  this.children = children;
+  this.text = text;
+  this.elm = elm;
+  this.ns = undefined;
+  this.context = context;
+  this.fnContext = undefined;
+  this.fnOptions = undefined;
+  this.fnScopeId = undefined;
+  this.key = data && data.key;
+  this.componentOptions = componentOptions;
+  this.componentInstance = undefined;
+  this.parent = undefined;
+  this.raw = false;
+  this.isStatic = false;   // 是否是静态节点，用来optimize diff的过程
+  this.isRootInsert = true;
+  this.isComment = false;
+  this.isCloned = false;
+  this.isOnce = false;    // 节点中是否有v-once
+  this.asyncFactory = asyncFactory;
+  this.asyncMeta = undefined;
+  this.isAsyncPlaceholder = false;
+}
+```
+
 * createEmptyVNode()
 
 ```

@@ -1,6 +1,6 @@
 本文主要整理一下自己学习vue源码的过程。如果有理解不对的地方，欢迎指出来，蟹蟹^_^。
-#### 理解概念vdom, vnode
-* html结构可以抽象成一棵dom树，vdom亦是如此，而vnode就是树上挂着的各个节点的抽象数据结构。
+
+---
 
 #### snabbdom
 * [snabbdom的学习](https://github.com/baoendemao/study-vue-source-code/tree/master/docs/snabbdom.md)
