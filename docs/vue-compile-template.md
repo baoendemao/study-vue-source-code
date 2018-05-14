@@ -120,6 +120,8 @@ function genFor (el, state, altGen, altHelper) {
 
 * generate() => 模板编译的第三个步骤：根据AST生成render function
 
+```
+
 
 function generate(ast, options) {
 
@@ -132,3 +134,28 @@ function generate(ast, options) {
   }
 }
 
+```
+
+```
+generate()函数中code形如：
+
+_c('div',
+  {attrs:{"id":"app"}},
+  // 中括号里是子元素
+  [
+      _c('div',[
+          _v(_s(name))
+      ]),
+      _v(" "),
+      _c('div', [
+          _v(_s(count))
+      ]),
+      _v(" "),
+      _c('div',{
+                  on:{"click":function($event){addCount()}}
+                },
+        [_v("click here")]
+      )
+  ]
+)
+```

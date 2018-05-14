@@ -41,6 +41,7 @@ Vue.prototype.$mount = function (el, hydrating) {
           }
         }
       } else if (template.nodeType) {
+        // 当template为dom对象的时候，取出来其中的innerHTML作为模板字符串
         template = template.innerHTML;
       } else {
         {
@@ -49,6 +50,7 @@ Vue.prototype.$mount = function (el, hydrating) {
         return this
       }
     } else if (el) {
+      // new Vue()没有传入render字段，也没有传入template字段，只能根据el字段来生成模板字符串
       template = getOuterHTML(el);    
     }
 
@@ -58,6 +60,8 @@ Vue.prototype.$mount = function (el, hydrating) {
         mark('compile');
       }
 
+      // 将模板compile成render function
+      // ref存在两个属性: ref.render 和 ref.staticRenderFns
       var ref = compileToFunctions(template, {
         shouldDecodeNewlines: shouldDecodeNewlines,
         shouldDecodeNewlinesForHref: shouldDecodeNewlinesForHref,
@@ -67,6 +71,7 @@ Vue.prototype.$mount = function (el, hydrating) {
 
       var render = ref.render;
       var staticRenderFns = ref.staticRenderFns;
+
       options.render = render;
       options.staticRenderFns = staticRenderFns;
 
@@ -85,7 +90,7 @@ Vue.prototype.$mount = function (el, hydrating) {
 ```
 
 ```
-// new Vue没有传入render字段，也没有传入template字段，只能根据el字段来生成模板字符串
+// new Vue()没有传入render字段，也没有传入template字段，只能根据el字段来生成模板字符串
 // 函数作用： 根据el返回它自己的Html字符串，如果没有则内部创建
 function getOuterHTML (el) {
   if (el.outerHTML) {
