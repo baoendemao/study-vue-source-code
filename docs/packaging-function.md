@@ -634,4 +634,17 @@ function genNode (node, state) {
 }
 ```
 
-
+* getOuterHTML()
+```
+// new Vue()没有传入render字段，也没有传入template字段，只能根据el字段来生成模板字符串
+// 函数作用： 根据el返回它自己的Html字符串，如果没有则内部创建
+function getOuterHTML (el) {
+  if (el.outerHTML) {
+    return el.outerHTML       
+  } else {
+    var container = document.createElement('div');
+    container.appendChild(el.cloneNode(true));
+    return container.innerHTML
+  }
+}
+```
