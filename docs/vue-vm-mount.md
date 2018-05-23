@@ -999,9 +999,8 @@ function genStatic (el, state) {
 * parseHTML()
 
 ```
-/*
- * http://erik.eae.net/simplehtmlparser/simplehtmlparser.js
- */
+// 解析html字符串的时候用到的正则 
+// http://erik.eae.net/simplehtmlparser/simplehtmlparser.js
 
 // Regular Expressions for parsing tags and attributes
 var attribute = /^\s*([^\s"'<>\/=]+)(?:\s*(=)\s*(?:"([^"]*)"+|'([^']*)'+|([^\s"'=<>`]+)))?/;
