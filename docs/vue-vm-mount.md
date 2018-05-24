@@ -94,7 +94,7 @@ Vue.prototype.$mount = function (el, hydrating) {
 };
 
 ```
-```
+
 * mount => 当模板字符串template转换成render function后，需要初始化vm.$el, 创建virtual dom
 
 ```
