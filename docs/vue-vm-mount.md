@@ -7,7 +7,9 @@
 
 <br/>
 
-* vm.$mount(vm.$options.el) => 进入 Vue.prototype.$mount()
+* vm.$mount(vm.$options.el) => 进入 Vue.prototype.$mount() => <br/>
+如果存在render字段，最直接使用它作为render function<br/>
+如果不存在render字段，需要将template编译成render function<br/>
 
 ```
 
@@ -483,6 +485,8 @@ var ref$1 = createCompiler(baseOptions);
 
 var compileToFunctions = ref$1.compileToFunctions;
 
+Vue.compile = compileToFunctions;   // 挂载到Vue全局，函数作用：将模板字符串compile成render function
+
 ```
 
 * createCompilerCreator() => 返回一个函数createCompiler()，该函数返回了对象(对象属性：compile, compileToFunctions)
@@ -924,6 +928,7 @@ function markStaticRoots (node, isInFor) {
 function generate (ast, options) {
 
   var state = new CodegenState(options);
+
   var code = ast ? genElement(ast, state) : '_c("div")';
 
   return {
