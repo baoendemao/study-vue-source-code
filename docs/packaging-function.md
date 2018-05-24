@@ -5,7 +5,7 @@
 在Vue源码中，封装了很多优雅精辟的函数，本节主要介绍这些函数, 希望可以帮助更好的理解vue源码。
 
 
-* looseEqual()
+* looseEqual() => Vue.prototype._q => vm._q
 
 ```
 // 比较a和b是否相等，注意引用对象之间的比较： 数组和纯对象
@@ -46,7 +46,7 @@ function looseEqual (a, b) {
 }
 ```
 
-* looseIndexOf()
+* looseIndexOf() => Vue.prototype._i => vm._i
 
 ```
 // 找出数组arr中值等于val的索引
@@ -59,7 +59,7 @@ function looseIndexOf (arr, val) {
 
 ```
 
-* toNumber()
+* toNumber() => Vue.prototype._n => vm._n
 ```
 // 将值转换成为number数值类型，如果转换失败，返回原始值。
 function toNumber (val) {
@@ -69,7 +69,7 @@ function toNumber (val) {
 
 ```
 
-* toString()
+* toString() => Vue.prototype._s => vm._s
 ```
 // 将值转换成字符串类型
 function toString (val) {
@@ -431,7 +431,7 @@ function def (obj, key, val, enumerable) {
 }
 ```
 
-* extend()
+* extend() => 扩展第一个参数的对象属性
 
 ```
 // 在to对象里添加_from对象没有的，但是如果两者共有的，则to里相应key的值会被_from的值覆盖
@@ -522,6 +522,7 @@ var camelize = cached(function (str) {
 });
 
 例如: camelize('df-abcd-eee')  结果是："dfAbcdEee"
+
 ```
 
 * stringifyObject()
@@ -575,7 +576,7 @@ function stringifyArray (value) {
 }
 ```
 
-* sameVnode()
+* sameVnode() => 遍历新旧虚拟dom树，来查找是否是相同的VNode节点，
 
 ```
 // 是否是相同的vNode节点

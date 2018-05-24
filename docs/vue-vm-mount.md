@@ -5,10 +5,8 @@
 #### 进入$mount之后，怎么编译模板的
  在 this._init(options)初始化vm的各种属性之后，最后一步是$mount
 
-<br/>
-
 * vm.$mount(vm.$options.el) => 进入 Vue.prototype.$mount() => <br/>
-如果存在render字段，最直接使用它作为render function<br/>
+如果存在render字段，则不需要template模板编译的过程，直接使用它作为render function<br/>
 如果不存在render字段，需要将template编译成render function<br/>
 
 ```
@@ -110,7 +108,7 @@ var mount = Vue.prototype.$mount;
 
 ```
 
-* installRenderHelpers() => 这种Vue.prototype上添加了许多函数，用来辅助渲染
+* installRenderHelpers() => 这种Vue.prototype上添加了许多函数，用来辅助渲染 => render code中大量使用(with(){})
 ```
 // target是Vue.prototype
 function installRenderHelpers (target) {
@@ -134,7 +132,7 @@ function installRenderHelpers (target) {
 ```
 
 
-* createTextVNode()
+* createTextVNode() => Vue.prototype._v => vm._v
 ```
 function createTextVNode (val) {
   return new VNode(undefined, undefined, undefined, String(val))
@@ -648,7 +646,7 @@ function parse (template, options) {
   preTransforms = pluckModuleFunction(options.modules, 'preTransformNode');
   postTransforms = pluckModuleFunction(options.modules, 'postTransformNode');
 
-  delimiters = options.delimiters;
+  delimiters = options.delimiters;  // 纯文本插入的分隔符，默认值是["{{", "}}"]
 
   var stack = [];  
   var preserveWhitespace = options.preserveWhitespace !== false;
@@ -887,36 +885,38 @@ function optimize (root, options) {
 }
 ```
 
-* markStaticRoots()
+* markStaticRoots() => 标记所有的静态节点
 
 ```
 function markStaticRoots (node, isInFor) {
   if (node.type === 1) {
+
     if (node.static || node.once) {
       node.staticInFor = isInFor;
     }
+
     // For a node to qualify as a static root, it should have children that
     // are not just static text. Otherwise the cost of hoisting out will
     // outweigh the benefits and it's better off to just always render it fresh.
-    if (node.static && node.children.length && !(
-      node.children.length === 1 &&
-      node.children[0].type === 3
-    )) {
+    if (node.static && node.children.length && !(node.children.length === 1 && node.children[0].type === 3)) {
       node.staticRoot = true;
       return
     } else {
       node.staticRoot = false;
     }
+
     if (node.children) {
       for (var i = 0, l = node.children.length; i < l; i++) {
         markStaticRoots(node.children[i], isInFor || !!node.for);
       }
     }
+
     if (node.ifConditions) {
       for (var i$1 = 1, l$1 = node.ifConditions.length; i$1 < l$1; i$1++) {
         markStaticRoots(node.ifConditions[i$1].block, isInFor);
       }
     }
+
   }
 }
 
@@ -999,6 +999,139 @@ function genStatic (el, state) {
 
 	return ("_m(" + (state.staticRenderFns.length - 1) + (el.staticInFor ? ',true' : '') + ")")
 }
+```
+
+* genOnce() => v-once => 节点内容生成后就不会再被改变
+
+```
+
+function genOnce (el, state) {
+
+  el.onceProcessed = true;
+  if (el.if && !el.ifProcessed) {
+    return genIf(el, state)
+  } else if (el.staticInFor) {
+    var key = '';
+    var parent = el.parent;
+    while (parent) {
+      if (parent.for) {
+        key = parent.key;
+        break
+      }
+      parent = parent.parent;
+    }
+    if (!key) {
+      "development" !== 'production' && state.warn(
+        "v-once can only be used inside v-for that is keyed. "
+      );
+      return genElement(el, state)
+    }
+    return ("_o(" + (genElement(el, state)) + "," + (state.onceId++) + "," + key + ")")
+  } else {
+    return genStatic(el, state)
+  }
+}
+```
+
+* genIf() => v-if
+
+```
+function genIf (el, state, altGen, altEmpty) {
+  el.ifProcessed = true; // avoid recursion
+  return genIfConditions(el.ifConditions.slice(), state, altGen, altEmpty)
+}
+```
+
+* genIfConditions()
+
+```
+function genIfConditions (conditions, state, altGen, altEmpty) {
+  
+  if (!conditions.length) {
+    return altEmpty || '_e()'   // _e是createEmptyVNode()，创建空的VNode节点
+  }
+
+  var condition = conditions.shift();
+  if (condition.exp) {
+    return ("(" + (condition.exp) + ")?" + (genTernaryExp(condition.block)) + ":" + (genIfConditions(conditions, state, altGen, altEmpty)))
+  } else {
+    return ("" + (genTernaryExp(condition.block)))
+  }
+
+  // v-if with v-once should generate code like (a)?_m(0):_m(1)
+  function genTernaryExp (el) {
+
+    return altGen
+      ? altGen(el, state)
+      : el.once
+        ? genOnce(el, state)
+        : genElement(el, state)
+  }
+}
+
+```
+
+* genFor() => v-for
+
+```
+function genFor (el, state, altGen, altHelper) {
+
+  var exp = el.for;
+  var alias = el.alias;
+  var iterator1 = el.iterator1 ? ("," + (el.iterator1)) : '';
+  var iterator2 = el.iterator2 ? ("," + (el.iterator2)) : '';
+
+  if ("development" !== 'production' &&
+    state.maybeComponent(el) &&
+    el.tag !== 'slot' &&
+    el.tag !== 'template' &&
+    !el.key
+  ) {
+    state.warn(
+      "<" + (el.tag) + " v-for=\"" + alias + " in " + exp + "\">: component lists rendered with " +
+      "v-for should have explicit keys. " +
+      "See https://vuejs.org/guide/list.html#key for more info.",
+      true /* tip */
+    );
+  }
+
+  el.forProcessed = true; // avoid recursion
+  return (altHelper || '_l') + "((" + exp + ")," +        // _l是renderList()函数
+    "function(" + alias + iterator1 + iterator2 + "){" + 
+      "return " + ((altGen || genElement)(el, state)) +
+    '})'
+}
+```
+
+* renderList() => Vue.prototype._l => vm._l
+```
+function renderList (val, render) {
+
+  var ret, i, l, keys, key;
+  if (Array.isArray(val) || typeof val === 'string') {
+    ret = new Array(val.length);
+    for (i = 0, l = val.length; i < l; i++) {
+      ret[i] = render(val[i], i);
+    }
+  } else if (typeof val === 'number') {
+    ret = new Array(val);
+    for (i = 0; i < val; i++) {
+      ret[i] = render(i + 1, i);
+    }
+  } else if (isObject(val)) {
+    keys = Object.keys(val);
+    ret = new Array(keys.length);
+    for (i = 0, l = keys.length; i < l; i++) {
+      key = keys[i];
+      ret[i] = render(val[key], key, i);
+    }
+  }
+  if (isDef(ret)) {
+    (ret)._isVList = true;
+  }
+  return ret
+}
+
 ```
 
 * parseHTML()
@@ -1279,7 +1412,7 @@ function parseHTML (html, options) {
 }
 ```
 
-* markStatic$1() 和 markStaticRoots()
+* markStatic$1() => 标记所有的非静态节点
 ```
 function markStatic$1 (node) {
 
@@ -1309,37 +1442,6 @@ function markStatic$1 (node) {
         if (!block.static) {
           node.static = false;
         }
-      }
-    }
-  }
-}
-
-function markStaticRoots (node, isInFor) {
-
-  if (node.type === 1) {
-    if (node.static || node.once) {
-      node.staticInFor = isInFor;
-    }
-    // For a node to qualify as a static root, it should have children that
-    // are not just static text. Otherwise the cost of hoisting out will
-    // outweigh the benefits and it's better off to just always render it fresh.
-    if (node.static && node.children.length && !(
-      node.children.length === 1 &&
-      node.children[0].type === 3
-    )) {
-      node.staticRoot = true;
-      return
-    } else {
-      node.staticRoot = false;
-    }
-    if (node.children) {
-      for (var i = 0, l = node.children.length; i < l; i++) {
-        markStaticRoots(node.children[i], isInFor || !!node.for);
-      }
-    }
-    if (node.ifConditions) {
-      for (var i$1 = 1, l$1 = node.ifConditions.length; i$1 < l$1; i$1++) {
-        markStaticRoots(node.ifConditions[i$1].block, isInFor);
       }
     }
   }

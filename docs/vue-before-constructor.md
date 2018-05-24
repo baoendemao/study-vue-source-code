@@ -393,6 +393,7 @@ function eventsMixin (Vue) {
 
   var hookRE = /^hook:/;
 
+  // 监听自定义事件(由vm.$emit触发的事件)
   Vue.prototype.$on = function (event, fn) {
     var this$1 = this;
 
@@ -413,40 +414,53 @@ function eventsMixin (Vue) {
     return vm
   };
 
+  // 监听一个自定义事件，但是只触发一次，且第一次触发之后就移除监听器
   Vue.prototype.$once = function (event, fn) {
     var vm = this;
+
     function on () {
       vm.$off(event, on);
       fn.apply(vm, arguments);
     }
+
     on.fn = fn;
     vm.$on(event, on);
     return vm
   };
 
+  // 移除自定义事件监听器
   Vue.prototype.$off = function (event, fn) {
     var this$1 = this;
 
     var vm = this;
+
+    // 如果该函数没有提供参数，则移除所有的事件监听器
     if (!arguments.length) {
       vm._events = Object.create(null);
       return vm
     }
+
     if (Array.isArray(event)) {
       for (var i = 0, l = event.length; i < l; i++) {
         this$1.$off(event[i], fn);
       }
       return vm
     }
+
     // specific event
-    var cbs = vm._events[event];
+    // 获取该事件的所有事件监听器
+    var cbs = vm._events[event]; 
     if (!cbs) {
       return vm
     }
+    
+    // 如果该函数只提供了第一个参数，则移除该事件的所有的事件监听器
     if (!fn) {
       vm._events[event] = null;
       return vm
     }
+
+    // 如果该函数提供了两个参数，则移除这个回调的监听器
     if (fn) {
       // specific handler
       var cb;
@@ -462,6 +476,7 @@ function eventsMixin (Vue) {
     return vm
   };
 
+  // 触发当前实例上的事件
   Vue.prototype.$emit = function (event) {
 
     var vm = this;
@@ -477,7 +492,9 @@ function eventsMixin (Vue) {
         );
       }
     }
-    var cbs = vm._events[event];
+
+    var cbs = vm._events[event];   // callback
+
     if (cbs) {
       cbs = cbs.length > 1 ? toArray(cbs) : cbs;
       var args = toArray(arguments, 1);  
@@ -492,9 +509,102 @@ function eventsMixin (Vue) {
     return vm
   };
 } 
+
 ```
 
-* 初始化原型上的__patch__
+* nodeOps => 由VNode创建真实的dom
+
+```
+
+function createElement$1 (tagName, vnode) {
+
+  var elm = document.createElement(tagName);
+  if (tagName !== 'select') {
+    return elm
+  }
+
+  // false or null will remove the attribute but undefined will not
+  if (vnode.data && vnode.data.attrs && vnode.data.attrs.multiple !== undefined) {
+    elm.setAttribute('multiple', 'multiple');
+  }
+
+  return elm
+}
+
+function createElementNS (namespace, tagName) {
+
+  return document.createElementNS(namespaceMap[namespace], tagName)
+}
+
+function createTextNode (text) {
+
+  return document.createTextNode(text)
+}
+
+function createComment (text) {
+
+  return document.createComment(text)
+}
+
+function insertBefore (parentNode, newNode, referenceNode) {
+
+  parentNode.insertBefore(newNode, referenceNode);
+}
+
+function removeChild (node, child) {
+
+  node.removeChild(child);
+}
+
+function appendChild (node, child) {
+
+  node.appendChild(child);
+}
+
+function parentNode (node) {
+
+  return node.parentNode
+}
+
+function nextSibling (node) {
+
+  return node.nextSibling
+}
+
+function tagName (node) {
+  return node.tagName
+}
+
+function setTextContent (node, text) {
+
+  node.textContent = text;
+}
+
+function setStyleScope (node, scopeId) {
+
+  node.setAttribute(scopeId, '');
+}
+
+
+var nodeOps = Object.freeze({
+	createElement: createElement$1,
+	createElementNS: createElementNS,
+	createTextNode: createTextNode,
+	createComment: createComment,
+	insertBefore: insertBefore,
+	removeChild: removeChild,
+	appendChild: appendChild,
+	parentNode: parentNode,
+	nextSibling: nextSibling,
+	tagName: tagName,
+	setTextContent: setTextContent,
+	setStyleScope: setStyleScope
+});
+
+```
+
+* 初始化Vue.prototype.__patch__
+
 ```
 var inBrowser = typeof window !== 'undefined';    
 
@@ -1210,6 +1320,7 @@ Vue.prototype.__patch__ = inBrowser ? patch : noop;
 ```
 
 * lifecycleMixin() => 初始化原型上的生命周期相关的函数_update(), $forceUpdate(), $destroy()
+
 ```
 function lifecycleMixin (Vue) {
 
@@ -1418,8 +1529,8 @@ function installRenderHelpers (target) {
   target._f = resolveFilter;
   target._k = checkKeyCodes;
   target._b = bindObjectProps;
-  target._v = createTextVNode;
-  target._e = createEmptyVNode;
+  target._v = createTextVNode;   // 创建文本VNode节点
+  target._e = createEmptyVNode;  // 创建空VNode节点
   target._u = resolveScopedSlots;
   target._g = bindObjectListeners;
 }

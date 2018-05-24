@@ -16,6 +16,8 @@ LIFECYCLE_HOOKS定义([源码点这里](https://github.com/vuejs/vue/blob/dev/sr
         'errorCaptured'
     ]
     ```
+* 在Vue实例初始化的时候经历从beforeCreate => created => beforeMount => mounted
+* 在data更新的时候，从beforeUpdate => updated
 
 #### 生命周期的过程
 [声明周期流程图点这里](https://github.com/baoendemao/study-vue-source-code/blob/master/images/lifecycle.png)

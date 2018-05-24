@@ -10,7 +10,7 @@
 
 
 
-* markOnce() => 标记v-once
+* markOnce() => 标记v-once => Vue.prototype._o => vm._o
 
 ```
 function markOnce (tree, index, key) {

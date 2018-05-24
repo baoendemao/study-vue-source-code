@@ -792,6 +792,7 @@ function set (target, key, val) {
   // 获得target对象上的Observer
   var ob = (target).__ob__;
   
+  // 该响应式对象不能是Vue实例，或者Vue实例的根数据对象
   if (target._isVue || (ob && ob.vmCount)) {
    
     "development" !== 'production' && warn(
@@ -816,6 +817,9 @@ function set (target, key, val) {
 }
 
 Vue.prototype.$set = set;
+
+Vue.set = set;
+
 ```
 
 * del()
@@ -858,5 +862,6 @@ function del (target, key) {
 
 Vue.prototype.$delete = del;
 
+Vue.delete = del;
 
 ```

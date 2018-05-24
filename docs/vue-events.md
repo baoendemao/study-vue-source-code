@@ -54,7 +54,7 @@ var keyCodes = {
 };
 ```
 
-* checkKeyCodes()
+* checkKeyCodes() => Vue.prototype._k => vm._k
 ```
 function checkKeyCodes (eventKeyCode, key, builtInKeyCode, eventKeyName, builtInKeyName) {
 
