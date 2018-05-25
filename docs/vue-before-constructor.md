@@ -121,6 +121,7 @@ function withMacroTask (fn) {
 }
 
 ```
+* nextTick() => 挂载到Vue.nextTick => 全局使用
 
 ```
 
@@ -154,6 +155,7 @@ function nextTick (cb, ctx) {
   }
 }
 
+Vue.nextTick = nextTick;
 ```
 
 * 初始化componentVNodeHooks
@@ -241,7 +243,7 @@ Vue.prototype.$mount = function (el, hydrating) {
 };
 ```
 
-* initMixin() => 初始化原型上的_init()
+* initMixin() => 初始化Vue原型上的_init()
 
 ```
 function initMixin (Vue) {
@@ -259,7 +261,7 @@ function initMixin (Vue) {
       mark(startTag);
     }
 
-    // a flag to avoid this being observed
+    // Vue自身实例this防止被观察
     vm._isVue = true;    
 
     // merge options
@@ -1536,7 +1538,7 @@ function installRenderHelpers (target) {
 }
 ```
 
-* initGlobalAPI() => 初始化Vue.config, Vue.util, Vue.set, Vue.delete, Vue.nextTick, Vue.options, 并调用initUse(), initMixin$(), initExtend(), initAssetRegisters()
+* initGlobalAPI() => 初始化全局属性：Vue.config, Vue.util, Vue.set, Vue.delete, Vue.nextTick, Vue.options, 并调用initUse(), initMixin$(), initExtend(), initAssetRegisters()
 
 ```
 
@@ -1776,10 +1778,12 @@ var isServerRendering = function () {
   return _isServer
 };
 
+// Vue原型上定义新属性$isServer
 Object.defineProperty(Vue.prototype, '$isServer', {
   get: isServerRendering
 });
 
+// Vue原型上定义新属性$ssrContext
 Object.defineProperty(Vue.prototype, '$ssrContext', {
   get: function get () {
     /* istanbul ignore next */
