@@ -181,7 +181,7 @@ function proxy (target, sourceKey, key) {
 调用： proxy(vm, "_data", key);   // 将vm["_data"][key]属性代理到 vm[key]
 ```
 
-* observe()  走进MVVM => 监听的标志: __ob__ => new Observer() => defineReactive() => Object.defineProperty()
+* observe()  走进MVVM => 监听的参数value必须是object类型 => 监听的标志: __ob__ => new Observer() => defineReactive() => Object.defineProperty()
 
 ```
 // 将value变成可被观察的, 返回与其相关的Observer对象
