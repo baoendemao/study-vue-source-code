@@ -169,7 +169,6 @@ function createElement (context, tag, data, children, normalizationType, alwaysN
 * _createElement()
 
 ```
-
 function _createElement (context, tag, data, children, normalizationType) {
 
   if (isDef(data) && isDef((data).__ob__)) {
@@ -351,6 +350,7 @@ function updateDOMProps (oldVnode, vnode) {
 }
 
 ```
+
 
 * updateDOMListeners()
 
