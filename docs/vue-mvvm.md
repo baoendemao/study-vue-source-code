@@ -181,7 +181,7 @@ function proxy (target, sourceKey, key) {
 调用： proxy(vm, "_data", key);   // 将vm["_data"][key]属性代理到 vm[key]
 ```
 
-* observe()  走进MVVM
+* observe()  走进MVVM => 监听的参数value必须是object类型 => 监听的标志: __ob__ => new Observer() => defineReactive() => Object.defineProperty()
 
 ```
 // 将value变成可被观察的, 返回与其相关的Observer对象
@@ -217,7 +217,7 @@ function observe (value, asRootData) {
 
 ```
 
-* Observer
+* Observer => 数据变为可被观察的，被监听 => 将当前new的Observer实例this添加到参数value的属性__ob__上
 
 ```
 // 使得value(纯对象或数组)变为可被观察的，在其上添加__ob__属性，值是new出的Observer实例
@@ -227,11 +227,11 @@ var Observer = function Observer (value) {
 
   this.value = value;     // __ob__.value指向value对象自身
 
-  this.dep = new Dep();   // __ob__.dep
+  this.dep = new Dep();   // 新建Dep实例，__ob__.dep
 
   this.vmCount = 0;       // __ob__.vmCount
     
-  def(value, '__ob__', this);    // value对象上新加属性_ob_, 值是当前new出来的Observer实例
+  def(value, '__ob__', this);    // value对象上新加属性_ob_, 值是当前new出来的this
 
   if (Array.isArray(value)) {
     // value如果是数组，借用Array.prototype来对数组进行MVVM
@@ -454,9 +454,12 @@ Dep.prototype.removeSub = function removeSub (sub) {
   remove(this.subs, sub);   
 };
 
+// 依赖收集
+// Watcher.prototype.addDep()。 Dep.target是全局的, 这里将当前的Dep实例添加到当前处理的Watcher的newDeps中
+// 当前的Dep实例是在defineReactive()中，针对每个要监听的属性obj[key]都new出来了唯一的Dep实例
 Dep.prototype.depend = function depend () {
   if (Dep.target) {   
-    Dep.target.addDep(this);   // Watcher.prototype.addDep 
+    Dep.target.addDep(this);   
   }
 };
 
@@ -471,7 +474,7 @@ Dep.prototype.notify = function notify () {
 
 ```
 <br/>
-dependArray() 
+dependArray() => 数组做依赖收集
 <br/>
 
 ```
@@ -490,7 +493,8 @@ function dependArray (value) {
 
 ```
 
-* 观察者Watcher
+* 观察者Watcher => new Watcher()触发Watcher.prototype.get() => 将当前Watcher实例赋值给Dep.target <br/>
+一共有三次会new Watcher实例： <1> this.$watch() <2> mountComponent() <3> initComputed()
 
 ```
 
@@ -512,7 +516,7 @@ var Watcher = function Watcher (vm, expOrFn, cb, options, isRenderWatcher) {
     this.deep = this.user = this.lazy = this.sync = false;
   }
 
-  this.cb = cb;
+  this.cb = cb;         // new Watcher的第三个参数，callback
   this.id = ++uid$1;    // uid for batching。id用来区分不同的Watcher，防止被重复放入watcher队列中。
   this.active = true;
   this.dirty = this.lazy; // for lazy watchers
@@ -538,7 +542,9 @@ var Watcher = function Watcher (vm, expOrFn, cb, options, isRenderWatcher) {
       );
     }
   }
+
   this.value = this.lazy? undefined: this.get();
+
 };
 
 Watcher.prototype.get = function get () {
@@ -602,7 +608,7 @@ Watcher.prototype.cleanupDeps = function cleanupDeps () {
   this.newDeps.length = 0;
 };
 
-// Dep notify自己的subs数组中的所有watcher去修改相应的视图
+// Dep notify自己的subs数组中的所有watcher去修改相应的视图view
 Watcher.prototype.update = function update () {
   /* istanbul ignore else */
   if (this.lazy) {
@@ -614,7 +620,7 @@ Watcher.prototype.update = function update () {
   }
 };
 
-// render渲染视图
+// render渲染视图 => 调用callback
 Watcher.prototype.run = function run () {
   if (this.active) {
     var value = this.get();
@@ -679,37 +685,7 @@ Watcher.prototype.teardown = function teardown () {
 
 ```
 
-* Dep 依赖收集
-
 ```
-var Dep = function Dep () {
-  this.id = uid++;
-  this.subs = [];     // 英文全拼是subscribers, 订阅者
-};
-
-Dep.prototype.addSub = function addSub (sub) {
-  console.log(sub instanceof Watcher)  // true
-  this.subs.push(sub);
-};
-
-Dep.prototype.removeSub = function removeSub (sub) {
-  remove(this.subs, sub);      // 从数组this.subs中删除sub
-};
-
-Dep.prototype.depend = function depend () {
-  if (Dep.target) {            // 注意target存在的时候才添加
-    Dep.target.addDep(this);   // Watcher.prototype.addDep 
-  }
-};
-
-Dep.prototype.notify = function notify () {
-  var subs = this.subs.slice();
-  for (var i = 0, l = subs.length; i < l; i++) {
-    subs[i].update();
-  }
-};
- 
-
 var targetStack = [];
 
 function pushTarget (_target) {
@@ -760,7 +736,7 @@ function queueWatcher (watcher) {
 
 ```
 
-* set()
+* set() => 挂载到Vue.set => 全局使用
 
 ```
 
@@ -822,7 +798,7 @@ Vue.set = set;
 
 ```
 
-* del()
+* del() => 挂载到Vue.delete => 全局使用
 
 ```
 // Vue实例删除属性，可以被观察到， this.$delete()

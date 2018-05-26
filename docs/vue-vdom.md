@@ -40,7 +40,7 @@ var VNode = function VNode (tag, data, children, text, elm, context, componentOp
 #### 创建virtual dom
 在Vue.prototype.$mount()中模板字符串template转换成render function后，需要初始化vm.$el, 创建virtual dom，入口函数是mountComponent()
 
-* mountComponent() => 初始化vm.$el, 创建virtual dom => 调用生命周期钩子beforeMount，mounted
+* mountComponent() => 初始化vm.$el, new Watcher(), 创建virtual dom => 调用生命周期钩子beforeMount，mounted <br/>
 
 ```
 function mountComponent (vm, el, hydrating) {

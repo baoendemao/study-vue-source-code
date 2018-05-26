@@ -508,6 +508,7 @@ function createCompilerCreator (baseCompile) {
           finalOptions.modules =
             (baseOptions.modules || []).concat(options.modules);
         }
+
         // merge custom directives
         if (options.directives) {
           finalOptions.directives = extend(
@@ -515,12 +516,14 @@ function createCompilerCreator (baseCompile) {
             options.directives
           );
         }
+
         // copy other options
         for (var key in options) {
           if (key !== 'modules' && key !== 'directives') {
             finalOptions[key] = options[key];
           }
         }
+
       }
 
       var compiled = baseCompile(template, finalOptions); // 由模板字符串生成render code并返回
@@ -866,6 +869,158 @@ function parse (template, options) {
   return root
 }
 ```
+```
+function parseText (text, delimiters) {
+
+  var tagRE = delimiters ? buildRegex(delimiters) : defaultTagRE;
+  if (!tagRE.test(text)) {
+    return
+  }
+
+  var tokens = [];
+  var rawTokens = [];
+  var lastIndex = tagRE.lastIndex = 0;
+  var match, index, tokenValue;
+
+  while ((match = tagRE.exec(text))) {
+    index = match.index;
+    // push text token
+    if (index > lastIndex) {
+      rawTokens.push(tokenValue = text.slice(lastIndex, index));
+      tokens.push(JSON.stringify(tokenValue));
+    }
+    // tag token
+    var exp = parseFilters(match[1].trim());
+    tokens.push(("_s(" + exp + ")"));
+    rawTokens.push({ '@binding': exp });
+    lastIndex = index + match[0].length;
+  }
+  if (lastIndex < text.length) {
+    rawTokens.push(tokenValue = text.slice(lastIndex));
+    tokens.push(JSON.stringify(tokenValue));
+  }
+  return {
+    expression: tokens.join('+'),
+    tokens: rawTokens
+  }
+}
+```
+* createASTElement()
+```
+
+function createASTElement (tag, attrs, parent) {
+
+  return {
+    type: 1,
+    tag: tag,
+    attrsList: attrs,
+    attrsMap: makeAttrsMap(attrs),
+    parent: parent,
+    children: []
+  }
+}
+```
+
+* isForbiddenTag()
+
+```
+function isForbiddenTag (el) {
+  return (
+    el.tag === 'style' ||
+    (el.tag === 'script' && (
+      !el.attrsMap.type ||
+      el.attrsMap.type === 'text/javascript'
+    ))
+  )
+}
+
+```
+* processFor()
+```
+function processFor (el) {
+
+  var exp;
+  if ((exp = getAndRemoveAttr(el, 'v-for'))) {
+    var res = parseFor(exp);
+    if (res) {
+      extend(el, res);
+    } else {
+      warn$2(
+        ("Invalid v-for expression: " + exp)
+      );
+    }
+  }
+}
+```
+* parseFor()
+
+```
+
+function parseFor (exp) {
+
+  var inMatch = exp.match(forAliasRE);
+  if (!inMatch) { return }
+  var res = {};
+  res.for = inMatch[2].trim();
+  var alias = inMatch[1].trim().replace(stripParensRE, '');
+  var iteratorMatch = alias.match(forIteratorRE);
+  if (iteratorMatch) {
+    res.alias = alias.replace(forIteratorRE, '');
+    res.iterator1 = iteratorMatch[1].trim();
+    if (iteratorMatch[2]) {
+      res.iterator2 = iteratorMatch[2].trim();
+    }
+  } else {
+    res.alias = alias;
+  }
+  return res
+}
+```
+
+* processIf()
+
+```
+function processIf (el) {
+
+  var exp = getAndRemoveAttr(el, 'v-if');
+  if (exp) {
+    el.if = exp;
+    addIfCondition(el, {
+      exp: exp,
+      block: el
+    });
+  } else {
+    if (getAndRemoveAttr(el, 'v-else') != null) {
+      el.else = true;
+    }
+    var elseif = getAndRemoveAttr(el, 'v-else-if');
+    if (elseif) {
+      el.elseif = elseif;
+    }
+  }
+}
+```
+
+* processIfConditions()
+
+```
+
+function processIfConditions (el, parent) {
+
+  var prev = findPrevElement(parent.children);
+  if (prev && prev.if) {
+    addIfCondition(prev, {
+      exp: el.elseif,
+      block: el
+    });
+  } else {
+    warn$2(
+      "v-" + (el.elseif ? ('else-if="' + el.elseif + '"') : 'else') + " " +
+      "used on element <" + (el.tag) + "> without corresponding v-if."
+    );
+  }
+}
+```
 
 * optimize ast => 优化：遍历生成的AST树，标记静态节点，只更新需要改变的部分子树
 
@@ -932,7 +1087,7 @@ function generate (ast, options) {
   var code = ast ? genElement(ast, state) : '_c("div")';
 
   return {
-    render: ("with(this){ return " + code + "}"),
+    render: ("with(this){ return " + code + "}"),      // render code
     staticRenderFns: state.staticRenderFns
   }
 }
@@ -1001,7 +1156,7 @@ function genStatic (el, state) {
 }
 ```
 
-* genOnce() => v-once => 节点内容生成后就不会再被改变
+* genOnce() => v-once => 节点内容生成后就不会再被改变 => 生成render code
 
 ```
 
@@ -1033,7 +1188,7 @@ function genOnce (el, state) {
 }
 ```
 
-* genIf() => v-if
+* genIf() => v-if => 生成render code
 
 ```
 function genIf (el, state, altGen, altEmpty) {
@@ -1042,7 +1197,7 @@ function genIf (el, state, altGen, altEmpty) {
 }
 ```
 
-* genIfConditions()
+* genIfConditions() 
 
 ```
 function genIfConditions (conditions, state, altGen, altEmpty) {
@@ -1071,8 +1226,8 @@ function genIfConditions (conditions, state, altGen, altEmpty) {
 
 ```
 
-* genFor() => v-for
-
+* genFor() => v-for => 生成render code
+ 
 ```
 function genFor (el, state, altGen, altHelper) {
 
@@ -1447,4 +1602,24 @@ function markStatic$1 (node) {
   }
 }
 
+```
+* isStatic()
+```
+function isStatic (node) {
+
+  if (node.type === 2) { // expression
+    return false
+  }
+  if (node.type === 3) { // text
+    return true
+  }
+  return !!(node.pre || (
+    !node.hasBindings && // no dynamic bindings
+    !node.if && !node.for && // not v-if or v-for or v-else
+    !isBuiltInTag(node.tag) && // not a built-in
+    isPlatformReservedTag(node.tag) && // not a component
+    !isDirectChildOfTemplateFor(node) &&
+    Object.keys(node).every(isStaticKey)
+  ))
+}
 ```

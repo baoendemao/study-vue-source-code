@@ -46,7 +46,7 @@ Vue.prototype._init = function (options) {
     } else {
       // 处理用户传来的options
       vm.$options = mergeOptions(
-        resolveConstructorOptions(vm.constructor),
+        resolveConstructorOptions(vm.constructor),   // 传入构造函数
         options || {},
         vm
       );
@@ -153,11 +153,7 @@ function resolveConstructorOptions (Ctor) {
 ```
 
 ```
-function mergeOptions (
-  parent,
-  child,
-  vm
-) {
+function mergeOptions (parent, child, vm) {
 
   {
     checkComponents(child);
@@ -710,7 +706,7 @@ function initState (vm) {
   if (opts.data) {
     initData(vm);    // 使用用户传入的data，即vm.$options.data来初始化
   } else {
-    observe(vm._data = {}, true /* asRootData */);
+    observe(vm._data = {}, true /* asRootData */); 
   }
 
   if (opts.computed) { initComputed(vm, opts.computed); }
