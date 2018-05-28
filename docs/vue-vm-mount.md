@@ -887,7 +887,7 @@ function parse (template, options) {
       currentParent.children.push({
         type: 3,
         text: text,
-        isComment: true
+        isComment: true    // 是否是注释节点
       });
     }
 
@@ -1405,7 +1405,7 @@ function renderList (val, render) {
 
 ```
 
-* parseHTML()
+* parseHTML() => parseHTML()是parse过程中的核心函数：使用正则解析模板html，生成AST抽象语法树
 
 ```
 // 解析html字符串的时候用到的正则 
@@ -1689,6 +1689,7 @@ function parseHTML (html, options) {
         }
       }
     }
+
 }  // function parseHTML()结束
 ```
 

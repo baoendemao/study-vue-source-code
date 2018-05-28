@@ -306,6 +306,26 @@ function cloneVNode (vnode) {
   return cloned
 }
 ```
+* sameVnode() => 判断两个VNode是否相似 => key相同，且类型相同 => 用于新旧节点比较diff，用来optimize优化的过程
+```
+function sameVnode (a, b) {
+
+  return (
+    a.key === b.key && (
+      (
+        a.tag === b.tag &&
+        a.isComment === b.isComment &&
+        isDef(a.data) === isDef(b.data) &&
+        sameInputType(a, b)
+      ) || (
+        isTrue(a.isAsyncPlaceholder) &&
+        a.asyncFactory === b.asyncFactory &&
+        isUndef(b.asyncFactory.error)
+      )
+    )
+  )
+}
+```
 * createElement()
 
 ```
@@ -1132,9 +1152,10 @@ function createPatchFunction (backend) {
     }
   }
 
-  // 比较新旧VNode
+  // 比较新旧VNode, 如果是静态节点即节点的isStatic属性是true，则跳过静态节点的比较，optimize优化
   function patchVnode (oldVnode, vnode, insertedVnodeQueue, removeOnly) {
 
+    // 如果新旧VNode完全相同，则直接返回
     if (oldVnode === vnode) {
       return
     }
@@ -1192,7 +1213,7 @@ function createPatchFunction (backend) {
     if (isDef(data)) {
       if (isDef(i = data.hook) && isDef(i = i.postpatch)) { i(oldVnode, vnode); }
     }
-  }
+  } // function patchVnode()结束
 
   function invokeInsertHook (vnode, queue, initial) {
     // delay insert hooks for component root nodes, invoke them after the
