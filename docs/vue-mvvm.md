@@ -104,7 +104,7 @@ function initState (vm) {
 
 ```
 
-* 初始化data => 将data变为可被观察的
+* 初始化data => 递归的将data变为可被观察的
 
 ```
 function initData (vm) {
