@@ -30,7 +30,8 @@ Vue.prototype.$mount = function (el, hydrating) {
   if (!options.render) {
     var template = options.template;
 
-    if (template) {  // 如果options存在template字段，则使用template字段的模板字符串
+     // 如果options存在template字段，则使用template字段的模板字符串
+    if (template) { 
       // 检查options传入的template字段的正确性
       if (typeof template === 'string') {
         if (template.charAt(0) === '#') {
@@ -57,13 +58,14 @@ Vue.prototype.$mount = function (el, hydrating) {
     }
 
 	
+    // 上面准备好的模板字符串
     if (template) {
       /* istanbul ignore if */
       if ("development" !== 'production' && config.performance && mark) {
         mark('compile');
       }
 
-	  // 由模板字符串生成render function的入口函数
+	    // 由模板字符串生成render function的入口函数
       // 通过模板字符串template生成AST抽象语法树 => optimize优化AST => AST转换成render code => render code生成render function
       var ref = compileToFunctions(template, {
         shouldDecodeNewlines: shouldDecodeNewlines,
@@ -72,7 +74,7 @@ Vue.prototype.$mount = function (el, hydrating) {
         comments: options.comments
       }, this);    
 	  
-	  // 返回ref对象包含两个属性{render: , staticRenderFns: }
+	    // 返回ref对象包含两个属性{render: , staticRenderFns: }
       var render = ref.render;
       var staticRenderFns = ref.staticRenderFns;
 
@@ -490,10 +492,12 @@ Vue.compile = compileToFunctions;   // 挂载到Vue全局，函数作用：将�
 * createCompilerCreator() => 返回一个函数createCompiler()，该函数返回了对象(对象属性：compile, compileToFunctions)
 
 ```
+// 函数的柯厘化形式
 function createCompilerCreator (baseCompile) {
 
   return function createCompiler (baseOptions) {
 
+    //  参数baseCompile是一个函数, 该函数的参数是在compile()函数中处理的，然后调用baseCompiler()
     function compile (template, options) {
       var finalOptions = Object.create(baseOptions);
       var errors = [];
@@ -526,16 +530,19 @@ function createCompilerCreator (baseCompile) {
 
       }
 
-      var compiled = baseCompile(template, finalOptions); // 由模板字符串生成render code并返回
+      // 由模板字符串生成render code并返回对象(属性：ast, render, staticRenderFns)
+      var compiled = baseCompile(template, finalOptions); 
+
       {
         errors.push.apply(errors, detectErrors(compiled.ast));
       }
+
       compiled.errors = errors;
       compiled.tips = tips;
 
-	  // 返回一个对象(属性：ast, render, staticRenderFns, errors, tips), 由模板字符串生成一个对象compiled
-	  // (对象的属性：ast, render, staticRenderFns, errors, tips), 
-	  // 其中各个属性的含义: ast表示AST抽象语法树的树根, render表示render code，即with(this){ } 
+      // 返回一个对象(属性：ast, render, staticRenderFns, errors, tips), 由模板字符串生成一个对象compiled
+      // (对象的属性：ast, render, staticRenderFns, errors, tips), 
+      // 其中各个属性的含义: ast表示AST抽象语法树的树根, render表示render code，即with(this){ } 
       return compiled;  
 
     } // function compile(template, options)声明结束
@@ -653,7 +660,7 @@ function parse (template, options) {
 
   var stack = [];  
   var preserveWhitespace = options.preserveWhitespace !== false;
-  var root;   
+  var root;      // AST抽象语法树的根
   var currentParent;  
   var inVPre = false;
   var inPre = false;
@@ -681,6 +688,10 @@ function parse (template, options) {
     }
   }
 
+  /*
+    这里parseHTML传入两个参数，第一个参数是模板字符串，
+    第二个参数作为一个对象传入(属性：warn, expectHTML, isUnaryTag, canBeLeftOpenTag, shouldDecodeNewlines, shouldDecodeNewlinesForHref, shouldKeepComment, start, end, chars, comment)
+  */
   parseHTML(template, {
     warn: warn$2,
     expectHTML: options.expectHTML,
@@ -689,6 +700,8 @@ function parse (template, options) {
     shouldDecodeNewlines: options.shouldDecodeNewlines,
     shouldDecodeNewlinesForHref: options.shouldDecodeNewlinesForHref,
     shouldKeepComment: options.comments,
+
+    // start属性 => 该函数新建AST节点，并处理相关属性和文本，在新建的AST节点中添加相关属性标志
     start: function start (tag, attrs, unary) {
 
       // check namespace.
@@ -701,11 +714,13 @@ function parse (template, options) {
         attrs = guardIESVGBug(attrs);
       }
 
+      // 新建AST节点
       var element = createASTElement(tag, attrs, currentParent);
       if (ns) {
         element.ns = ns;
       }
 
+      // 检查element不允许是style，script标签
       if (isForbiddenTag(element) && !isServerRendering()) {
         element.forbidden = true;
         "development" !== 'production' && warn$2(
@@ -726,22 +741,26 @@ function parse (template, options) {
           inVPre = true;
         }
       }
+
       if (platformIsPreTag(element.tag)) {
         inPre = true;
       }
+
       if (inVPre) {
         processRawAttrs(element);
       } else if (!element.processed) {
-        // structural directives
-        processFor(element);
-        processIf(element);
-        processOnce(element);
+
+        // 解析处理节点的指令, 并将指令相关的属性添加到节点中
+        processFor(element);    // v-for
+        processIf(element);     // v-if, 添加到节点的属性有：if, else, elseif
+        processOnce(element);    // v-once
         // element-scope stuff
         processElement(element, options);
+
       }
 
+      // 检查el是否可以作为AST抽象语法树的根: 不可以是slot和template标签, 不可以含有v-for属性
       function checkRootConstraints (el) {
-
         {
           if (el.tag === 'slot' || el.tag === 'template') {
             warnOnce(
@@ -761,23 +780,25 @@ function parse (template, options) {
       // tree management
       if (!root) {
         root = element;
-        checkRootConstraints(root);
+        checkRootConstraints(root);    // 检查el是否可以作为AST抽象语法树的根
       } else if (!stack.length) {
-        // allow root elements with v-if, v-else-if and v-else
+
+        // 根节点是允许使用属性：v-if, v-else-if and v-else
         if (root.if && (element.elseif || element.else)) {
-          checkRootConstraints(element);
-          addIfCondition(root, {
-            exp: element.elseif,
-            block: element
-          });
+          checkRootConstraints(element);   // 检查element是否可以作为AST抽象语法树的根
+          addIfCondition(root, {exp: element.elseif, block: element});
         } else {
+          // 组件模板应该包含一个根元素
           warnOnce(
             "Component template should contain exactly one root element. " +
             "If you are using v-if on multiple elements, " +
             "use v-else-if to chain them instead."
           );
         }
+
       }
+
+      
       if (currentParent && !element.forbidden) {
         if (element.elseif || element.else) {
           processIfConditions(element, currentParent);
@@ -789,14 +810,16 @@ function parse (template, options) {
           element.parent = currentParent;
         }
       }
+
       if (!unary) {
         currentParent = element;
         stack.push(element);
       } else {
         closeElement(element);
       }
-    },
+    },   // start()结束
 
+    // end属性
     end: function end () {
       // remove trailing whitespace
       var element = stack[stack.length - 1];
@@ -810,6 +833,7 @@ function parse (template, options) {
       closeElement(element);
     },
 
+    // chars属性
     chars: function chars (text) {
 
       if (!currentParent) {
@@ -856,6 +880,8 @@ function parse (template, options) {
         }
       }
     },
+
+    // comment属性
     comment: function comment (text) {
 
       currentParent.children.push({
@@ -864,10 +890,13 @@ function parse (template, options) {
         isComment: true
       });
     }
-  });
 
-  return root
-}
+  });  // parseHTML() 调用结束
+
+  // 返回AST抽象语法树的根root
+  return root;
+
+}  // function parse()结束
 ```
 ```
 function parseText (text, delimiters) {
@@ -914,14 +943,34 @@ function createASTElement (tag, attrs, parent) {
     type: 1,
     tag: tag,
     attrsList: attrs,
-    attrsMap: makeAttrsMap(attrs),
+    attrsMap: makeAttrsMap(attrs),   // 在节点中添加attrsMap属性，如指令v-if,v-for,v-once等
     parent: parent,
     children: []
   }
 }
 ```
 
-* isForbiddenTag()
+* makeAttrsMap() => 处理节点的属性， 属性数组attrs转换成属性对象并返回
+```
+
+function makeAttrsMap (attrs) {
+  var map = {};
+  for (var i = 0, l = attrs.length; i < l; i++) {
+    // 不允许设置相同的属性
+    if (
+      "development" !== 'production' &&
+      map[attrs[i].name] && !isIE && !isEdge
+    ) {
+      warn$2('duplicate attribute: ' + attrs[i].name);
+    }
+    map[attrs[i].name] = attrs[i].value;
+  }
+  return map
+}
+
+```
+
+* isForbiddenTag() => 对于标签style, script是不允许的 => 如果出现style, script标签，则设置该节点el.forbidden = true;
 
 ```
 function isForbiddenTag (el) {
@@ -935,13 +984,52 @@ function isForbiddenTag (el) {
 }
 
 ```
-* processFor()
+* getAndRemoveAttr() => 如果el.attrsMap对象中含有Key是name，则从el.attrsList数组中删除该key，并返回对应的value。默认不删除el.attrsMap中的对应的key，除非提供第三个参数为true
+
+```
+function getAndRemoveAttr (el, name, removeFromMap) {
+
+  var val;
+  if ((val = el.attrsMap[name]) != null) {
+    var list = el.attrsList;
+    for (var i = 0, l = list.length; i < l; i++) {
+      if (list[i].name === name) {
+        list.splice(i, 1);
+        break
+      }
+    }
+  }
+  if (removeFromMap) {
+    delete el.attrsMap[name];
+  }
+
+  return val
+}
+```
+
+* processPre() => 处理v-pre => 如果el.attrsMap对象中含有Key是'v-pre'，则从el.attrsList数组中删除该key, 并设置el.pre=true
+```
+function processPre (el) {
+
+  if (getAndRemoveAttr(el, 'v-pre') != null) {
+    el.pre = true;
+  }
+}
+```
+
+* processFor() =>  如果el.attrsMap对象中含有Key是'v-for'，则从el.attrsList数组中删除该key
 ```
 function processFor (el) {
 
   var exp;
+
+  // exp是key为v-for所对应的表达式
   if ((exp = getAndRemoveAttr(el, 'v-for'))) {
+
+    // 解析v-for的表达式，返回一个对象(属性有：alias属性表示v-for所使用的临时变量， for属性表示v-for遍历的对象)
     var res = parseFor(exp);
+
+    // 将解析v-for所得到的解析属性添加到el节点中
     if (res) {
       extend(el, res);
     } else {
@@ -955,7 +1043,11 @@ function processFor (el) {
 * parseFor()
 
 ```
+var forAliasRE = /([^]*?)\s+(?:in|of)\s+([^]*)/;
+var forIteratorRE = /,([^,\}\]]*)(?:,([^,\}\]]*))?$/;
 
+
+// exp是v-for=''的表达式
 function parseFor (exp) {
 
   var inMatch = exp.match(forAliasRE);
@@ -965,7 +1057,7 @@ function parseFor (exp) {
   var alias = inMatch[1].trim().replace(stripParensRE, '');
   var iteratorMatch = alias.match(forIteratorRE);
   if (iteratorMatch) {
-    res.alias = alias.replace(forIteratorRE, '');
+    res.alias = alias.replace(forIteratorRE, '');   
     res.iterator1 = iteratorMatch[1].trim();
     if (iteratorMatch[2]) {
       res.iterator2 = iteratorMatch[2].trim();
@@ -977,11 +1069,12 @@ function parseFor (exp) {
 }
 ```
 
-* processIf()
+* processIf() => 如果el.attrsMap对象中含有Key是'v-if'或者'v-else'或者'v-else-if'，则从el.attrsList数组中删除该key
 
 ```
 function processIf (el) {
 
+  //  exp是key为v-if所对应的表达式
   var exp = getAndRemoveAttr(el, 'v-if');
   if (exp) {
     el.if = exp;
@@ -1018,6 +1111,29 @@ function processIfConditions (el, parent) {
       "v-" + (el.elseif ? ('else-if="' + el.elseif + '"') : 'else') + " " +
       "used on element <" + (el.tag) + "> without corresponding v-if."
     );
+  }
+}
+```
+
+* addIfCondition()
+```
+function addIfCondition (el, condition) {
+
+  if (!el.ifConditions) {
+    el.ifConditions = [];
+  }
+  el.ifConditions.push(condition);
+}
+
+```
+* processOnce() => 如果el.attrsMap对象中含有Key是'v-once'，则从el.attrsList数组中删除该key
+```
+
+function processOnce (el) {
+
+  var once$$1 = getAndRemoveAttr(el, 'v-once');
+  if (once$$1 != null) {
+    el.once = true;
   }
 }
 ```
@@ -1309,6 +1425,8 @@ var doctype = /^<!DOCTYPE [^>]+>/i;
 var comment = /^<!\--/;
 var conditionalComment = /^<!\[/;
 
+var isPlainTextElement = makeMap('script,style,textarea', true);
+
 function parseHTML (html, options) {
     var stack = [];  
     var expectHTML = options.expectHTML;
@@ -1316,9 +1434,11 @@ function parseHTML (html, options) {
     var canBeLeftOpenTag$$1 = options.canBeLeftOpenTag || no;
     var index = 0;
     var last, lastTag;
+
     while (html) {
       last = html;
-      // Make sure we're not in a plaintext content element like script/style
+      
+      // lastTag不可以是script, style, textarea
       if (!lastTag || !isPlainTextElement(lastTag)) {
         var textEnd = html.indexOf('<');
         if (textEnd === 0) {
@@ -1506,7 +1626,12 @@ function parseHTML (html, options) {
       }
 
       if (options.start) {
-        options.start(tagName, attrs, unary, match.start, match.end);
+        /*
+          options.start()函数新建AST节点，并处理相关属性和文本，在新建的AST节点中添加相关属性标志
+          第一个参数：标签名字
+          第二个参数：节点的属性，如v-if,v-else,v-for,v-once等
+        */
+        options.start(tagName, attrs, unary, match.start, match.end);  // 
       }
     }
 
@@ -1564,7 +1689,7 @@ function parseHTML (html, options) {
         }
       }
     }
-}
+}  // function parseHTML()结束
 ```
 
 * markStatic$1() => 标记所有的非静态节点

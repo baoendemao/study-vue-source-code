@@ -10,7 +10,7 @@
 <body>
     use vue
     <div id="app">
-        <div>{{name}}</div>
+        <div v-if="name">{{name}}</div>
         <div>{{count}}</div>
         <div @click="addCount()">click here</div>
         <div v-for="i in arrData">{{i}}</div>
