@@ -217,7 +217,7 @@ function observe (value, asRootData) {
 
 ```
 
-* Observer => 数据变为可被观察的，被监听 => 将当前new的Observer实例this添加到参数value的属性__ob__上
+* Observer => 递归的将数据value变为可被观察的，被监听 => 将当前new的Observer实例this添加到参数value的属性__ob__上
 
 ```
 // 使得value(纯对象或数组)变为可被观察的，在其上添加__ob__属性，值是new出的Observer实例
@@ -273,7 +273,7 @@ Observer.prototype.walk = function walk (obj) {
 
 ```
 
-
+defineReactive() => 递归的将obj[key]变为可被观察的 => 添加__ob__属性，值为new 出来的新的Observer实例
 
 ```
 //  使用Object.defineProperty对obj对象绑定被观察属性key，值是val
@@ -311,7 +311,7 @@ function defineReactive (obj, key, val, customSetter, shallow) {
 
       // 只有Dep.target存在时, 才进行依赖收集
       if (Dep.target) {
-        dep.depend();          // Dep.prototype.depend, 将watcher添加到dep的subs数组中
+        dep.depend();          // Dep.prototype.depend, dep对象是要被观察的属性obj[key]拥有的唯一的dep, 将watcher添加到dep的subs数组中，以便在值被改变的时候触发setter通知subs数组中的所有的watcher
         if (childOb) {
           childOb.dep.depend();
           if (Array.isArray(value)) {
@@ -345,7 +345,7 @@ function defineReactive (obj, key, val, customSetter, shallow) {
 
       childOb = !shallow && observe(newVal);  // 新值需要可以被观察
 
-      dep.notify();        // 通知所有的观察者watcher
+      dep.notify();        // dep对象是要被观察的属性obj[key]拥有的唯一的dep， 通知所有的dep数组中的所有的观察者watcher，
     }
   });
 }  
