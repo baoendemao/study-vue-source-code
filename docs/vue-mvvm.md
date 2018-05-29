@@ -459,7 +459,7 @@ Dep.prototype.removeSub = function removeSub (sub) {
 // 当前的Dep实例是在defineReactive()中，针对每个要监听的属性obj[key]都new出来了唯一的Dep实例
 Dep.prototype.depend = function depend () {
   if (Dep.target) {   
-    Dep.target.addDep(this);   
+    Dep.target.addDep(this);   // Watcher addDep的同时，在被添加的dep的subs数组中push该watcher, 即dep和watcher对应关系：一个watcher可能存在于多个dep中 => 一个对象改变，通知所有与之相依赖的视图都要更新；一个dep会存放多个watcher => 一个对象改变，可能会触发多个视图的更新
   }
 };
 
@@ -581,7 +581,7 @@ Watcher.prototype.addDep = function addDep (dep) {
     this.newDepIds.add(id);
     this.newDeps.push(dep);
     if (!this.depIds.has(id)) {
-      dep.addSub(this);
+      dep.addSub(this);    // Dep.prototype.addSub
     }
   }
 };
@@ -686,13 +686,13 @@ Watcher.prototype.teardown = function teardown () {
 ```
 
 ```
-var targetStack = [];
+var targetStack = [];       // watcher实例的栈，后进先出
 
 function pushTarget (_target) {
   if (Dep.target) { 
     targetStack.push(Dep.target); 
   }
-  Dep.target = _target;   
+  Dep.target = _target;      // 每次new Watcher()的时候，将当前的watcher实例覆盖Dep.target全局变量
 }
 
 function popTarget () {
