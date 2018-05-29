@@ -886,6 +886,8 @@ function getData (data, vm) {
 }
 ```
 
+initComputed() => 服务器端渲染的时候，禁止了响应式，避免将对象转换为响应式可被观察的性能开销
+
 ```
 function initComputed (vm, computed) {
 
