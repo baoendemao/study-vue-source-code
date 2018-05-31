@@ -182,6 +182,14 @@ function isPlainObject (obj) {
 }
 
 ```
+* isRegExp()
+
+```
+// v是正则的时候，返回true
+function isRegExp (v) {
+  return _toString.call(v) === '[object RegExp]'
+}
+```
 
 * toRawType()
 
