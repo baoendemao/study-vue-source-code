@@ -1369,7 +1369,7 @@ function createPatchFunction (backend) {
             // check if this is server-rendered content and if we can perform
             // a successful hydration.
             if (oldVnode.nodeType === 1 && oldVnode.hasAttribute(SSR_ATTR)) {
-              oldVnode.removeAttribute(SSR_ATTR);
+              oldVnode.removeAttribute(SSR_ATTR);   // var SSR_ATTR = 'data-server-rendered';
               hydrating = true;    // 是服务器端渲染，则需要混合client bundle和server bundle
             }
 

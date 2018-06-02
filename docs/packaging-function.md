@@ -129,6 +129,7 @@ var isAndroid = (UA && UA.indexOf('android') > 0) || (weexPlatform === 'android'
 var isIOS = (UA && /iphone|ipad|ipod|ios/.test(UA)) || (weexPlatform === 'ios');
 var isChrome = UA && /chrome\/\d+/.test(UA) && !isEdge;
 
+
 ```
 
 * Object.freeze({})
@@ -240,6 +241,21 @@ function cached (fn) {
 }
 ```
 
+* once()
+
+```
+// 确保函数只执行一次
+function once (fn) {
+  var called = false;
+  return function () {
+    if (!called) {
+      called = true;
+      fn.apply(this, arguments);
+    }
+  }
+}
+```
+
 * isReserved()
 
 ```
@@ -340,7 +356,7 @@ genStaticKeys(modules$1);
 
 ```
 
-* genStaticKeys$1() => 静态属性生成的map
+* genStaticKeys$1() => 静态属性生成的map => 在optimize优化AST的时候用到
 
 ```
 
@@ -355,10 +371,10 @@ var genStaticKeysCached = cached(genStaticKeys$1);
 
 ```
 
-* isNative
+* isNative()
 
 ```
-// 是否是已有的函数
+// 是否是原生的函数 => 打印原生函数，会有native code的字符串标志
 function isNative (Ctor) {
   return typeof Ctor === 'function' && /native code/.test(Ctor.toString())
 }
@@ -763,4 +779,176 @@ function getOuterHTML (el) {
     return container.innerHTML
   }
 }
+```
+
+* parsePath()
+
+```
+// 解析点分隔的字符串
+var bailRE = /[^\w.$]/;
+function parsePath (path) {
+  if (bailRE.test(path)) {
+    return
+  }
+  var segments = path.split('.');
+  return function (obj) {
+    for (var i = 0; i < segments.length; i++) {
+      if (!obj) { return }
+      obj = obj[segments[i]];
+    }
+    return obj
+  }
+}
+```
+
+* 防止滚动时的卡顿： passive设为true来告诉浏览器，事件处理程序不会调用preventDefault来阻止默认行为
+
+```
+var supportsPassive = false;
+if (inBrowser) {
+  try {
+    var opts = {};
+    Object.defineProperty(opts, 'passive', ({
+      get: function get () {
+        supportsPassive = true;
+      }
+    })); 
+
+    window.addEventListener('test-passive', null, opts);
+
+  } catch (e) {
+
+  }
+}
+
+```
+
+* devtools
+
+```
+// 获取浏览器中的devtools插件
+var devtools = inBrowser && window.__VUE_DEVTOOLS_GLOBAL_HOOK__;
+
+```
+
+* warn() => 控制台打印warnning： [Vue warn]
+
+```
+var hasConsole = typeof console !== 'undefined';
+
+var warn = function (msg, vm) {
+  var trace = vm ? generateComponentTrace(vm) : '';
+
+  if (config.warnHandler) {
+    config.warnHandler.call(null, msg, vm, trace);
+  } else if (hasConsole && (!config.silent)) {
+    console.error(("[Vue warn]: " + msg + trace));
+  }
+};
+
+```
+
+* tip() => 控制台打印warnning： [Vue tip]
+```
+var tip = function (msg, vm) {
+  if (hasConsole && (!config.silent)) {
+    console.warn("[Vue tip]: " + msg + (
+      vm ? generateComponentTrace(vm) : ''
+    ));
+  }
+};
+
+```
+
+* formatComponentName() => 打印错误日志的时候，格式化组件名
+```
+var classifyRE = /(?:^|[-_])(\w)/g;
+
+var classify = function (str) { 
+  return str.replace(classifyRE, 
+    function (c) { return c.toUpperCase(); 
+    }).replace(/[-_]/g, ''); 
+};
+
+var formatComponentName = function (vm, includeFile) {
+
+  if (vm.$root === vm) {
+    return '<Root>'
+  }
+
+  var options = typeof vm === 'function' && vm.cid != null
+    ? vm.options
+    : vm._isVue
+      ? vm.$options || vm.constructor.options
+      : vm || {};
+
+  var name = options.name || options._componentTag;
+
+  var file = options.__file;
+
+  if (!name && file) {
+    var match = file.match(/([^/\\]+)\.vue$/);
+    name = match && match[1];
+  }
+
+  return (
+    (name ? ("<" + (classify(name)) + ">") : "<Anonymous>") +
+    (file && includeFile !== false ? (" at " + file) : '')
+  )
+};
+
+```
+
+* generateComponentTrace() => 打印错误堆栈的结构： 从上往下依次是由子组件到父组件
+
+```
+/**
+  * 根据viewModel的$parent属性找到父组件，然后组织栈的结构，从上往下依次是由子组件到父组件
+  * 打印错误堆栈
+  * 例如： 
+
+  vue.runtime.esm.js:574 [Vue warn]: Error in render: "TypeError: Cannot read property 'relativeUrl' of undefined"
+
+  found in
+
+  ---> <DetailBanner> at xxx\detail.banner.vue
+        <Detail> at xxx\detail.vue
+          <Root>
+
+*/
+  
+var generateComponentTrace = function (vm) {
+
+  if (vm._isVue && vm.$parent) {
+    var tree = [];
+    var currentRecursiveSequence = 0;
+
+    // 从vm开始沿着$parent指针一直向数组tree中push父组件，直到根，即没有父组件
+    while (vm) {
+      if (tree.length > 0) {
+        var last = tree[tree.length - 1];
+        if (last.constructor === vm.constructor) {
+          currentRecursiveSequence++;
+          vm = vm.$parent;
+          continue
+        } else if (currentRecursiveSequence > 0) {
+          tree[tree.length - 1] = [last, currentRecursiveSequence];
+          currentRecursiveSequence = 0;
+        }
+      }
+      tree.push(vm);
+      vm = vm.$parent;
+    }
+
+    // 从子组件开始打印错误堆栈
+    return '\n\nfound in\n\n' + tree
+      .map(function (vm, i) { return ("" + (i === 0 ? '---> ' : repeat(' ', 5 + i * 2)) + (Array.isArray(vm)
+          ? ((formatComponentName(vm[0])) + "... (" + (vm[1]) + " recursive calls)")
+          : formatComponentName(vm))); })
+      .join('\n')
+  } else {
+    return ("\n\n(found in " + (formatComponentName(vm)) + ")")
+  }
+}
+
 ```

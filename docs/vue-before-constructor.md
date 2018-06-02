@@ -1570,6 +1570,8 @@ function initGlobalAPI (Vue) {
   Vue.nextTick = nextTick;
 
   Vue.options = Object.create(null);
+
+  //  'component', 'directive', 'filter'
   ASSET_TYPES.forEach(function (type) {   
     Vue.options[type + 's'] = Object.create(null);
   });
@@ -1763,7 +1765,10 @@ function initAssetRegisters (Vue) {
 * 原型上初始化属性$isServer 和 $ssrContext
 
 ```
+var SSR_ATTR = 'data-server-rendered';   // 服务器端渲染的标志
+
 var _isServer;   
+
 var isServerRendering = function () {
   if (_isServer === undefined) {
     /* istanbul ignore if */
@@ -2116,6 +2121,7 @@ function mergeHook (
 ```
 
 ```
+// 生命周期钩子
 var LIFECYCLE_HOOKS = [
   'beforeCreate',
   'created',
