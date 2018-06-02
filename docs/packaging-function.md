@@ -98,6 +98,22 @@ function hasOwn (obj, key) {
 var hasProto = '__proto__' in {};
 ```
 
+* no()
+
+```
+// 函数总返回false
+var no = function (a, b, c) { return false; };
+
+```
+
+* identity()
+
+```
+// 函数入参是什么，就返回什么
+var identity = function (_) { return _; };
+
+```
+
 * 浏览器环境
 
 ```
@@ -219,7 +235,7 @@ function cached (fn) {
   var cache = Object.create(null);  // 缓存初始化为空对象
   return (function cachedFn (str) {
     var hit = cache[str];      // 因为纯函数只依赖输入，所以这边可以使用输入当做Key
-    return hit || (cache[str] = fn(str))  // 如果缓存中有，则取缓存中的，否则赋值给缓存相应的key，并返回。
+    return hit || (cache[str] = fn(str))  // 如果缓存中有，则取缓存中的结果，否则赋值给缓存相应的key，并返回。
   })
 }
 ```
@@ -297,7 +313,45 @@ Vue.config.isReservedTag = isReservedTag;
 * isBuiltInTag()
 
 ```
+// 检查是否是内置标签
 var isBuiltInTag = makeMap('slot,component', true);
+
+```
+
+* isReservedAttribute()
+
+```
+// 检查属性是否是保留属性
+var isReservedAttribute = makeMap('key,ref,slot,slot-scope,is');
+
+```
+
+* genStaticKeys()
+
+```
+function genStaticKeys (modules) {
+
+  return modules.reduce(function (keys, m) {
+    return keys.concat(m.staticKeys || [])
+  }, []).join(',')
+}
+
+genStaticKeys(modules$1);
+
+```
+
+* genStaticKeys$1() => 静态属性生成的map
+
+```
+
+function genStaticKeys$1 (keys) {
+  return makeMap(
+    'type,tag,attrsList,attrsMap,plain,parent,children,attrs' +
+    (keys ? ',' + keys : '')
+  )
+}
+
+var genStaticKeysCached = cached(genStaticKeys$1);
 
 ```
 
@@ -497,7 +551,7 @@ function toObject (arr) {
 * remove()
 
 ```
-// 从数组arr中删除item
+// 从数组arr中删除值是item的一项
 function remove (arr, item) {
   if (arr.length) {
     var index = arr.indexOf(item);
@@ -507,7 +561,8 @@ function remove (arr, item) {
   }
 }
 
-调用： remove(this.subs, sub);   // dep对象从subs中移除Watcher对象sub
+调用： remove(this.subs, sub);   // dep对象从this.subs数组中移除Watcher对象sub
+
 ```
 
 * trigger()
@@ -530,6 +585,58 @@ var camelize = cached(function (str) {
 });
 
 例如: camelize('df-abcd-eee')  结果是："dfAbcdEee"
+
+```
+
+* hyphenate()
+
+```
+// 将首字母大写，变成-小写字母
+var hyphenateRE = /\B([A-Z])/g;
+var hyphenate = cached(function (str) {
+  return str.replace(hyphenateRE, '-$1').toLowerCase()
+});
+
+例如： hyphenate("dfAbcdEee")  结果是："df-abcd-eee"
+```
+
+* capitalize() 
+
+```
+// 首字母大写
+var capitalize = cached(function (str) {
+  return str.charAt(0).toUpperCase() + str.slice(1)
+});
+```
+
+* bind
+
+```
+// 如果不存在bind函数，自己实现的bind
+function polyfillBind (fn, ctx) {
+
+  function boundFn (a) {
+
+    var l = arguments.length;
+    return l
+      ? l > 1
+        ? fn.apply(ctx, arguments)
+        : fn.call(ctx, a)
+      : fn.call(ctx)
+  }
+
+  boundFn._length = fn.length;
+  return boundFn
+}
+
+// 原生bind
+function nativeBind (fn, ctx) {
+  return fn.bind(ctx)
+}
+
+var bind = Function.prototype.bind
+  ? nativeBind
+  : polyfillBind;
 
 ```
 
