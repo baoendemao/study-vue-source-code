@@ -12,6 +12,7 @@
     <div id="app">
         <div v-if="name" class="name-node">{{name}}</div>
         <div class="count-node">{{count}}</div>
+        <!-- 这里是注释 -->
         <div @click="addCount()" class="click-node">click here</div>
         <div v-for="i in arrData" class="i-node">{{i}}</div>
         <div class="obj-data-node">{{objData.u}}</div>
@@ -46,6 +47,7 @@
                 },
                 addCount: function() {
                     this.count = this.count + 1;
+                    this.arrData.push('push'+this.count)
                 }
             },
             watch: {

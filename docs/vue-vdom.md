@@ -273,14 +273,14 @@ var createEmptyVNode = function (text) {
 * createTextVNode() => Vue.prototype._v => vm._v
 
 ```
-// 创建文本节点VNode
+// 创建文本节点VNode， new VNode()的第4个参数是文本值
 function createTextVNode (val) {
   return new VNode(undefined, undefined, undefined, String(val))
 }
 
 ```
 
-* cloneVNode()
+* cloneVNode() => 用于static节点和slot节点 => 渲染时候使用新的clone节点，来防止dom渲染使用相同的真实的dom引用导致的错误
 
 ```
 // 克隆VNode

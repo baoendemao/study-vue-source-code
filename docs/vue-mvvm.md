@@ -407,7 +407,7 @@ methodsToPatch.forEach(function (method) {
 
     var result = original.apply(this, args); 
 
-    var ob = this.__ob__;
+    var ob = this.__ob__;   // 数组的被监听的标志和对象的一样，都是__ob__属性
     var inserted;
 
     switch (method) {
