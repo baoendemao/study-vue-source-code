@@ -10,11 +10,11 @@
 <body>
     use vue
     <div id="app">
-        <div v-if="name">{{name}}</div>
-        <div>{{count}}</div>
-        <div @click="addCount()">click here</div>
-        <div v-for="i in arrData">{{i}}</div>
-        <div>{{objData.u}}</div>
+        <div v-if="name" class="name-node">{{name}}</div>
+        <div class="count-node">{{count}}</div>
+        <div @click="addCount()" class="click-node">click here</div>
+        <div v-for="i in arrData" class="i-node">{{i}}</div>
+        <div class="obj-data-node">{{objData.u}}</div>
     </div>
     <script>
         var myVm = new Vue({

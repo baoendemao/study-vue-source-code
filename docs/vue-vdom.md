@@ -10,11 +10,11 @@
 #### VNode构造函数
 ```
 var VNode = function VNode (tag, data, children, text, elm, context, componentOptions, asyncFactory) {
-  this.tag = tag;
-  this.data = data;
-  this.children = children;
-  this.text = text;
-  this.elm = elm;
+  this.tag = tag;             // 标签名，如div
+  this.data = data;           // 节点对象，包含节点相关的属性，如on属性对应click事件函数, staticClass对应class的值
+  this.children = children;   // 孩子节点数组，VNode数组
+  this.text = text;           // 文本
+  this.elm = elm;             // 真实的dom
   this.ns = undefined;
   this.context = context;
   this.fnContext = undefined;

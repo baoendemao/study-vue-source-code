@@ -463,7 +463,7 @@ Dep.prototype.depend = function depend () {
   }
 };
 
-// 通知每个观察者watcher
+// 当对象改变的时候，触发Object.defineProperty的set, 通知每个观察者watcher
 Dep.prototype.notify = function notify () {
   // stabilize the subscriber list first
   var subs = this.subs.slice();
@@ -686,7 +686,8 @@ Watcher.prototype.teardown = function teardown () {
 ```
 
 ```
-var targetStack = [];       // watcher实例的栈，后进先出
+// targetStack是保存watcher实例的栈，因为在一个时刻只能够改变一个对象，即只能有一个watcher
+var targetStack = [];       
 
 function pushTarget (_target) {
   if (Dep.target) { 
