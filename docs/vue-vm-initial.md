@@ -153,12 +153,54 @@ function resolveConstructorOptions (Ctor) {
 ```
 
 ```
+
+function resolveModifiedOptions (Ctor) {
+
+  var modified;
+  var latest = Ctor.options;
+  var extended = Ctor.extendOptions;
+  var sealed = Ctor.sealedOptions;
+  for (var key in latest) {
+    if (latest[key] !== sealed[key]) {
+      if (!modified) { modified = {}; }
+      modified[key] = dedupe(latest[key], extended[key], sealed[key]);
+    }
+  }
+  return modified
+}
+```
+
+```
+function dedupe (latest, extended, sealed) {
+
+  // compare latest and sealed to ensure lifecycle hooks won't be duplicated
+  // between merges
+  if (Array.isArray(latest)) {
+    var res = [];
+    sealed = Array.isArray(sealed) ? sealed : [sealed];
+    extended = Array.isArray(extended) ? extended : [extended];
+    for (var i = 0; i < latest.length; i++) {
+      // push original options and not sealed options to exclude duplicated options
+      if (extended.indexOf(latest[i]) >= 0 || sealed.indexOf(latest[i]) < 0) {
+        res.push(latest[i]);
+      }
+    }
+    return res
+  } else {
+    return latest
+  }
+}
+
+```
+
+```
 function mergeOptions (parent, child, vm) {
 
   {
+    // 检查child.components组件名字是否有效, 必须是字母开头，后面可以跟-
     checkComponents(child);
   }
-
+  
   if (typeof child === 'function') {
     child = child.options;
   }
@@ -226,7 +268,7 @@ function checkComponents (options) {
 ```
 
 ```
-// 处理传入的options.props格式化成对象
+// 处理传入的options.props格式化成对象，并返回
 function normalizeProps (options, vm) {
   var props = options.props;
   if (!props) { return }
@@ -234,7 +276,11 @@ function normalizeProps (options, vm) {
   var res = {};
   var i, val, name;
   
+  
   if (Array.isArray(props)) {
+    // 如果props属性是数组
+
+    // 遍历数组中的每个元素，赋值给对象res作为key，value暂时初始化为{type: null}
     i = props.length;
     while (i--) {
       val = props[i];
@@ -247,6 +293,9 @@ function normalizeProps (options, vm) {
       }
     }
   } else if (isPlainObject(props)) {
+    // 如果props属性是对象
+
+    // 遍历对象中的每个属性，赋值给res作为key，如果value是对象，则作为res对应属性的value值，否则暂时初始化为{type: val}
     for (var key in props) {
       val = props[key];
 
@@ -296,7 +345,7 @@ function normalizeInject (options, vm) {
 ```
 
 ```
-// 处理options.directives
+// 处理options.directives成对象的形式，尤其针对函数
 function normalizeDirectives (options) {
 
   var dirs = options.directives;
@@ -312,6 +361,7 @@ function normalizeDirectives (options) {
 ```
 
 ```
+// 期望value是对象，如果不是对象则报出warnning
 function assertObjectType (name, value, vm) {
 
   if (!isPlainObject(value)) {
@@ -327,6 +377,7 @@ function assertObjectType (name, value, vm) {
 ```
 function mergeDataOrFn (parentVal, childVal, vm) {
   if (!vm) {
+    // vm不存在
 
     // in a Vue.extend merge, both should be functions
     if (!childVal) {
@@ -349,6 +400,7 @@ function mergeDataOrFn (parentVal, childVal, vm) {
       )
     }
   } else {
+    // vm存在
 
     return function mergedInstanceDataFn () {
 
@@ -388,6 +440,7 @@ function mergeData (to, from) {
     if (!hasOwn(to, key)) {
       set(to, key, fromVal);
     } else if (isPlainObject(toVal) && isPlainObject(fromVal)) {
+      // 如果两者的值都是对象，则需要递归深度merge
       mergeData(toVal, fromVal);
     }
   }
@@ -490,32 +543,44 @@ function initEvents (vm) {
 ```
 
 ```
+// 更新监听事件函数
+// on: 新的事件对象， oldOn: 老的事件对象
 function updateListeners (on, oldOn, add, remove$$1, vm) {
 
   var name, def, cur, old, event;
 
+  // 遍历新的事件对象
   for (name in on) {
     def = cur = on[name];
     old = oldOn[name];
 
     event = normalizeEvent(name);
+
     /* istanbul ignore if */
     if (isUndef(cur)) {
+      // 如果新的属性name对应的值不存在，则打印warnning
+
       "development" !== 'production' && warn(
         "Invalid handler for event \"" + (event.name) + "\": got " + String(cur),
         vm
       );
     } else if (isUndef(old)) {
+      // 如果老的事件对象中不存在属性name, 则添加
+
       if (isUndef(cur.fns)) {
         cur = on[name] = createFnInvoker(cur);
       }
       add(event.name, cur, event.once, event.capture, event.passive, event.params);
+
     } else if (cur !== old) {
+      // 如果老的事件对象中存在属性name，但是两者不相等，则更新
+
       old.fns = cur;
       on[name] = old;
     }
   }
 
+  // 删除老的事件对象中有，但是新的事件对象中没有的属性
   for (name in oldOn) {
     if (isUndef(on[name])) {
       event = normalizeEvent(name);
@@ -691,6 +756,47 @@ function initInjections (vm) {
 }
 ```
 
+```
+function resolveInject (inject, vm) {
+  if (inject) {
+    // inject is :any because flow is not smart enough to figure out cached
+    var result = Object.create(null);
+    var keys = hasSymbol
+      ? Reflect.ownKeys(inject).filter(function (key) {
+        /* istanbul ignore next */
+        return Object.getOwnPropertyDescriptor(inject, key).enumerable
+      })
+      : Object.keys(inject);
+
+    for (var i = 0; i < keys.length; i++) {
+      var key = keys[i];
+      var provideKey = inject[key].from;
+      var source = vm;
+      while (source) {
+        if (source._provided && hasOwn(source._provided, provideKey)) {
+          result[key] = source._provided[provideKey];
+          break
+        }
+        source = source.$parent;
+      }
+      if (!source) {
+        if ('default' in inject[key]) {
+          var provideDefault = inject[key].default;
+          result[key] = typeof provideDefault === 'function'
+            ? provideDefault.call(vm)
+            : provideDefault;
+        } else {
+          warn(("Injection \"" + key + "\" not found"), vm);
+        }
+      }
+    }
+    return result
+  } 
+}
+
+
+```
+
 * initState() => 初始化vm的属性： _watchers, _data
 
 ```
@@ -770,6 +876,182 @@ function initProps (vm, propsOptions) {
 
   toggleObserving(true);
 }
+```
+
+```
+function getType (fn) {
+  var match = fn && fn.toString().match(/^\s*function (\w+)/);
+  return match ? match[1] : ''
+}
+
+
+function isSameType (a, b) {
+  return getType(a) === getType(b)
+}
+
+function getTypeIndex (type, expectedTypes) {
+
+  if (!Array.isArray(expectedTypes)) {
+    return isSameType(expectedTypes, type) ? 0 : -1
+  }
+  for (var i = 0, len = expectedTypes.length; i < len; i++) {
+    if (isSameType(expectedTypes[i], type)) {
+      return i
+    }
+  }
+  return -1
+}
+```
+
+```
+function validateProp (key,  propOptions, propsData, vm ) {
+
+  var prop = propOptions[key];
+
+  var absent = !hasOwn(propsData, key);
+
+  var value = propsData[key];
+  var booleanIndex = getTypeIndex(Boolean, prop.type);   
+
+  if (booleanIndex > -1) {
+    if (absent && !hasOwn(prop, 'default')) {
+      value = false;
+    } else if (value === '' || value === hyphenate(key)) {
+      // only cast empty string / same name to boolean if
+      // boolean has higher priority
+      var stringIndex = getTypeIndex(String, prop.type);
+      if (stringIndex < 0 || booleanIndex < stringIndex) {
+        value = true;
+      }
+    }
+  }
+  // check default value 
+  if (value === undefined) {
+
+    value = getPropDefaultValue(vm, prop, key);
+
+    // since the default value is a fresh copy,
+    // make sure to observe it.
+
+    var prevShouldObserve = shouldObserve;
+    toggleObserving(true);
+    observe(value);
+    toggleObserving(prevShouldObserve);
+  }
+  {
+    assertProp(prop, key, value, vm, absent);
+  }
+  return value
+}
+```
+
+```
+function assertProp (prop, name, value, vm, absent) {
+
+  if (prop.required && absent) {
+    warn(
+      'Missing required prop: "' + name + '"',
+      vm
+    );
+    return
+  }
+  if (value == null && !prop.required) {
+    return
+  }
+  var type = prop.type;
+  var valid = !type || type === true;
+  var expectedTypes = [];
+  if (type) {
+    if (!Array.isArray(type)) {
+      type = [type];
+    }
+    for (var i = 0; i < type.length && !valid; i++) {
+      var assertedType = assertType(value, type[i]);
+      expectedTypes.push(assertedType.expectedType || '');
+      valid = assertedType.valid;
+    }
+  }
+  if (!valid) {
+    warn(
+      "Invalid prop: type check failed for prop \"" + name + "\"." +
+      " Expected " + (expectedTypes.map(capitalize).join(', ')) +
+      ", got " + (toRawType(value)) + ".",
+      vm
+    );
+    return
+  }
+  var validator = prop.validator;
+  if (validator) {
+    if (!validator(value)) {
+      warn(
+        'Invalid prop: custom validator check failed for prop "' + name + '".',
+        vm
+      );
+    }
+  }
+}
+```
+```
+
+var simpleCheckRE = /^(String|Number|Boolean|Function|Symbol)$/;
+
+function assertType (value, type) {
+  var valid;
+  var expectedType = getType(type);
+  if (simpleCheckRE.test(expectedType)) {
+    var t = typeof value;
+    valid = t === expectedType.toLowerCase();
+    // for primitive wrapper objects
+    if (!valid && t === 'object') {
+      valid = value instanceof type;
+    }
+  } else if (expectedType === 'Object') {
+    valid = isPlainObject(value);
+  } else if (expectedType === 'Array') {
+    valid = Array.isArray(value);
+  } else {
+    valid = value instanceof type;
+  }
+  return {
+    valid: valid,
+    expectedType: expectedType
+  }
+}
+```
+
+```
+function getPropDefaultValue (vm, prop, key) {
+  
+  // 属性没有default字段的时候，直接返回undefined
+  if (!hasOwn(prop, 'default')) {
+    return undefined
+  }
+  var def = prop.default;
+  if ("development" !== 'production' && isObject(def)) {
+    warn(
+      'Invalid default value for prop "' + key + '": ' +
+      'Props with type Object/Array must use a factory function ' +
+      'to return the default value.',
+      vm
+    );
+  }
+
+  // the raw prop value was also undefined from previous render,
+  // return previous default value to avoid unnecessary watcher trigger
+  if (vm && vm.$options.propsData &&
+    vm.$options.propsData[key] === undefined &&
+    vm._props[key] !== undefined
+  ) {
+    return vm._props[key]
+  }
+
+  // call factory function for non-Function types
+  // a value is Function if its prototype is function even across different execution context
+  return typeof def === 'function' && getType(prop.type) !== 'Function'
+    ? def.call(vm)
+    : def
+}
+
 ```
 
 ```
@@ -889,6 +1171,8 @@ function getData (data, vm) {
 initComputed() => 服务器端渲染的时候，禁止了响应式，避免将对象转换为响应式可被观察的性能开销
 
 ```
+var computedWatcherOptions = { lazy: true };
+
 function initComputed (vm, computed) {
 
   var watchers = vm._computedWatchers = Object.create(null);
@@ -928,6 +1212,61 @@ function initComputed (vm, computed) {
     }
   }
 }
+```
+```
+function defineComputed (
+  target,
+  key,
+  userDef
+) {
+
+  var shouldCache = !isServerRendering();
+  if (typeof userDef === 'function') {
+    sharedPropertyDefinition.get = shouldCache
+      ? createComputedGetter(key)
+      : userDef;
+    sharedPropertyDefinition.set = noop;
+  } else {
+    sharedPropertyDefinition.get = userDef.get
+      ? shouldCache && userDef.cache !== false
+        ? createComputedGetter(key)
+        : userDef.get
+      : noop;
+    sharedPropertyDefinition.set = userDef.set
+      ? userDef.set
+      : noop;
+  }
+  if ("development" !== 'production' &&
+      sharedPropertyDefinition.set === noop) {
+    sharedPropertyDefinition.set = function () {
+      warn(
+        ("Computed property \"" + key + "\" was assigned to but it has no setter."),
+        this
+      );
+    };
+  }
+  Object.defineProperty(target, key, sharedPropertyDefinition);
+}
+
+```
+
+```
+function createComputedGetter (key) {
+
+  return function computedGetter () {
+    var watcher = this._computedWatchers && this._computedWatchers[key];
+    if (watcher) {
+      if (watcher.dirty) {
+        watcher.evaluate();
+      }
+      if (Dep.target) {
+        watcher.depend();
+      }
+      return watcher.value
+    }
+  }
+}
+
 ```
 
 ```

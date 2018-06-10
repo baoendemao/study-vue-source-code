@@ -167,6 +167,14 @@ function initData (vm) {
 * 代理函数proxy()
 
 ```
+
+var sharedPropertyDefinition = {
+  enumerable: true,
+  configurable: true,
+  get: noop,
+  set: noop
+};
+
 // 将原本this[sourceKey][key], 代理到target[key]
 function proxy (target, sourceKey, key) {
   sharedPropertyDefinition.get = function proxyGetter () {
@@ -199,8 +207,9 @@ function observe (value, asRootData) {
     // 如果value已经含有__ob__属性，则说明已经被观察过了，直接return __ob__， 保证不会重复绑定新的Observer实例
     ob = value.__ob__;
 
-  } else if (shouldObserve && !isServerRendering() && (Array.isArray(value) || isPlainObject(value)) &&
-    Object.isExtensible(value) && !value._isVue) {
+  } else if (shouldObserve && !isServerRendering() && 
+      (Array.isArray(value) || isPlainObject(value)) &&
+      Object.isExtensible(value) && !value._isVue) {
 
     // 针对对象和数组的MVVM
     // 通过new Observer，使得value变成可被观察的：value对象里多了_ob_属性, value对象的每个属性都多了get/set方法
@@ -217,11 +226,11 @@ function observe (value, asRootData) {
 
 ```
 
-* Observer => 递归的将数据value变为可被观察的，被监听 => 将当前new的Observer实例this添加到参数value的属性__ob__上
+* Observer => 深度递归的将数据value变为可被观察的，被监听 => 将当前new的Observer实例this添加到参数value的属性__ob__上
 
 ```
 // 使得value(纯对象或数组)变为可被观察的，在其上添加__ob__属性，值是new出的Observer实例
-// 如果value是对象，则递归处理value的每个属性值变为可被观察的
+// 如果value是对象，则深度递归处理value的每个属性值变为可被观察的
 // 如果value是数组，则通过重新定义数组的7个方法，使得数组是可被观察的，然后递归处理数组的每个元素变为可被观察的
 var Observer = function Observer (value) {
 
@@ -254,7 +263,7 @@ var Observer = function Observer (value) {
 ```
 
 ```
-// 遍历数组的每个元素
+// 遍历数组的每个元素进行observe
 Observer.prototype.observeArray = function observeArray (items) {
   for (var i = 0, l = items.length; i < l; i++) {
     observe(items[i]);
@@ -312,8 +321,12 @@ function defineReactive (obj, key, val, customSetter, shallow) {
       // 只有Dep.target存在时, 才进行依赖收集
       if (Dep.target) {
         dep.depend();          // Dep.prototype.depend, dep对象是要被观察的属性obj[key]拥有的唯一的dep, 将watcher添加到dep的subs数组中，以便在值被改变的时候触发setter通知subs数组中的所有的watcher
+
+        // childOb是obj[key].__ob__, 
         if (childOb) {
-          childOb.dep.depend();
+          childOb.dep.depend();  // 对值obj[key]进行依赖收集
+
+          // value是通过属性描述符的getter获取的，如果value是数组，需要递归依赖收集
           if (Array.isArray(value)) {
             dependArray(value);
           }
@@ -429,6 +442,8 @@ methodsToPatch.forEach(function (method) {
   });
 });
 
+// getOwnPropertyNames() : 获取对象的属性名字数组
+// arrayKeys是：["push", "pop", "shift", "unshift", "splice", "sort", "reverse"]
 var arrayKeys = Object.getOwnPropertyNames(arrayMethods);
 
 ```
@@ -474,7 +489,7 @@ Dep.prototype.notify = function notify () {
 
 ```
 <br/>
-dependArray() => 数组做依赖收集
+dependArray() => 在Object.defineProperty的get种，对数组做依赖收集 => 调用数组元素的__ob__.dep.depend()
 <br/>
 
 ```
@@ -756,7 +771,7 @@ function set (target, key, val) {
   // 数组是通过在原生数组方法上修改实现响应式的，所以这里不需要trigger change notification, 所以直接return
   if (Array.isArray(target) && isValidArrayIndex(key)) {
     target.length = Math.max(target.length, key);
-    target.splice(key, 1, val);
+    target.splice(key, 1, val);      // splice函数已经实现了数组的MVVM
     return val
   }
 
@@ -779,13 +794,13 @@ function set (target, key, val) {
     return val
   }
 
-  // 如果Observer不存在，则直接返回
+  // 如果target上的Observer不存在，则直接返回
   if (!ob) {
     target[key] = val;
     return val
   }
 
-  // 如果Observer存在，则trigger change notification
+  // 如果target上的Observer存在，则trigger change notification
   defineReactive(ob.value, key, val);
 
   ob.dep.notify();
@@ -830,10 +845,12 @@ function del (target, key) {
 
   delete target[key];
 
+  // 如果target上的Observer不存在，则直接返回
   if (!ob) {
     return
   }
 
+  // 如果target上的Observer存在，则trigger change notification
   ob.dep.notify();
 }
 
@@ -841,4 +858,57 @@ Vue.prototype.$delete = del;
 
 Vue.delete = del;
 
+```
+
+* shouldObserve
+
+```
+var shouldObserve = true;
+
+function toggleObserving (value) {
+  shouldObserve = value;
+}
+```
+
+* traverse()
+
+```
+
+var seenObjects = new _Set();
+
+/**
+ * Recursively traverse an object to evoke all converted
+ * getters, so that every nested property inside the object
+ * is collected as a "deep" dependency.
+ */
+function traverse (val) {
+
+  _traverse(val, seenObjects);
+  seenObjects.clear();
+}
+
+function _traverse (val, seen) {
+  var i, keys;
+  var isA = Array.isArray(val);
+
+  if ((!isA && !isObject(val)) || Object.isFrozen(val) || val instanceof VNode) {
+    return
+  }
+  if (val.__ob__) {
+    var depId = val.__ob__.dep.id;
+    if (seen.has(depId)) {
+      return
+    }
+    seen.add(depId);
+  }
+
+  if (isA) {
+    i = val.length;
+    while (i--) { _traverse(val[i], seen); }
+  } else {
+    keys = Object.keys(val);
+    i = keys.length;
+    while (i--) { _traverse(val[keys[i]], seen); }
+  }
+}
 ```
