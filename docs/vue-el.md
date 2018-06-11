@@ -7,7 +7,7 @@
 
 ```
 function Vue (options) {  
-  if ("development" !== 'production' &&
+  if (process.env.NODE_ENV !=='production' &&
     !(this instanceof Vue)
   ) {
     warn('Vue is a constructor and should be called with the `new` keyword');
@@ -53,7 +53,7 @@ function query (el) {
   if (typeof el === 'string') {
     var selected = document.querySelector(el);       // 形如：document.querySelector('div#app')
     if (!selected) {
-      "development" !== 'production' && warn(
+      process.env.NODE_ENV !=='production' && warn(
         'Cannot find element: ' + el
       );
       return document.createElement('div')
@@ -99,7 +99,7 @@ function mountComponent (
 
   var updateComponent;
   /* istanbul ignore if */
-  if ("development" !== 'production' && config.performance && mark) {
+  if (process.env.NODE_ENV !=='production' && config.performance && mark) {
     updateComponent = function () {
       var name = vm._name;
       var id = vm._uid;

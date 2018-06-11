@@ -74,7 +74,7 @@ function mountComponent (vm, el, hydrating) {
 
   var updateComponent;
 
-  if ("development" !== 'production' && config.performance && mark) {
+  if (process.env.NODE_ENV !=='production' && config.performance && mark) {
     updateComponent = function () {
       var name = vm._name;
       var id = vm._uid;
@@ -163,7 +163,7 @@ Vue.prototype._render = function () {
     }
     // return empty vnode in case the render function errored out
     if (!(vnode instanceof VNode)) {
-      if ("development" !== 'production' && Array.isArray(vnode)) {
+      if (process.env.NODE_ENV !=='production' && Array.isArray(vnode)) {
         warn(
           'Multiple root nodes returned from render function. Render function ' +
           'should return a single root node.',
@@ -394,7 +394,7 @@ var ALWAYS_NORMALIZE = 2;
 function _createElement (context, tag, data, children, normalizationType) {
 
   if (isDef(data) && isDef((data).__ob__)) {
-    "development" !== 'production' && warn(
+    process.env.NODE_ENV !=='production' && warn(
       "Avoid using observed data object as vnode data: " + (JSON.stringify(data)) + "\n" +
       'Always create fresh vnode data objects in each render!',
       context
@@ -412,7 +412,7 @@ function _createElement (context, tag, data, children, normalizationType) {
   }
 
   // warn against non-primitive key
-  if ("development" !== 'production' &&
+  if (process.env.NODE_ENV !=='production' &&
     isDef(data) && isDef(data.key) && !isPrimitive(data.key)
   ) {
     {
@@ -502,7 +502,7 @@ function resolveAsset (options, type, id, warnMissing) {
   // fallback to prototype chain
   var res = assets[id] || assets[camelizedId] || assets[PascalCaseId];
 
-  if ("development" !== 'production' && warnMissing && !res) {
+  if (process.env.NODE_ENV !=='production' && warnMissing && !res) {
     warn(
       'Failed to resolve ' + type.slice(0, -1) + ': ' + id,
       options
@@ -1005,7 +1005,7 @@ function createPatchFunction (backend) {
         insert(parentElm, vnode.elm, refElm);
       }
 
-      if ("development" !== 'production' && data && data.pre) {
+      if (process.env.NODE_ENV !=='production' && data && data.pre) {
         creatingElmInVPre--;
       }
     } else if (isTrue(vnode.isComment)) {
@@ -1440,7 +1440,7 @@ function createPatchFunction (backend) {
           if (isDef(i = data) && isDef(i = i.domProps) && isDef(i = i.innerHTML)) {
             if (i !== elm.innerHTML) {
               /* istanbul ignore if */
-              if ("development" !== 'production' &&
+              if (process.env.NODE_ENV !=='production' &&
                 typeof console !== 'undefined' &&
                 !hydrationBailed
               ) {
@@ -1466,7 +1466,7 @@ function createPatchFunction (backend) {
             // longer than the virtual children list.
             if (!childrenMatch || childNode) {
               /* istanbul ignore if */
-              if ("development" !== 'production' &&
+              if (process.env.NODE_ENV !=='production' &&
                 typeof console !== 'undefined' &&
                 !hydrationBailed
               ) {

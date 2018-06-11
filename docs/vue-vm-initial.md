@@ -7,7 +7,7 @@
 
 ```
 function Vue (options) {  
-  if ("development" !== 'production' && !(this instanceof Vue)) {
+  if (process.env.NODE_ENV !=='production' && !(this instanceof Vue)) {
     warn('Vue is a constructor and should be called with the `new` keyword');
   }
 
@@ -26,7 +26,7 @@ Vue.prototype._init = function (options) {
 
     var startTag, endTag;
     /* istanbul ignore if */
-    if ("development" !== 'production' && config.performance && mark) {
+    if (process.env.NODE_ENV !=='production' && config.performance && mark) {
       startTag = "vue-perf-start:" + (vm._uid);
       endTag = "vue-perf-end:" + (vm._uid);
       mark(startTag);
@@ -78,7 +78,7 @@ Vue.prototype._init = function (options) {
     callHook(vm, 'created');   // 在生命周期created
 
     /* istanbul ignore if */
-    if ("development" !== 'production' && config.performance && mark) {
+    if (process.env.NODE_ENV !=='production' && config.performance && mark) {
       vm._name = formatComponentName(vm, false);
       mark(endTag);
       measure(("vue " + (vm._name) + " init"), startTag, endTag);
@@ -560,7 +560,7 @@ function updateListeners (on, oldOn, add, remove$$1, vm) {
     if (isUndef(cur)) {
       // 如果新的属性name对应的值不存在，则打印warnning
 
-      "development" !== 'production' && warn(
+      process.env.NODE_ENV !=='production' && warn(
         "Invalid handler for event \"" + (event.name) + "\": got " + String(cur),
         vm
       );
@@ -1027,7 +1027,7 @@ function getPropDefaultValue (vm, prop, key) {
     return undefined
   }
   var def = prop.default;
-  if ("development" !== 'production' && isObject(def)) {
+  if (process.env.NODE_ENV !=='production' && isObject(def)) {
     warn(
       'Invalid default value for prop "' + key + '": ' +
       'Props with type Object/Array must use a factory function ' +
@@ -1100,7 +1100,7 @@ function initData (vm) {
 
   if (!isPlainObject(data)) {
     data = {};
-    "development" !== 'production' && warn(
+    process.env.NODE_ENV !=='production' && warn(
       'data functions should return an object:\n' +
       'https://vuejs.org/v2/guide/components.html#data-Must-Be-a-Function',
       vm
@@ -1128,7 +1128,7 @@ function initData (vm) {
 
     // data中的每一个属性不可以和props里的属性相同
     if (props && hasOwn(props, key)) {
-      "development" !== 'production' && warn(
+      process.env.NODE_ENV !=='production' && warn(
         "The data property \"" + key + "\" is already declared as a prop. " +
         "Use prop default value instead.",
         vm
@@ -1181,7 +1181,7 @@ function initComputed (vm, computed) {
   for (var key in computed) {
     var userDef = computed[key];
     var getter = typeof userDef === 'function' ? userDef : userDef.get;
-    if ("development" !== 'production' && getter == null) {
+    if (process.env.NODE_ENV !=='production' && getter == null) {
       warn(
         ("Getter is missing for computed property \"" + key + "\"."),
         vm
@@ -1236,7 +1236,7 @@ function defineComputed (
       ? userDef.set
       : noop;
   }
-  if ("development" !== 'production' &&
+  if (process.env.NODE_ENV !=='production' &&
       sharedPropertyDefinition.set === noop) {
     sharedPropertyDefinition.set = function () {
       warn(
@@ -1318,7 +1318,7 @@ function initProvide (vm) {
 *  初始化vm._name
 
 ```
-if ("development" !== 'production' && config.performance && mark) {
+if (process.env.NODE_ENV !=='production' && config.performance && mark) {
     vm._name = formatComponentName(vm, false);
     mark(endTag);
     measure(("vue " + (vm._name) + " init"), startTag, endTag);

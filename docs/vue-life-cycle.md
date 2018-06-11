@@ -35,7 +35,7 @@ LIFECYCLE_HOOKS定义([源码点这里](https://github.com/vuejs/vue/blob/dev/sr
     var startTag, endTag;
  
     /* istanbul ignore if */
-    if ("development" !== 'production' && config.performance && mark) {
+    if (process.env.NODE_ENV !=='production' && config.performance && mark) {
       startTag = "vue-perf-start:" + (vm._uid);
       endTag = "vue-perf-end:" + (vm._uid);
       mark(startTag);
@@ -80,7 +80,7 @@ LIFECYCLE_HOOKS定义([源码点这里](https://github.com/vuejs/vue/blob/dev/sr
     callHook(vm, 'created');        // 注意：在此代码之前做了什么
 
     /* istanbul ignore if */
-    if ("development" !== 'production' && config.performance && mark) {
+    if (process.env.NODE_ENV !=='production' && config.performance && mark) {
       vm._name = formatComponentName(vm, false);
       mark(endTag);
       measure(("vue " + (vm._name) + " init"), startTag, endTag);

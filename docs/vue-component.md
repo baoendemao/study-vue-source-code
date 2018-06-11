@@ -247,7 +247,7 @@ function resolveAsyncComponent (factory, baseCtor, context) {
     });
 
     var reject = once(function (reason) {
-      "development" !== 'production' && warn(
+      process.env.NODE_ENV !=='production' && warn(
         "Failed to resolve async component: " + (String(factory)) +
         (reason ? ("\nReason: " + reason) : '')
       );
@@ -584,7 +584,7 @@ function addHandler (
   // warn prevent and passive modifier
   /* istanbul ignore if */
   if (
-    "development" !== 'production' && warn &&
+    process.env.NODE_ENV !=='production' && warn &&
     modifiers.prevent && modifiers.passive
   ) {
     warn(
@@ -1296,7 +1296,7 @@ function transformNode (el, options) {
 
   var warn = options.warn || baseWarn;
   var staticClass = getAndRemoveAttr(el, 'class');
-  if ("development" !== 'production' && staticClass) {
+  if (process.env.NODE_ENV !=='production' && staticClass) {
     var res = parseText(staticClass, options.delimiters);
     if (res) {
       warn(

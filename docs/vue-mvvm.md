@@ -7,7 +7,7 @@
 
 ```
 function Vue (options) {  
-  if ("development" !== 'production' && !(this instanceof Vue)) {
+  if (process.env.NODE_ENV !=='production' && !(this instanceof Vue)) {
     warn('Vue is a constructor and should be called with the `new` keyword');
   }
 
@@ -21,7 +21,7 @@ Vue.prototype._init = function (options) {
 
     var startTag, endTag;
     /* istanbul ignore if */
-    if ("development" !== 'production' && config.performance && mark) {
+    if (process.env.NODE_ENV !=='production' && config.performance && mark) {
       startTag = "vue-perf-start:" + (vm._uid);
       endTag = "vue-perf-end:" + (vm._uid);
       mark(startTag);
@@ -69,7 +69,7 @@ Vue.prototype._init = function (options) {
     callHook(vm, 'created');   // 在生命周期created
 
     /* istanbul ignore if */
-    if ("development" !== 'production' && config.performance && mark) {
+    if (process.env.NODE_ENV !=='production' && config.performance && mark) {
       vm._name = formatComponentName(vm, false);
       mark(endTag);
       measure(("vue " + (vm._name) + " init"), startTag, endTag);
@@ -120,7 +120,7 @@ function initData (vm) {
   // 用户传入的data必须是一个纯对象
   if (!isPlainObject(data)) {
     data = {};
-    "development" !== 'production' && warn(
+    process.env.NODE_ENV !=='production' && warn(
       'data functions should return an object:\n' +
       'https://vuejs.org/v2/guide/components.html#data-Must-Be-a-Function',
       vm
@@ -147,7 +147,7 @@ function initData (vm) {
 
     // props属性不可以和data的属性重复
     if (props && hasOwn(props, key)) {
-      "development" !== 'production' && warn(
+      process.env.NODE_ENV !=='production' && warn(
         "The data property \"" + key + "\" is already declared as a prop. " +
         "Use prop default value instead.",
         vm
@@ -346,7 +346,7 @@ function defineReactive (obj, key, val, customSetter, shallow) {
       }
 
       /* eslint-enable no-self-compare */
-      if ("development" !== 'production' && customSetter) {
+      if (process.env.NODE_ENV !=='production' && customSetter) {
         customSetter();
       }
 
@@ -549,7 +549,7 @@ var Watcher = function Watcher (vm, expOrFn, cb, options, isRenderWatcher) {
     this.getter = parsePath(expOrFn);
     if (!this.getter) {
       this.getter = function () {};
-      "development" !== 'production' && warn(
+      process.env.NODE_ENV !=='production' && warn(
         "Failed watching path: \"" + expOrFn + "\" " +
         'Watcher only accepts simple dot-delimited paths. ' +
         'For full control, use a function instead.',
@@ -761,7 +761,7 @@ function queueWatcher (watcher) {
 
 function set (target, key, val) {
 
-  if ("development" !== 'production' &&
+  if (process.env.NODE_ENV !=='production' &&
     (isUndef(target) || isPrimitive(target))
   ) {
     warn(("Cannot set reactive property on undefined, null, or primitive value: " + ((target))));
@@ -787,7 +787,7 @@ function set (target, key, val) {
   // 该响应式对象不能是Vue实例，或者Vue实例的根数据对象
   if (target._isVue || (ob && ob.vmCount)) {
    
-    "development" !== 'production' && warn(
+    process.env.NODE_ENV !=='production' && warn(
       'Avoid adding reactive properties to a Vue instance or its root $data ' +
       'at runtime - declare it upfront in the data option.'
     );
@@ -819,7 +819,7 @@ Vue.set = set;
 ```
 // Vue实例删除属性，可以被观察到， this.$delete()
 function del (target, key) {
-  if ("development" !== 'production' &&
+  if (process.env.NODE_ENV !=='production' &&
     (isUndef(target) || isPrimitive(target))
   ) {
     warn(("Cannot delete reactive property on undefined, null, or primitive value: " + ((target))));
@@ -832,7 +832,7 @@ function del (target, key) {
   var ob = (target).__ob__;
 
   if (target._isVue || (ob && ob.vmCount)) {
-    "development" !== 'production' && warn(
+    process.env.NODE_ENV !=='production' && warn(
       'Avoid deleting properties on a Vue instance or its root $data ' +
       '- just set it to null.'
     );

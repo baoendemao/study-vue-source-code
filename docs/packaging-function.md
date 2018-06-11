@@ -447,7 +447,7 @@ function query (el) {
   if (typeof el === 'string') {
     var selected = document.querySelector(el);    // 形如：document.querySelector('div#app')
     if (!selected) {
-      "development" !== 'production' && warn(
+      process.env.NODE_ENV !=='production' && warn(
         'Cannot find element: ' + el
       );
       return document.createElement('div')
