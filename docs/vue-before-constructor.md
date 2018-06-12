@@ -1973,7 +1973,7 @@ function createCompilerCreator (baseCompile) {
   }
 }
 ```
-
+* createCompileToFunctionFn()
 ```
 // 柯厘化
 function createCompileToFunctionFn (compile) {
@@ -2062,6 +2062,8 @@ function createCompileToFunctionFn (compile) {
 }
 ```
 
+* createCompiler()
+
 ```
 var createCompiler = createCompilerCreator(
   function baseCompile (template, options) {
@@ -2082,6 +2084,11 @@ var createCompiler = createCompilerCreator(
   }
 );
 
+```
+
+* Vue.compile => 将compileToFunctions挂在到Vue.compile上
+
+```
 
 var baseOptions = {
   expectHTML: true,
