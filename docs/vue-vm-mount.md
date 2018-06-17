@@ -141,7 +141,7 @@ function createTextVNode (val) {
 }
 ```
 
-* vm._c()
+* vm._c() => 内部创建VNode的方法
 ```
 vm._c = function (a, b, c, d) { 
 
@@ -1187,14 +1187,14 @@ function wrapFilter (exp, filter) {
   }
 }
 ```
-* createASTElement()
+* createASTElement() => ASTElement抽象数据结构
 ```
 
 function createASTElement (tag, attrs, parent) {
 
   return {
     type: 1,
-    tag: tag,
+    tag: tag,   // 标签
     attrsList: attrs,
     attrsMap: makeAttrsMap(attrs),   // 在节点中添加attrsMap属性，如指令v-if,v-for,v-once等
     parent: parent,
@@ -1539,6 +1539,28 @@ function processAttrs (el) {
   }
 }
 ```
+
+* checkForAliasModel() => 不能以v-for遍历的值作为v-model的value
+
+```
+function checkForAliasModel (el, value) {
+  var _el = el;
+
+  while (_el) {
+    if (_el.for && _el.alias === value) {
+      warn$2(
+        "<" + (el.tag) + " v-model=\"" + value + "\">: " +
+        "You are binding v-model directly to a v-for iteration alias. " +
+        "This will not be able to modify the v-for source array because " +
+        "writing to the alias is like modifying a function local variable. " +
+        "Consider using an array of objects and use v-model on an object property instead."
+      );
+    }
+    _el = _el.parent;
+  }
+}
+```
+
 * checkInFor()
 ```
 function checkInFor (el) {

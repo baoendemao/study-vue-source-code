@@ -59,7 +59,7 @@ Vue.prototype._init = function (options) {
     }
     
     // expose real self
-    vm._self = vm;
+    vm._self = vm;         // vm实例自身
 
     initLifecycle(vm);     // 初始化生命周期
 
@@ -468,7 +468,7 @@ __proto__
 
 ```
 
-* initProxy() => 初始化vm._renderProxy
+* initProxy() => 初始化vm._renderProxy => Proxy代理对象
 
 在_init()中调用： initProxy(vm)
 
@@ -510,6 +510,7 @@ function initLifecycle (vm) {
     parent.$children.push(vm);
   }
 
+  // 父组件
   vm.$parent = parent;
   vm.$root = parent ? parent.$root : vm;
 
@@ -520,8 +521,13 @@ function initLifecycle (vm) {
   vm._inactive = null;
   vm._directInactive = false;
 
+  // 是否已经被挂载
   vm._isMounted = false;
+
+  // 是否已被销毁
   vm._isDestroyed = false;
+
+  // 是否正在被销毁
   vm._isBeingDestroyed = false;
 
 }
