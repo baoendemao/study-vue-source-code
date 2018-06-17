@@ -1082,6 +1082,7 @@ function createPatchFunction (backend) {
     insert(parentElm, vnode.elm, refElm);
   }
 
+  // 一步步的构建真实的dom, 插入到根元素
   function insert (parent, elm, ref$$1) {
 
     if (isDef(parent)) {

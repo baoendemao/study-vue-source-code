@@ -856,7 +856,8 @@ function parseString (chr) {
 
 ```
 
-* model()
+* model() => v-model
+
 ```
 
 var warn$1;
@@ -866,12 +867,7 @@ var warn$1;
 var RANGE_TOKEN = '__r';
 var CHECKBOX_RADIO_TOKEN = '__c';
 
-function model (
-  el,
-  dir,
-  _warn
-) {
-
+function model (el, dir, _warn) {
   warn$1 = _warn;
   var value = dir.value;
   var modifiers = dir.modifiers;

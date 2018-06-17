@@ -388,7 +388,7 @@ function stateMixin (Vue) {
 
 ```
 
-* eventsMixin() => 初始化原型上的事件相关的函数$on(), $once(), $off(), $emit()
+* eventsMixin() => 初始化原型上的事件相关的函数$on(), $once(), $off(), $emit() => 主要操作的是vm._events数组
 ```
 
 function eventsMixin (Vue) {
@@ -406,6 +406,8 @@ function eventsMixin (Vue) {
         this$1.$on(event[i], fn);
       }
     } else {
+      // vm._events数组保存自定义事件
+
       (vm._events[event] || (vm._events[event] = [])).push(fn);
       // optimize hook:event cost by using a boolean flag marked at registration
       // instead of a hash lookup
@@ -430,7 +432,7 @@ function eventsMixin (Vue) {
     return vm
   };
 
-  // 移除自定义事件监听器
+  // 移除自定义事件监听器， 在Vue.prototype.$destroy()销毁组件中被调用
   Vue.prototype.$off = function (event, fn) {
     var this$1 = this;
 
@@ -470,7 +472,7 @@ function eventsMixin (Vue) {
       while (i$1--) {
         cb = cbs[i$1];
         if (cb === fn || cb.fn === fn) {
-          cbs.splice(i$1, 1);
+          cbs.splice(i$1, 1);   // 从vm._events中删除
           break
         }
       }
@@ -478,7 +480,7 @@ function eventsMixin (Vue) {
     return vm
   };
 
-  // 触发当前实例上的事件
+  // 触发当前实例上的事件 => 在vm._events数组中找到对应的事件处理器，进行调用
   Vue.prototype.$emit = function (event) {
 
     var vm = this;
@@ -514,7 +516,7 @@ function eventsMixin (Vue) {
 
 ```
 
-* nodeOps => 由VNode创建真实的dom
+* nodeOps => 由VNode创建真实的dom => nodeOps对象中封装了真实的dom操作
 
 ```
 
@@ -1386,6 +1388,7 @@ function lifecycleMixin (Vue) {
   Vue.prototype.$destroy = function () {
     var vm = this;
 
+    // _isBeingDestroyed属性标识着正在被销毁，这里的判断可以防止被重复销毁
     if (vm._isBeingDestroyed) {
       return
     }
@@ -1394,7 +1397,7 @@ function lifecycleMixin (Vue) {
 
     vm._isBeingDestroyed = true;
 
-    // remove self from parent
+    // remove self from parent，从父组件的$children数组中删除自己
     var parent = vm.$parent;
 
     if (parent && !parent._isBeingDestroyed && !vm.$options.abstract) {

@@ -96,6 +96,7 @@ function genFor (el, state, altGen, altHelper) {
   var iterator1 = el.iterator1 ? ("," + (el.iterator1)) : '';
   var iterator2 = el.iterator2 ? ("," + (el.iterator2)) : '';
 
+  // 在开发环境中检测，如果不是slot标签或者template标签，v-for要加上key
   if (process.env.NODE_ENV !=='production' &&
     state.maybeComponent(el) &&
     el.tag !== 'slot' &&

@@ -751,7 +751,7 @@ var isPreTag = function (tag) {
 };
 ```
 
-* parse() => 根据模板字符串生成AST抽象语法树，返回树的根节点
+* parse() => 根据模板字符串生成AST抽象语法树，返回树的根节点 => 其中包含(1)处理指令：比如v-for, v-if, v-else, v-on等等
 
 ```
 function baseWarn (msg) {
@@ -849,7 +849,7 @@ function parse (template, options) {
       }
 
       if (!inVPre) {
-        processPre(element);
+        processPre(element);    // 处理v-pre
         if (element.pre) {
           inVPre = true;
         }
@@ -896,7 +896,7 @@ function parse (template, options) {
         checkRootConstraints(root);    // 检查el是否可以作为AST抽象语法树的根
       } else if (!stack.length) {
 
-        // 根节点是允许使用属性：v-if, v-else-if and v-else
+        // 根节点如果含有v-if, v-else-if and v-else， 则允许有多个和根节点同级的元素
         if (root.if && (element.elseif || element.else)) {
           checkRootConstraints(element);   // 检查element是否可以作为AST抽象语法树的根
           addIfCondition(root, {exp: element.elseif, block: element});
@@ -1294,15 +1294,15 @@ function processRawAttrs (el) {
 ```
 function processElement (element, options) {
 
-  processKey(element);
+  processKey(element);  // 处理key, 唯一的key值
 
   // determine whether this is a plain element after
   // removing structural attributes
   element.plain = !element.key && !element.attrsList.length;
 
-  processRef(element);
-  processSlot(element);
-  processComponent(element);
+  processRef(element);   // 处理ref
+  processSlot(element);  // 处理slot
+  processComponent(element);  // 解析component
   for (var i = 0; i < transforms.length; i++) {
     element = transforms[i](element, options) || element;
   }
@@ -1310,7 +1310,7 @@ function processElement (element, options) {
 }
 
 ```
-* processSlot()
+* processSlot() => 处理slot
 ```
 
 function processSlot (el) {
@@ -1364,7 +1364,7 @@ function processSlot (el) {
 }
 
 ```
-* processKey()
+* processKey() => 处理key
 ```
 function processKey (el) {
   var exp = getBindingAttr(el, 'key');
@@ -1376,7 +1376,7 @@ function processKey (el) {
   }
 }
 ```
-* processRef()
+* processRef() => 处理ref
 ```
 function processRef (el) {
 
@@ -1389,7 +1389,7 @@ function processRef (el) {
 
 ```
 
-* processFor() =>  如果el.attrsMap对象中含有Key是'v-for'，则从el.attrsList数组中删除该key
+* processFor() =>  处理v-for => 如果el.attrsMap对象中含有Key是'v-for'，则从el.attrsList数组中删除该key
 ```
 function processFor (el) {
 
@@ -1417,7 +1417,7 @@ function processFor (el) {
 ```
 var forAliasRE = /([^]*?)\s+(?:in|of)\s+([^]*)/;
 var forIteratorRE = /,([^,\}\]]*)(?:,([^,\}\]]*))?$/;
-
+var stripParensRE = /^\(|\)$/g;
 
 // exp是v-for=''的表达式
 function parseFor (exp) {
@@ -1440,7 +1440,7 @@ function parseFor (exp) {
   return res
 }
 ```
-* processComponent()
+* processComponent() => 解析component
 ```
 function processComponent (el) {
 
@@ -1453,8 +1453,15 @@ function processComponent (el) {
   }
 }
 ```
-* processAttrs()
+* processAttrs() => 处理模板中的其他属性，如v-bind，v-on
+
 ```
+var onRE = /^@|^v-on:/;     // 匹配 @ 或者 v-on 开头
+var dirRE = /^v-|^@|^:/;    // 匹配 v- 或者 @ 或者 : 开头
+var argRE = /:(.*)$/;       // 匹配冒号: 开头
+var bindRE = /^:|^v-bind:/;    // 匹配 : 或者 v-bind 开头
+var modifierRE = /\.[^.]+/g;   // 匹配事件中的修饰符，比如@keyup.enter
+
 function processAttrs (el) {
 
   var list = el.attrsList;
@@ -1588,24 +1595,25 @@ function parseModifiers (name) {
 }
 ```
 
-* processIf() => 如果el.attrsMap对象中含有Key是'v-if'或者'v-else'或者'v-else-if'，则从el.attrsList数组中删除该key
+* processIf() => 处理v-if, v-else, v-else-if => 如果el.attrsMap对象中含有Key是'v-if'或者'v-else'或者'v-else-if'，则从el.attrsList数组中删除该key
 
 ```
 function processIf (el) {
 
   //  exp是key为v-if所对应的表达式
   var exp = getAndRemoveAttr(el, 'v-if');
-  if (exp) {
+
+  if (exp) {          // v-if
     el.if = exp;
     addIfCondition(el, {
       exp: exp,
       block: el
     });
   } else {
-    if (getAndRemoveAttr(el, 'v-else') != null) {
-      el.else = true;
+    if (getAndRemoveAttr(el, 'v-else') != null) {    // v-else
+      el.else = true; 
     }
-    var elseif = getAndRemoveAttr(el, 'v-else-if');
+    var elseif = getAndRemoveAttr(el, 'v-else-if');   // v-else-if
     if (elseif) {
       el.elseif = elseif;
     }
@@ -1656,7 +1664,7 @@ function processIfConditions (el, parent) {
 }
 ```
 
-* addIfCondition()
+* addIfCondition() => 在processIf()函数中调用，用来处理v-if
 ```
 function addIfCondition (el, condition) {
 
@@ -1667,7 +1675,7 @@ function addIfCondition (el, condition) {
 }
 
 ```
-* processOnce() => 如果el.attrsMap对象中含有Key是'v-once'，则从el.attrsList数组中删除该key
+* processOnce() => 处理v-once => 如果el.attrsMap对象中含有Key是'v-once'，则从el.attrsList数组中删除该key
 ```
 
 function processOnce (el) {
@@ -1920,17 +1928,19 @@ function genFor (el, state, altGen, altHelper) {
 function renderList (val, render) {
 
   var ret, i, l, keys, key;
+
+  // 数组或者字符串
   if (Array.isArray(val) || typeof val === 'string') {
     ret = new Array(val.length);
     for (i = 0, l = val.length; i < l; i++) {
       ret[i] = render(val[i], i);
     }
-  } else if (typeof val === 'number') {
+  } else if (typeof val === 'number') {    // 数值
     ret = new Array(val);
     for (i = 0; i < val; i++) {
       ret[i] = render(i + 1, i);
     }
-  } else if (isObject(val)) {
+  } else if (isObject(val)) {            // 对象
     keys = Object.keys(val);
     ret = new Array(keys.length);
     for (i = 0, l = keys.length; i < l; i++) {
@@ -2345,24 +2355,43 @@ function markStatic$1 (node) {
 }
 
 ```
-* isStatic()
+
+* isStatic() => 如何标记静态节点
 ```
 function isStatic (node) {
 
-  if (node.type === 2) { // expression
+  if (node.type === 2) { // expression，表达式不是静态节点，返回false
     return false
   }
-  if (node.type === 3) { // text
+  if (node.type === 3) { // text， 文本节点是静态节点，返回true
     return true
   }
   return !!(node.pre || (
-    !node.hasBindings && // no dynamic bindings
-    !node.if && !node.for && // not v-if or v-for or v-else
-    !isBuiltInTag(node.tag) && // not a built-in
-    isPlatformReservedTag(node.tag) && // not a component
-    !isDirectChildOfTemplateFor(node) &&
+    !node.hasBindings &&                   // 没有动态绑定
+    !node.if && !node.for &&               // 没有v-if, v-for, v-else
+    !isBuiltInTag(node.tag) &&             // 不是内建tag， 如slot，component
+    isPlatformReservedTag(node.tag) &&      // 
+    !isDirectChildOfTemplateFor(node) &&    // 
     Object.keys(node).every(isStaticKey)
   ))
+}
+```
+
+* isDirectChildOfTemplateFor() => 是含有for循环的template标签的子元素
+
+```
+function isDirectChildOfTemplateFor (node) {
+
+  while (node.parent) {
+    node = node.parent;
+    if (node.tag !== 'template') {
+      return false
+    }
+    if (node.for) {
+      return true
+    }
+  }
+  return false
 }
 ```
 
