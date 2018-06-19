@@ -1447,7 +1447,7 @@ function lifecycleMixin (Vue) {
 
 ```
 
-* renderMixin() => 初始化渲染相关的函数 $nextTick(), _render(), _o, _n, _s, _l, _t, _q, _i, _m, _f, _k, _b, _v, _e, _u, _g
+* renderMixin() => 初始化渲染相关的函数 $nextTick(), _render(), _o, _n, _s, _l, _t, _q, _i, _m, _f, _k, _b, _v, _e, _u, _g => 这些简短的函数将会在渲染字符串中使用
 ```
 function renderMixin (Vue) {
   // install runtime convenience helpers
@@ -1543,7 +1543,7 @@ function installRenderHelpers (target) {
 }
 ```
 
-* initGlobalAPI() => 初始化全局属性：Vue.config, Vue.util, Vue.set, Vue.delete, Vue.nextTick, Vue.options, 并调用initUse(), initMixin$(), initExtend(), initAssetRegisters()
+* initGlobalAPI() => 初始化全局属性：Vue.config, Vue.util, Vue.set, Vue.delete, Vue.nextTick, Vue.options, 并调用initUse(), initMixin$(), initExtend(), initAssetRegisters()来初始化Vue上其他的全局属性
 
 ```
 
@@ -1578,6 +1578,7 @@ function initGlobalAPI (Vue) {
 
   //  'component', 'directive', 'filter'
   ASSET_TYPES.forEach(function (type) {   
+    //  Vue.options.components, Vue.options.directives, Vue.options.filters
     Vue.options[type + 's'] = Object.create(null);
   });
 
@@ -1587,9 +1588,16 @@ function initGlobalAPI (Vue) {
 
   extend(Vue.options.components, builtInComponents);
 
+  // 初始化Vue.use
   initUse(Vue);  
+
+  // 初始化Vue.mixin()
   initMixin$1(Vue);
+
+  // 初始化Vue.extend()
   initExtend(Vue);
+
+  // 初始化Vue.component，Vue.directive，Vue.filter
   initAssetRegisters(Vue);
 }
 
@@ -1748,7 +1756,7 @@ function initComputed$1 (Comp) {
 
 ```
 
-* initAssetRegisters()
+* initAssetRegisters() => 初始化Vue.component，Vue.directive，Vue.filter
 
 ```
 var ASSET_TYPES = [

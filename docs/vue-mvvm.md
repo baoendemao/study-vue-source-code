@@ -7,6 +7,8 @@
 
 ```
 function Vue (options) {  
+
+  // 如果不是生产环境， 且this不是Vue的实例，即不是通过new Vue的方式创建的this
   if (process.env.NODE_ENV !=='production' && !(this instanceof Vue)) {
     warn('Vue is a constructor and should be called with the `new` keyword');
   }
