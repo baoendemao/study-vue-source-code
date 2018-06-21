@@ -30,7 +30,7 @@ LIFECYCLE_HOOKS定义([源码点这里](https://github.com/vuejs/vue/blob/dev/sr
     var vm = this;
 
     // a uid
-    vm._uid = uid$3++;    // ??
+    vm._uid = uid$3++;   
 
     var startTag, endTag;
  
@@ -42,9 +42,9 @@ LIFECYCLE_HOOKS定义([源码点这里](https://github.com/vuejs/vue/blob/dev/sr
     }
 
     // a flag to avoid this being observed
-    vm._isVue = true;    // ??
-    // merge options
+    vm._isVue = true;   
 
+    // merge options
     if (options && options._isComponent) {
       // optimize internal component instantiation
       // since dynamic options merging is pretty slow, and none of the
