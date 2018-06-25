@@ -1796,7 +1796,7 @@ function initAssetRegisters (Vue) {
 
 ```
 
-* 原型上初始化属性$isServer 和 $ssrContext
+* 原型上初始化属性$isServer 和 $ssrContext => 判断是否是服务器端渲染
 
 ```
 var SSR_ATTR = 'data-server-rendered';   // 服务器端渲染的标志
