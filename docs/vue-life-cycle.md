@@ -74,7 +74,9 @@ LIFECYCLE_HOOKS定义([源码点这里](https://github.com/vuejs/vue/blob/dev/sr
     callHook(vm, 'beforeCreate');   // 注意：在此代码之前做了什么
 
     initInjections(vm); // resolve injections before data/props
+
     initState(vm);
+    
     initProvide(vm); // resolve provide after data/props
 
     callHook(vm, 'created');        // 注意：在此代码之前做了什么

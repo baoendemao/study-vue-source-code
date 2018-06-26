@@ -503,6 +503,8 @@ function initLifecycle (vm) {
   var options = vm.$options;  
 
   var parent = options.parent;
+
+  // vm.$options.abstract是抽象组件，例如keep-alive，transition
   if (parent && !options.abstract) {
     while (parent.$options.abstract && parent.$parent) {
       parent = parent.$parent;

@@ -774,6 +774,7 @@ function createComponent (Ctor, data, context, children, tag) {
   // so it gets processed during parent component patch.
   data.on = data.nativeOn;
 
+  // vm.$options.abstract是抽象组件，例如keep-alive，transition
   if (isTrue(Ctor.options.abstract)) {
     // abstract components do not keep anything
     // other than props & listeners & slot

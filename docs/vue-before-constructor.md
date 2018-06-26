@@ -1400,6 +1400,7 @@ function lifecycleMixin (Vue) {
     // remove self from parent，从父组件的$children数组中删除自己
     var parent = vm.$parent;
 
+    // vm.$options.abstract是抽象组件，例如keep-alive，transition
     if (parent && !parent._isBeingDestroyed && !vm.$options.abstract) {
       remove(parent.$children, vm);
     }
