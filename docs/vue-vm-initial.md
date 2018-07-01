@@ -509,13 +509,16 @@ function initLifecycle (vm) {
     while (parent.$options.abstract && parent.$parent) {
       parent = parent.$parent;
     }
-    parent.$children.push(vm);
+    parent.$children.push(vm); 
   }
 
   // 父组件
   vm.$parent = parent;
+  
+  // 根组件
   vm.$root = parent ? parent.$root : vm;
 
+  // 子组件数组
   vm.$children = [];
   vm.$refs = {};
 
@@ -540,6 +543,7 @@ function initLifecycle (vm) {
 ```
 function initEvents (vm) {
 
+  // 绑定的自定义事件
   vm._events = Object.create(null);
   vm._hasHookEvent = false;
 
@@ -1355,28 +1359,28 @@ Vue.prototype.$mount = function (el, hydrating) {
 #### 执行this._init()之后Vue实例vm （this）:
 ```
 $attrs
-$children
+$children => 子组件数组
 $createElement
-$el
+$el => 当前组件的根元素
 $listeners
 $options
-$parent
+$parent => 父组件
 $refs
-$root
+$root => 根组件
 $scopedSlots
 $slots
 $vnode
 _c
 _data
 _directInactive
-_events
+_events => 绑定的自定义事件
 _hasHookEvent
 _inactive
-_isBeingDestroyed
-_isDestroyed
-_isMounted
+_isBeingDestroyed => 正在被销毁
+_isDestroyed => 是否已被销毁
+_isMounted => 是否已被挂载
 _isVue => 防止自身被观察
-_renderProxy
+_renderProxy => Proxy对象
 _self => 指向Vue实例自身
 _staticTrees
 _uid
