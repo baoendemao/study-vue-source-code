@@ -579,7 +579,7 @@ var ref$1 = createCompiler(baseOptions);
 
 var compileToFunctions = ref$1.compileToFunctions;
 
-Vue.compile = compileToFunctions;   // 挂载到Vue全局，函数作用：将模板字符串compile成render function
+Vue.compile = compileToFunctions;   // 挂载到Vue全局，函数作用：将模板template字符串compile成render function
 
 var mustUseProp = function (tag, type, attr) {
   return (

@@ -2119,7 +2119,7 @@ var ref$1 = createCompiler(baseOptions);
 
 var compileToFunctions = ref$1.compileToFunctions;
 
-Vue.compile = compileToFunctions;   // 全局API， 将模板字符串编译成render function
+Vue.compile = compileToFunctions;   // 全局API， 将模板template字符串编译成render function
 
 ```
 
