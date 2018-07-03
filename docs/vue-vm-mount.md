@@ -1547,7 +1547,7 @@ function processAttrs (el) {
 }
 ```
 
-* checkForAliasModel() => 不能以v-for遍历的值作为v-model的value
+* checkForAliasModel() => 不能以v-for遍历的得到的值作为v-model的value
 
 ```
 function checkForAliasModel (el, value) {

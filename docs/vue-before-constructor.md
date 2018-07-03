@@ -246,6 +246,7 @@ Vue.prototype.$mount = function (el, hydrating) {
 * initMixin() => 初始化Vue原型上的_init()
 
 ```
+// Vue作为形参
 function initMixin (Vue) {
 
   Vue.prototype._init = function (options) {
@@ -321,6 +322,7 @@ function initMixin (Vue) {
 * stateMixin() => 初始化原型上的$data, $props, $set(), $delete(), $watch()
 
 ```
+// Vue作为形参
 function stateMixin (Vue) {
 
   // flow somehow has problems with directly declared definition object
@@ -390,7 +392,7 @@ function stateMixin (Vue) {
 
 * eventsMixin() => 初始化原型上的事件相关的函数$on(), $once(), $off(), $emit() => 主要操作的是vm._events数组
 ```
-
+// Vue作为形参
 function eventsMixin (Vue) {
 
   var hookRE = /^hook:/;
@@ -1328,6 +1330,7 @@ Vue.prototype.__patch__ = inBrowser ? patch : noop;
 * lifecycleMixin() => 初始化原型上的生命周期相关的函数_update(), $forceUpdate(), $destroy()
 
 ```
+// Vue作为形参
 function lifecycleMixin (Vue) {
 
   Vue.prototype._update = function (vnode, hydrating) {
@@ -1449,7 +1452,9 @@ function lifecycleMixin (Vue) {
 ```
 
 * renderMixin() => 初始化渲染相关的函数 $nextTick(), _render(), _o, _n, _s, _l, _t, _q, _i, _m, _f, _k, _b, _v, _e, _u, _g => 这些简短的函数将会在渲染字符串中使用
+
 ```
+// Vue作为形参
 function renderMixin (Vue) {
   // install runtime convenience helpers
   installRenderHelpers(Vue.prototype);
