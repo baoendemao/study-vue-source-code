@@ -445,7 +445,7 @@ if (typeof Set !== 'undefined' && isNative(Set)) {
 // 查询el，如果没找到，则返回一个新创建的dom元素
 function query (el) {
   if (typeof el === 'string') {
-    var selected = document.querySelector(el);    // 形如：document.querySelector('div#app')
+    var selected = document.querySelector(el);    // 形如：document.querySelector('div#app'), 得到dom对象
     if (!selected) {
       process.env.NODE_ENV !=='production' && warn(
         'Cannot find element: ' + el

@@ -440,7 +440,7 @@ methodsToPatch.forEach(function (method) {
 
     // notify change
     ob.dep.notify();
-    return result
+    return result;
   });
 });
 
