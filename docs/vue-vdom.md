@@ -386,7 +386,7 @@ function createElement (context, tag, data, children, normalizationType, alwaysN
 ```
 <br/>
 这里创建的VNode结构是怎样的？<br/>
-假如html结构如下所示，其中#app作为Vue实例的挂载点<br/>
+举个例子：假如html结构如下所示，其中#app作为Vue实例的挂载点<br/>
 
 ```
 <div id="app">
@@ -400,7 +400,7 @@ function createElement (context, tag, data, children, normalizationType, alwaysN
 ```
 
 <br/>
-div#app将会生成一个VNode对象，如下所示</br>
+div#app将会生成一个new VNode()对象，如下所示</br>
 
 ```
 asyncFactory: undefined
@@ -428,7 +428,7 @@ tag: "div"   => 元素标签
 text: undefined
 child: (...)
 ```
-这里重点讲解children属性，这里children是div#app虚拟节点所包含的14个VNode元素的数组。为什么这里是14个？<br/>
+这里重点讲解VNode数据结构中的children属性。根据例子来看，children是div#app虚拟节点所包含的14个VNode元素的数组。为什么这里是14个？<br/>
 首先v-for是6个VNode， div.name-node是1个VNode，div.count-node是1个VNode，div.click-node是1个VNode， div.obj-data-node是1个VNode， 其余4个VNode是指的div与div之间的换行表示的文本节点(如果把换行去掉，这4个VNode将不会产生)
 <br/>
 * _createElement() => 创建VNode
