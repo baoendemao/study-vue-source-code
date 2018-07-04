@@ -364,7 +364,7 @@ function sameVnode (a, b) {
   )
 }
 ```
-* createElement()
+* createElement() => 创建虚拟节点VNode => JS对象
 
 ```
 function createElement (context, tag, data, children, normalizationType, alwaysNormalize) {
