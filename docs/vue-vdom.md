@@ -386,7 +386,8 @@ function createElement (context, tag, data, children, normalizationType, alwaysN
 ```
 <br/>
 这里创建的VNode结构是怎样的？<br/>
-假如html结构如下所示，其中#app作为Vue实例的挂载点
+假如html结构如下所示，其中#app作为Vue实例的挂载点<br/>
+
 ```
 <div id="app">
     <div v-if="name" class="name-node">{{name}}</div>
@@ -395,9 +396,12 @@ function createElement (context, tag, data, children, normalizationType, alwaysN
     <div v-for="i in ['o', 'p', 'q', 'r', 's', 't']" class="i-node">{{i}}</div>
     <div class="obj-data-node">{{objData.u}}</div>
 </div>
+
 ```
+
 <br/>
 div#app将会生成一个VNode对象，如下所示</br>
+
 ```
 asyncFactory: undefined
 asyncMeta: undefined
@@ -425,7 +429,7 @@ text: undefined
 child: (...)
 ```
 这里重点讲解children属性，这里children是div#app虚拟节点所包含的14个VNode元素的数组。为什么这里是14个？<br/>
-首先v-for是6个VNode, div.name-node是1个VNode, div.count-node是1个VNode, div.click-node是1个VNode, div.obj-data-node是1个VNode, 其余4个VNode是指的div与div之间的换行表示的文本节点(如果把换行去掉，这4个VNode将不会产生)
+首先v-for是6个VNode， div.name-node是1个VNode，div.count-node是1个VNode，div.click-node是1个VNode， div.obj-data-node是1个VNode， 其余4个VNode是指的div与div之间的换行表示的文本节点(如果把换行去掉，这4个VNode将不会产生)
 <br/>
 * _createElement() => 创建VNode
 
