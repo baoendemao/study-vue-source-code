@@ -400,7 +400,7 @@ function createElement (context, tag, data, children, normalizationType, alwaysN
 ```
 
 <br/>
-div#app将会生成一个new VNode()对象，如下所示</br>
+div#app将会被create成一个new VNode()对象，如下所示</br>
 
 ```
 asyncFactory: undefined
