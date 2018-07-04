@@ -363,8 +363,9 @@ function sameVnode (a, b) {
     )
   )
 }
+
 ```
-* createElement() => 创建虚拟节点VNode => JS对象
+* createElement() => 创建VNode对象（ 具体的VNode对象里的属性见VNode构造函数 ）
 
 ```
 function createElement (context, tag, data, children, normalizationType, alwaysNormalize) {
@@ -383,8 +384,49 @@ function createElement (context, tag, data, children, normalizationType, alwaysN
 }
 
 ```
-
-
+<br/>
+这里创建的VNode结构是怎样的？<br/>
+假如html结构如下所示，其中#app作为Vue实例的挂载点
+```
+<div id="app">
+    <div v-if="name" class="name-node">{{name}}</div>
+    <div class="count-node">{{count}}</div>
+    <div @click="addCount()" class="click-node">click here</div>
+    <div v-for="i in ['o', 'p', 'q', 'r', 's', 't']" class="i-node">{{i}}</div>
+    <div class="obj-data-node">{{objData.u}}</div>
+</div>
+```
+<br/>
+div#app将会生成一个VNode对象，如下所示</br>
+```
+asyncFactory: undefined
+asyncMeta: undefined
+children: (14) [VNode, VNode, VNode, VNode, VNode, VNode, VNode, VNode, VNode, VNode, VNode, VNode, VNode, VNode]
+componentInstance: undefined
+componentOptions: undefined
+context: Vue {_uid: 0, _isVue: true, $options: {…}, _renderProxy: Proxy, _self: Vue, …}
+data: {attrs: {…}}
+elm: div#app   => 真实的dom元素
+fnContext: undefined
+fnOptions: undefined
+fnScopeId: undefined
+isAsyncPlaceholder: false
+isCloned: false
+isComment: false  => 是否是注释节点
+isOnce: false
+isRootInsert: true
+isStatic: false
+key: undefined
+ns: undefined
+parent: undefined
+raw: false
+tag: "div"   => 元素标签
+text: undefined
+child: (...)
+```
+这里重点讲解children属性，这里children是div#app虚拟节点所包含的14个VNode元素的数组。为什么这里是14个？<br/>
+首先v-for是6个VNode, div.name-node是1个VNode, div.count-node是1个VNode, div.click-node是1个VNode, div.obj-data-node是1个VNode, 其余4个VNode是指的div与div之间的换行表示的文本节点(如果把换行去掉，这4个VNode将不会产生)
+<br/>
 * _createElement() => 创建VNode
 
 ```
