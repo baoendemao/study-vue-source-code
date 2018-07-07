@@ -380,7 +380,8 @@ function createElement (context, tag, data, children, normalizationType, alwaysN
     normalizationType = ALWAYS_NORMALIZE;
   }
 
-  return _createElement(context, tag, data, children, normalizationType)
+  // 返回创建的VNode
+  return _createElement(context, tag, data, children, normalizationType);  
 }
 
 ```
@@ -435,7 +436,7 @@ child: (...)
 
 ```
 var SIMPLE_NORMALIZE = 1;
-var ALWAYS_NORMALIZE = 2;
+var ALWAYS_NORMALIZE = 2; 
 
 function _createElement (context, tag, data, children, normalizationType) {
 
@@ -2118,14 +2119,14 @@ function updateAttrs (oldVnode, vnode) {
     cur = attrs[key];
     old = oldAttrs[key];
     if (old !== cur) {
-      setAttr(elm, key, cur);
+      setAttr(elm, key, cur);  // 给真实的dom元素elm设置属性key
     }
   }
   // #4391: in IE9, setting type can reset value for input[type=radio]
   // #6666: IE/Edge forces progress value down to 1 before setting a max
   /* istanbul ignore if */
   if ((isIE || isEdge) && attrs.value !== oldAttrs.value) {
-    setAttr(elm, 'value', attrs.value);
+    setAttr(elm, 'value', attrs.value);  // 给真实的dom元素elm设置属性value
   }
   for (key in oldAttrs) {
     if (isUndef(attrs[key])) {
@@ -2139,7 +2140,7 @@ function updateAttrs (oldVnode, vnode) {
 }
 
 ```
-* setAttr()
+* setAttr() => 给真实的dom元素el设置属性key
 ```
 
 function setAttr (el, key, value) {

@@ -67,20 +67,6 @@
             * 比较vnode和newVnode, 将不同的部分渲染到container dom容器中，相同的部分不变
 * 理解snabbdom vnode的抽象数据结构
     * 具体参见snabbdom的源码src/vnode.ts[源码点这里](https://github.com/snabbdom/snabbdom/blob/master/src/vnode.ts)
-```
-```
+
 * 理解snabbdom dom树的相关操作
     * 源码具体参见src/snabbdom.ts[源码点这里](https://github.com/snabbdom/snabbdom/blob/master/src/snabbdom.ts)
-    * 源码注释 
-    ```
-
-    ```
-
-* diff
-    * 怎么diff ?
-        * vnode之间的diff  => vnode的抽象
-        * 二叉树之间的diff 
-        * 二叉树的遍历 => 前序、中序、后序、层次遍历
-        * patch()只更新变化的部分 => 性能的提升
-        * js dom操作
-    * 

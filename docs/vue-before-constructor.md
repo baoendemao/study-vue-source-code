@@ -1,7 +1,3 @@
-文章主要记录学习Vue的过程，由于水平有限，有理解不对的地方，欢迎指出来，Thanks♪(･ω･)ﾉ
-
----
-
 #### 全局初始化（ 即在进入Vue构造函数之前做了哪些初始化工作 ）
 * 初始化Version
 ```
@@ -955,6 +951,7 @@ function createPatchFunction (backend) {
       checkDuplicateKeys(newCh);
     }
 
+    // VNode之间的比较diff
     while (oldStartIdx <= oldEndIdx && newStartIdx <= newEndIdx) {
       if (isUndef(oldStartVnode)) {
         oldStartVnode = oldCh[++oldStartIdx]; // Vnode has been moved left
@@ -1218,6 +1215,7 @@ function createPatchFunction (backend) {
     }
   }
 
+  // 新旧两个VNode之间的对比， 将diff出来的差异更新到真实的dom上
   return function patch (oldVnode, vnode, hydrating, removeOnly, parentElm, refElm) {
     if (isUndef(vnode)) {
       if (isDef(oldVnode)) { invokeDestroyHook(oldVnode); }
@@ -2537,6 +2535,7 @@ var builtInComponents = {
 
 var isEnumeratedAttr = makeMap('contenteditable,draggable,spellcheck');
 
+// html元素具有enable, disable含义的元素属性
 var isBooleanAttr = makeMap(
   'allowfullscreen,async,autofocus,autoplay,checked,compact,controls,declare,' +
   'default,defaultchecked,defaultmuted,defaultselected,defer,disabled,' +
