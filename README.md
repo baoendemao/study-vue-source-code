@@ -12,11 +12,6 @@
 * [事件相关](https://github.com/baoendemao/study-vue-source-code/tree/master/docs/vue-events.md)
 * [MVVM](https://github.com/baoendemao/study-vue-source-code/tree/master/docs/vue-mvvm.md)
 * [虚拟dom](https://github.com/baoendemao/study-vue-source-code/tree/master/docs/vue-vdom.md)
-
-* Vue官网
-    * [源码点这里](https://github.com/vuejs/vue)
-    * [API官网点这里](https://cn.vuejs.org/v2/api/index.html)
-    * [Vue生命周期流程图](https://github.com/baoendemao/study-vue-source-code/blob/master/images/lifecycle.png)
 * 如何查看之前vue源码的历史版本
     * git log命令可以查看push的commit编码（可以git log重定向到某个文件，以后每次方便查找）
     * git checkout commit编码的前六位就可以切换到相应的commit版本
