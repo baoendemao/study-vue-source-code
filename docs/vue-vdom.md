@@ -1560,6 +1560,7 @@ function createPatchFunction (backend) {
     }
   }
 
+  // 新旧两个VNode对比
   return function patch (oldVnode, vnode, hydrating, removeOnly, parentElm, refElm) {
 
     if (isUndef(vnode)) {
