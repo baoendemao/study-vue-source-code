@@ -518,6 +518,7 @@ function eventsMixin (Vue) {
 
 ```
 
+// 根据标签名tagName创建html dom，并返回
 function createElement$1 (tagName, vnode) {
 
   var elm = document.createElement(tagName);
@@ -525,65 +526,72 @@ function createElement$1 (tagName, vnode) {
     return elm
   }
 
+  // 针对<select>元素：
   // false or null will remove the attribute but undefined will not
   if (vnode.data && vnode.data.attrs && vnode.data.attrs.multiple !== undefined) {
+
+    // 真实的dom操作：setAttribute() 方法创建或改变某个新属性。如果指定属性已经存在,则只设置该值。
     elm.setAttribute('multiple', 'multiple');
   }
 
   return elm
 }
 
+// 真实的dom操作
 function createElementNS (namespace, tagName) {
-
+  // createElementNS() 方法创建带有命名空间的元素节点。该方法返回 Element 对象。
   return document.createElementNS(namespaceMap[namespace], tagName)
 }
 
+// 真实的dom操作：createTextNode() 来创建文本节点，参数为文本节点的文本
 function createTextNode (text) {
-
   return document.createTextNode(text)
 }
 
+// 真实的dom操作：createComment()来创建注释节点，参数为注释的文本
 function createComment (text) {
-
   return document.createComment(text)
 }
 
+// 真实的dom操作： 在referenceNode子节点前插入一个新的子节点newNode。
 function insertBefore (parentNode, newNode, referenceNode) {
-
   parentNode.insertBefore(newNode, referenceNode);
 }
 
+// 真实的dom操作：从node的子节点列表中删除子节点child
 function removeChild (node, child) {
-
   node.removeChild(child);
 }
 
+// 真实的dom操作： 在node的子节点列表的末尾添加新的子节点child
 function appendChild (node, child) {
-
   node.appendChild(child);
 }
 
+// 真实的dom操作：parentNode属性返回节点node的父节点
 function parentNode (node) {
 
   return node.parentNode
 }
 
+// 真实的dom操作： nextSibling属性返回元素node之后紧跟的节点（处于同一树层级中）
 function nextSibling (node) {
-
   return node.nextSibling
 }
 
+// 真实的dom操作：tagName属性返回元素的标签名
 function tagName (node) {
   return node.tagName
 }
 
+// 真实的dom操作：textContent 属性设置或者返回指定节点的文本内容。
 function setTextContent (node, text) {
-
   node.textContent = text;
 }
 
+// 真实的dom操作：node元素中添加新的属性名字为scopedId，值为''
 function setStyleScope (node, scopeId) {
-
+  // setAttribute() 方法添加新属性。 如果元素中已经存在指定名称的属性，它的值更改为value的值。
   node.setAttribute(scopeId, '');
 }
 

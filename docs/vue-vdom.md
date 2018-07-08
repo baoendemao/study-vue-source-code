@@ -945,8 +945,6 @@ function cloneAndMarkFunctionalResult (vnode, data, contextVm, options) {
 * createPatchFunction() => 返回patch()函数 => 将VNode生成真实的dom
 
 ```
-var patch = createPatchFunction({ nodeOps: nodeOps, modules: modules });
-
 function createPatchFunction (backend) {
 
   var i, j;
@@ -1269,6 +1267,7 @@ function createPatchFunction (backend) {
     }
   }
 
+  // 比较孩子数组
   function updateChildren (parentElm, oldCh, newCh, insertedVnodeQueue, removeOnly) {
 
     var oldStartIdx = 0;
@@ -1290,6 +1289,7 @@ function createPatchFunction (backend) {
       checkDuplicateKeys(newCh);
     }
 
+    // 新旧两棵子树分别有两个索引： 开始索引和结束索引
     while (oldStartIdx <= oldEndIdx && newStartIdx <= newEndIdx) {
         if (isUndef(oldStartVnode)) {
           oldStartVnode = oldCh[++oldStartIdx]; // Vnode has been moved left
@@ -1671,6 +1671,10 @@ function createPatchFunction (backend) {
     return vnode.elm
   }
 }
+
+var patch = createPatchFunction({ nodeOps: nodeOps, modules: modules });
+
+Vue.prototype.__patch__ = inBrowser ? patch : noop;
 ```
 
 * mergeVNodeHook()
