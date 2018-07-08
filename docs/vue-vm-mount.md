@@ -9,7 +9,7 @@
 
 Vue.prototype.$mount = function (el, hydrating) {
 
-  el = el && query(el);  
+  el = el && query(el);    // 找到el表示的真实的dom节点对象
 
   // 不可以mount到body和html
   if (el === document.body || el === document.documentElement) {
@@ -151,7 +151,7 @@ vm._c = function (a, b, c, d) {
 ```
 function createElement (context, tag, data, children, normalizationType, alwaysNormalize) {
  
-  if (Array.isArray(data) || isPrimitive(data)) {
+  if (Array.isArray(data) || isPrimitive(data)) {     // isPrimitive()：是否是基本数据类型
     normalizationType = children;
     children = data;
     data = undefined;
@@ -191,7 +191,7 @@ function _createElement (context, tag, data, children, normalizationType) {
 
   // warn against non-primitive key
   if (process.env.NODE_ENV !=='production' &&
-    isDef(data) && isDef(data.key) && !isPrimitive(data.key)
+    isDef(data) && isDef(data.key) && !isPrimitive(data.key)      // isPrimitive()：是否是基本数据类型
   ) {
     {
       warn(
@@ -1514,7 +1514,7 @@ function processAttrs (el) {
         }
         addDirective(el, name, rawName, value, arg, modifiers);
         if (process.env.NODE_ENV !=='production' && name === 'model') {
-          checkForAliasModel(el, value);
+          checkForAliasModel(el, value);  // 不能以v-for遍历的得到的值作为v-model的value
         }
       }
     } else {

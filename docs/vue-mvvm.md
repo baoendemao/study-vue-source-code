@@ -760,7 +760,7 @@ function queueWatcher (watcher) {
 function set (target, key, val) {
 
   if (process.env.NODE_ENV !=='production' &&
-    (isUndef(target) || isPrimitive(target))
+    (isUndef(target) || isPrimitive(target))      // isPrimitive()：是否是基本数据类型
   ) {
     warn(("Cannot set reactive property on undefined, null, or primitive value: " + ((target))));
   }
@@ -818,7 +818,7 @@ Vue.set = set;
 // Vue实例删除属性，可以被观察到， this.$delete()
 function del (target, key) {
   if (process.env.NODE_ENV !=='production' &&
-    (isUndef(target) || isPrimitive(target))
+    (isUndef(target) || isPrimitive(target))    // isPrimitive()：是否是基本数据类型
   ) {
     warn(("Cannot delete reactive property on undefined, null, or primitive value: " + ((target))));
   }

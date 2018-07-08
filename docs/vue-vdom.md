@@ -370,7 +370,7 @@ function sameVnode (a, b) {
 ```
 function createElement (context, tag, data, children, normalizationType, alwaysNormalize) {
  
-  if (Array.isArray(data) || isPrimitive(data)) {
+  if (Array.isArray(data) || isPrimitive(data)) {      // isPrimitive()：是否是基本数据类型
     normalizationType = children;
     children = data;
     data = undefined;
@@ -602,7 +602,7 @@ function getTagNamespace (tag) {
 ```
 function normalizeChildren (children) {
 
-  return isPrimitive(children)
+  return isPrimitive(children)     // isPrimitive()：是否是基本数据类型
     ? [createTextVNode(children)]
     : Array.isArray(children)
       ? normalizeArrayChildren(children)
@@ -641,7 +641,7 @@ function normalizeArrayChildren (children, nestedIndex) {
         }
         res.push.apply(res, c);
       }
-    } else if (isPrimitive(c)) {
+    } else if (isPrimitive(c)) {     // isPrimitive()：是否是基本数据类型
       if (isTextNode(last)) {
         // merge adjacent text nodes
         // this is necessary for SSR hydration because text nodes are
@@ -945,6 +945,9 @@ function cloneAndMarkFunctionalResult (vnode, data, contextVm, options) {
 * createPatchFunction() => 返回patch()函数 => 将VNode生成真实的dom
 
 ```
+var hooks = ['create', 'activate', 'update', 'remove', 'destroy'];
+
+// 里面声明了很多函数
 function createPatchFunction (backend) {
 
   var i, j;
@@ -962,6 +965,7 @@ function createPatchFunction (backend) {
     }
   }
 
+  // 根据elm的标签名创建空的VNode对象
   function emptyNodeAt (elm) {
     return new VNode(nodeOps.tagName(elm).toLowerCase(), {}, [], undefined, elm)
   }
@@ -976,6 +980,7 @@ function createPatchFunction (backend) {
     return remove
   }
 
+  // 真实的dom操作： 删除el
   function removeNode (el) {
     var parent = nodeOps.parentNode(el);
     // element may have already been removed due to v-html / v-text
@@ -1151,7 +1156,7 @@ function createPatchFunction (backend) {
       for (var i = 0; i < children.length; ++i) {
         createElm(children[i], insertedVnodeQueue, vnode.elm, null, true, children, i);
       }
-    } else if (isPrimitive(vnode.text)) {
+    } else if (isPrimitive(vnode.text)) {     // isPrimitive()：是否是基本数据类型
       nodeOps.appendChild(vnode.elm, nodeOps.createTextNode(String(vnode.text)));
     }
   }
@@ -1503,7 +1508,11 @@ function createPatchFunction (backend) {
           } else {
             // iterate and compare children lists
             var childrenMatch = true;
-            var childNode = elm.firstChild;
+
+            // 真实的dom: elm的第一个孩子
+            var childNode = elm.firstChild; 
+
+            // 依次遍历vnode的虚拟节点children数组
             for (var i$1 = 0; i$1 < children.length; i$1++) {
               if (!childNode || !hydrate(childNode, children[i$1], insertedVnodeQueue, inVPre)) {
                 childrenMatch = false;
@@ -1556,7 +1565,16 @@ function createPatchFunction (backend) {
         vnode.tag.toLowerCase() === (node.tagName && node.tagName.toLowerCase())
       )
     } else {
-      return node.nodeType === (vnode.isComment ? 8 : 3)
+
+      /**
+       * 真实的dom操作：nodeType属性表示dom元素的节点类型， 最重要的节点类型是：
+       * 元素element	1
+       * 属性attr	2
+       * 文本text	3
+       * 注释comments	8
+       * 文档document	9
+       */
+      return node.nodeType === (vnode.isComment ? 8 : 3);  
     }
   }
 
@@ -1673,6 +1691,8 @@ function createPatchFunction (backend) {
 }
 
 var patch = createPatchFunction({ nodeOps: nodeOps, modules: modules });
+
+var inBrowser = typeof window !== 'undefined';    
 
 Vue.prototype.__patch__ = inBrowser ? patch : noop;
 ```
