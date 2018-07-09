@@ -2132,7 +2132,7 @@ function updateAttrs (oldVnode, vnode) {
     return
   }
   var key, cur, old;
-  var elm = vnode.elm;
+  var elm = vnode.elm;     // elm属性表示vnode的真实的dom节点
   var oldAttrs = oldVnode.data.attrs || {};
   var attrs = vnode.data.attrs || {};
   // clone observed objects, as the user probably wants to mutate it
@@ -2140,6 +2140,7 @@ function updateAttrs (oldVnode, vnode) {
     attrs = vnode.data.attrs = extend({}, attrs);
   }
 
+  // 新的属性覆盖旧的属性
   for (key in attrs) {
     cur = attrs[key];
     old = oldAttrs[key];
@@ -2153,6 +2154,7 @@ function updateAttrs (oldVnode, vnode) {
   if ((isIE || isEdge) && attrs.value !== oldAttrs.value) {
     setAttr(elm, 'value', attrs.value);  // 给真实的dom元素elm设置属性value
   }
+  
   for (key in oldAttrs) {
     if (isUndef(attrs[key])) {
       if (isXlink(key)) {
@@ -2167,7 +2169,7 @@ function updateAttrs (oldVnode, vnode) {
 ```
 * setAttr() => 给真实的dom元素el设置属性key
 ```
-
+// el是真实的dom元素
 function setAttr (el, key, value) {
 
   if (el.tagName.indexOf('-') > -1) {
@@ -2183,6 +2185,8 @@ function setAttr (el, key, value) {
       value = key === 'allowfullscreen' && el.tagName === 'EMBED'
         ? 'true'
         : key;
+
+      // 真实的dom操作，给el元素设置属性为class, 值为第二个参数
       el.setAttribute(key, value);
     }
   } else if (isEnumeratedAttr(key)) {
@@ -2202,6 +2206,7 @@ function setAttr (el, key, value) {
 * baseSetAttr()
 ```
 
+// el是真实的dom元素
 function baseSetAttr (el, key, value) {
 
   if (isFalsyAttrValue(value)) {
@@ -2218,13 +2223,21 @@ function baseSetAttr (el, key, value) {
     ) {
       var blocker = function (e) {
 
+        // 执行第一个事件处理程序，并阻止剩下的事件处理程序被执行
         e.stopImmediatePropagation();
+
+        // 移除由 document.addEventListener() 方法添加的事件句柄
         el.removeEventListener('input', blocker);
       };
+
+      // oninput 事件在用户输入时触发
       el.addEventListener('input', blocker);
+
       // $flow-disable-line
       el.__ieph = true; /* IE placeholder patched */
     }
+
+    // 真实的dom操作，给el元素设置属性为class, 值为第二个参数
     el.setAttribute(key, value);
   }
 }

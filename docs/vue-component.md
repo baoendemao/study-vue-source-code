@@ -1241,6 +1241,7 @@ function addClass (el, cls) {
   } else {
     var cur = " " + (el.getAttribute('class') || '') + " ";
     if (cur.indexOf(' ' + cls + ' ') < 0) {
+      // 真实的dom操作，给el元素设置属性为class, 值为第二个参数
       el.setAttribute('class', (cur + cls).trim());
     }
   }
@@ -1274,6 +1275,7 @@ function removeClass (el, cls) {
     }
     cur = cur.trim();
     if (cur) {
+      // 真实的dom操作，给el元素设置属性为class, 值为第二个参数
       el.setAttribute('class', cur);
     } else {
       el.removeAttribute('class');

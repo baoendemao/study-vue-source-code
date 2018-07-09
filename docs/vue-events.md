@@ -184,6 +184,7 @@ function remove$2 (
   _target
 ) {
 
+  // 移除由 document.addEventListener() 方法添加的事件句柄。
   (_target || target$1).removeEventListener(
     event,
     handler._withTask || handler,
