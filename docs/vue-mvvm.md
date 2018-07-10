@@ -308,12 +308,16 @@ function defineReactive (obj, key, val, customSetter, shallow) {
   // 对obj[key]进行递归被观察（凡是其属性，属性的属性，属性的属性的属性...， 都依次被观察，添加__ob__属性，值为new 出来的新的Observer实例)
   var childOb = !shallow && observe(val);   
 
+  // 响应式的关键
   Object.defineProperty(obj, key, {
-    enumerable: true,
+    // 可枚举
+    enumerable: true,  
+    // 可配置
     configurable: true,
 
     // 读的时候，触发reactiveGetter()方法
     get: function reactiveGetter () {
+      // 取值就是为了获取value
       var value = getter ? getter.call(obj) : val;  // 如果属性原本有get方法，则执行获取value
 
       // 只有Dep.target存在时, 才进行依赖收集
@@ -330,10 +334,11 @@ function defineReactive (obj, key, val, customSetter, shallow) {
           }
         }
       }
+
       return value
     },
 
-    // 写的时候，触发reactiveSetter()方法
+    // 数据劫持：写的时候，触发reactiveSetter()方法
     set: function reactiveSetter (newVal) {
 
       // getter获取旧的值
