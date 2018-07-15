@@ -823,6 +823,7 @@ function initState (vm) {
     observe(vm._data = {}, true /* asRootData */); 
   }
 
+  // 初始化computed, 使得其也变成可被观察的
   if (opts.computed) { initComputed(vm, opts.computed); }
 
   if (opts.watch && opts.watch !== nativeWatch) {
@@ -1176,7 +1177,7 @@ function getData (data, vm) {
 }
 ```
 
-initComputed() => 服务器端渲染的时候，禁止了响应式，避免将对象转换为响应式可被观察的性能开销
+initComputed() => 初始化new Vue传入的computed属性 => 服务器端渲染的时候，禁止了响应式，避免将对象转换为响应式可被观察的性能开销
 
 ```
 var computedWatcherOptions = { lazy: true };
@@ -1187,7 +1188,7 @@ function initComputed (vm, computed) {
   var isSSR = isServerRendering();
 
   for (var key in computed) {
-    var userDef = computed[key];
+    var userDef = computed[key];   // 用户自定义的computed的key的函数
     var getter = typeof userDef === 'function' ? userDef : userDef.get;
     if (process.env.NODE_ENV !=='production' && getter == null) {
       warn(
@@ -1244,6 +1245,7 @@ function defineComputed (
       ? userDef.set
       : noop;
   }
+
   if (process.env.NODE_ENV !=='production' &&
       sharedPropertyDefinition.set === noop) {
     sharedPropertyDefinition.set = function () {
@@ -1253,6 +1255,7 @@ function defineComputed (
       );
     };
   }
+
   Object.defineProperty(target, key, sharedPropertyDefinition);
 }
 

@@ -102,7 +102,7 @@ function initState (vm) {
 
 ```
 
-* 初始化data => 递归的将data变为可被观察的
+* 初始化data => 递归的将data变为可被观察的 => 之后添加的新属性不会变成响应式的，因为新添加的属性没有被observe, 没有被重新设置Object.defineProperty()的get和set。如果想要新添加的属性变成响应式的，需要通过this.$set()显示设置。
 
 ```
 function initData (vm) {
@@ -317,11 +317,13 @@ function defineReactive (obj, key, val, customSetter, shallow) {
 
     // 读的时候，触发reactiveGetter()方法
     get: function reactiveGetter () {
+
       // 取值就是为了获取value
       var value = getter ? getter.call(obj) : val;  // 如果属性原本有get方法，则执行获取value
 
       // 只有Dep.target存在时, 才进行依赖收集
       if (Dep.target) {
+        
         dep.depend();          // Dep.prototype.depend, dep对象是要被观察的属性obj[key]拥有的唯一的dep, 将watcher添加到dep的subs数组中，以便在值被改变的时候触发setter通知subs数组中的所有的watcher
 
         // childOb是obj[key].__ob__, 
@@ -359,7 +361,7 @@ function defineReactive (obj, key, val, customSetter, shallow) {
         val = newVal;
       }
 
-      childOb = !shallow && observe(newVal);  // 新值需要可以被观察
+      childOb = !shallow && observe(newVal);  // 新值需要可以被观察, 来实现深度观察
 
       dep.notify();        // dep对象是要被观察的属性obj[key]拥有的唯一的dep， 通知所有的dep数组中的所有的观察者watcher，
     }
@@ -453,13 +455,16 @@ var arrayKeys = Object.getOwnPropertyNames(arrayMethods);
 
 
 
-* 订阅者Dep => 发布订阅模式
+* 订阅者Dep => 发布订阅模式 => <br/>
+(1）管理内部成员变量数组subs，操作为添加删除其中的某一项 <br/>
+(2) subs是一个观察者数组
+(3) 当数据改变的时候，notify subs数组中的所有观察者对象，并调用subs[i]的update方法
 
 ```
 
 var Dep = function Dep () {
   this.id = uid++;      // dep对象的唯一标识 => Watcher添加dep的时候，保证不重复添加dep
-  this.subs = [];       // 存放 (观察者Watcher对象)
+  this.subs = [];       // 存放 (观察者Watcher对象)。
 };
 
 // 添加观察者
@@ -511,8 +516,11 @@ function dependArray (value) {
 
 ```
 
-* 观察者Watcher => new Watcher()触发Watcher.prototype.get() => 将当前Watcher实例赋值给Dep.target <br/>
-一共有三次会new Watcher实例： <1> this.$watch() <2> mountComponent() <3> initComputed()
+* 观察者Watcher => new Watcher()触发Watcher.prototype.get() => 将当前Watcher实例赋值给Dep.target。 <br/>
+一共有三次会new Watcher实例： <br/>
+<1> this.$watch() <br/>
+<2> mountComponent() <br/>
+<3> initComputed()
 
 ```
 
@@ -534,7 +542,8 @@ var Watcher = function Watcher (vm, expOrFn, cb, options, isRenderWatcher) {
     this.deep = this.user = this.lazy = this.sync = false;
   }
 
-  this.cb = cb;         // new Watcher的第三个参数，callback
+  this.cb = cb;         // new Watcher的第三个参数，callback。当数据变化的时候，就是传入的这个函数来改变的视图。
+
   this.id = ++uid$1;    // uid for batching。id用来区分不同的Watcher，防止被重复放入watcher队列中。
   this.active = true;
   this.dirty = this.lazy; // for lazy watchers
@@ -638,7 +647,7 @@ Watcher.prototype.update = function update () {
   }
 };
 
-// render渲染视图 => 调用callback
+// render渲染视图 => 调用callback，该callback是在new Watcher的时候传入的参数
 Watcher.prototype.run = function run () {
   if (this.active) {
     var value = this.get();
