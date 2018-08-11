@@ -5,7 +5,8 @@
   * 经过编译过程之后，最后执行JS代码。
 
 * 模板字符串是如何转换成html结构的？
-  * 通过render函数，先生成抽象语法树(AST)，然后将AST转换成render函数, render函数返回vdom
+  * template模板通过render函数(h函数)，先生成抽象语法树(AST)，然后将AST转换成render函数, render函数返回vdom
+  * 也可以直接跳过模板编译的过程，直接写render函数，这样性能会有所提升
 
 * markOnce() => 标记v-once => Vue.prototype._o => vm._o
 
