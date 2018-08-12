@@ -527,6 +527,7 @@ function dependArray (value) {
 var Watcher = function Watcher (vm, expOrFn, cb, options, isRenderWatcher) {
   this.vm = vm;
 
+  // 是否是渲染watcher
   if (isRenderWatcher) {
     vm._watcher = this;
   }

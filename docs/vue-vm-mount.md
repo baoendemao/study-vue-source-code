@@ -4,6 +4,7 @@
 * vm.$mount(vm.$options.el) => 进入 Vue.prototype.$mount() => <br/>
 如果存在render字段，则不需要template模板编译的过程，直接使用它作为render function<br/>
 如果不存在render字段，需要将template编译成render function<br/>
+其中，render函数会生成VNode
 
 ```
 // 调用：  vm.$mount(vm.$options.el);  
@@ -160,16 +161,18 @@ function createElement (context, tag, data, children, normalizationType, alwaysN
   if (isTrue(alwaysNormalize)) {
     normalizationType = ALWAYS_NORMALIZE;
   }
+
   return _createElement(context, tag, data, children, normalizationType)
 
 }
 ```
 
-* _createElement()
+* _createElement() => 创建vnode
 
 ```
 function _createElement (context, tag, data, children, normalizationType) {
 
+  // 创建vnode的data不能是响应式的，即带着__ob__属性
   if (isDef(data) && isDef((data).__ob__)) {
     process.env.NODE_ENV !=='production' && warn(
       "Avoid using observed data object as vnode data: " + (JSON.stringify(data)) + "\n" +
@@ -231,6 +234,7 @@ function _createElement (context, tag, data, children, normalizationType) {
       );
 
     } else if (isDef(Ctor = resolveAsset(context.$options, 'components', tag))) {
+      
       vnode = createComponent(Ctor, data, context, children, tag);
     } else {
 

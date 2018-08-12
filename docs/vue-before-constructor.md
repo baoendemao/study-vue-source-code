@@ -154,7 +154,7 @@ function nextTick (cb, ctx) {
 Vue.nextTick = nextTick;
 ```
 
-* 初始化componentVNodeHooks
+* 初始化componentVNodeHooks => 组件的钩子hooks： init, prepatch, insert, destroy
 ```
 var componentVNodeHooks = {
   init: function init (vnode, hydrating, parentElm, refElm) {
@@ -620,6 +620,8 @@ var nodeOps = Object.freeze({
 // Vue作为形参
 function lifecycleMixin (Vue) {
 
+  // _update: 将vnode映射成真实的dom
+  // _update的调用时刻：(1)首次渲染  （2）数据的改变
   Vue.prototype._update = function (vnode, hydrating) {
     var vm = this;
 
@@ -635,7 +637,8 @@ function lifecycleMixin (Vue) {
     // Vue.prototype.__patch__ is injected in entry points
     // based on the rendering backend used.
     if (!prevVnode) {
-      // initial render
+      // initial render首次渲染
+
       vm.$el = vm.__patch__(
         vm.$el, vnode, hydrating, false /* removeOnly */,
         vm.$options._parentElm,
@@ -646,6 +649,8 @@ function lifecycleMixin (Vue) {
       // this prevents keeping a detached DOM tree in memory (#5851)
       vm.$options._parentElm = vm.$options._refElm = null;
     } else {
+      // 数据更新
+      
       vm.$el = vm.__patch__(prevVnode, vnode);         
     }
 
@@ -750,10 +755,11 @@ function renderMixin (Vue) {
     return nextTick(fn, this)
   };
 
+  // 返回VNode
   Vue.prototype._render = function () {
     var vm = this;
     var ref = vm.$options;
-    var render = ref.render;
+    var render = ref.render;   // 外面传入的render
     var _parentVnode = ref._parentVnode;
 
     // reset _rendered flag on slots for duplicate slot check
@@ -830,7 +836,7 @@ function installRenderHelpers (target) {
   target._k = checkKeyCodes;
   target._b = bindObjectProps;
   target._v = createTextVNode;   // 创建文本VNode节点
-  target._e = createEmptyVNode;  // 创建空VNode节点
+  target._e = createEmptyVNode;  // 创建空VNode节点， isComment属性是true, 即注释节点
   target._u = resolveScopedSlots;
   target._g = bindObjectListeners;
 }
@@ -972,12 +978,15 @@ function initExtend (Vue) {
     }
 
     var name = extendOptions.name || Super.options.name;
+
+    // 开发环境下
     if (process.env.NODE_ENV !=='production' && name) {
+      // 检测name是否是有效的组件名字
       validateComponentName(name);
     }
 
     var Sub = function VueComponent (options) {
-      this._init(options);
+      this._init(options);   // 调用vue原型上的_init()
     };
     Sub.prototype = Object.create(Super.prototype);  
     Sub.prototype.constructor = Sub;

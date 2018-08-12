@@ -15,6 +15,7 @@ function validateComponentName (name) {
       'and must start with a letter.'
     );
   }
+
   if (isBuiltInTag(name) || config.isReservedTag(name)) {
     warn(
       'Do not use built-in or reserved HTML elements as component ' +
@@ -37,26 +38,21 @@ function checkComponents (options) {
 }
 ```
 
-* createComponent()
+* createComponent() =>  根据组件创建VNode，该函数返回vnode => 组件的构造器继承自Vue
 
 ```
-// 根据组件创建VNode
-function createComponent (
-  Ctor,
-  data,
-  context,
-  children,
-  tag
-) {
+function createComponent (Ctor, data, context, children, tag) {
 
   if (isUndef(Ctor)) {
     return
   }
 
-  var baseCtor = context.$options._base;
+  // baseCtor: Vue => 组件的构造器继承自Vue
+  var baseCtor = context.$options._base;   // vm.$options._base, 即Vue
 
   // plain options object: turn it into a constructor
   if (isObject(Ctor)) {
+    // 根据Vue, 生成组件的构造器Ctor
     Ctor = baseCtor.extend(Ctor);
   }
 
@@ -132,6 +128,9 @@ function createComponent (
 
   // return a placeholder vnode
   var name = Ctor.options.name || tag;
+
+  // 由第一个参数：当vnode的tag是vue-component开头的表示是组件,
+  // 组件的vnode的children是undefined
   var vnode = new VNode(
     ("vue-component-" + (Ctor.cid) + (name ? ("-" + name) : '')),
     data, undefined, undefined, undefined, context,
@@ -493,6 +492,7 @@ function createComponentInstanceForVnode (
     _parentElm: parentElm || null,
     _refElm: refElm || null
   };
+
   // check inline-template render functions
   var inlineTemplate = vnode.data.inlineTemplate;
   if (isDef(inlineTemplate)) {
@@ -508,6 +508,8 @@ function createComponentInstanceForVnode (
 function installComponentHooks (data) {
 
   var hooks = data.hook || (data.hook = {});
+
+  // 遍历组件的钩子hooks
   for (var i = 0; i < hooksToMerge.length; i++) {
     var key = hooksToMerge[i];
     hooks[key] = componentVNodeHooks[key];

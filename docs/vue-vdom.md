@@ -47,12 +47,16 @@ function mountComponent (vm, el, hydrating) {
 
   vm.$el = el;
 
-  if (!vm.$options.render) {
+  if (!vm.$options.render) {   // 外面没有传入render函数，如果也没有办法由template生成render function，会报出警告
 
-    vm.$options.render = createEmptyVNode;
+    vm.$options.render = createEmptyVNode;   // 创建一个空的VNode
 
     {
       if ((vm.$options.template && vm.$options.template.charAt(0) !== '#') || vm.$options.el || el) {
+        // template写了，但是template不是以#开头的，或者
+        // template没有写，外面传入只写了el，或者
+        // 都没有写，只传入了el
+        // 以上三种情况，在runtime-only的Vue版本中，template不会编译成render函数，所以报出警告
         warn(
           'You are using the runtime-only build of Vue where the template ' +
           'compiler is not available. Either pre-compile the templates into ' +
@@ -60,6 +64,7 @@ function mountComponent (vm, el, hydrating) {
           vm
         );
       } else {
+        // template没有写， el也没有写，render函数也没写，所以报出警告
         warn(
           'Failed to mount component: template or render function not defined.',
           vm
@@ -72,7 +77,7 @@ function mountComponent (vm, el, hydrating) {
   // 服务器端渲染不会被调用
   callHook(vm, 'beforeMount');  
 
-  var updateComponent;
+  var updateComponent;  // 函数
 
   if (process.env.NODE_ENV !=='production' && config.performance && mark) {
     updateComponent = function () {
@@ -93,10 +98,13 @@ function mountComponent (vm, el, hydrating) {
     };
   } else {
     updateComponent = function () {
+      // 参数一：vm._render()返回一个VNode
+      // 参数二：当在浏览器端运行时，服务器端渲染表示hydrating为false
       vm._update(vm._render(), hydrating);
     };
   }
  
+  // new render wathcer，即渲染watcher
   new Watcher(vm, updateComponent, noop, null, true /* isRenderWatcher */);
   hydrating = false;
 
@@ -106,12 +114,12 @@ function mountComponent (vm, el, hydrating) {
     callHook(vm, 'mounted');  // 生成dom树之后
   }
 
-  return vm
+  return vm 
 }  
 
 ```
 
-* Vue.prototype._render()
+* Vue.prototype._render() => 生成VNode
 
 ```
 Vue.prototype._render = function () {
@@ -164,6 +172,8 @@ Vue.prototype._render = function () {
     // return empty vnode in case the render function errored out
     if (!(vnode instanceof VNode)) {
       if (process.env.NODE_ENV !=='production' && Array.isArray(vnode)) {
+
+        // 如果生成的vnode是一个数组，则会报出警告，root根节点只允许有一个
         warn(
           'Multiple root nodes returned from render function. Render function ' +
           'should return a single root node.',
@@ -200,6 +210,8 @@ var allowedGlobals = makeMap(
 );
 
 var warnNonPresent = function (target, key) {
+
+    // 使用了一个没有定义的属性, 报出警告
     warn(
       "Property or method \"" + key + "\" is not defined on the instance but " +
       'referenced during render. Make sure that this property is reactive, ' +
@@ -235,7 +247,7 @@ var getHandler = {
 };
 
 var initProxy;
-var hasProxy = typeof Proxy !== 'undefined' && isNative(Proxy);
+var hasProxy = typeof Proxy !== 'undefined' && isNative(Proxy);  // 检查浏览器是否支持es6的proxy
 
 if (hasProxy) {
   var isBuiltInModifier = makeMap('stop,prevent,self,ctrl,shift,alt,meta,exact');
@@ -477,14 +489,16 @@ function _createElement (context, tag, data, children, normalizationType) {
     children.length = 0;
   }
 
+  // children是一个数组，每个元素都是一个VNode
+  // 两种不同的normalize children数组的方法，结果都是将children变成一维数组
   if (normalizationType === ALWAYS_NORMALIZE) {
-    children = normalizeChildren(children);
+    children = normalizeChildren(children);        // 递归的处理所有的数组的情况，扁平化
   } else if (normalizationType === SIMPLE_NORMALIZE) {
-    children = simpleNormalizeChildren(children);
+    children = simpleNormalizeChildren(children);   // 只处理到children的一维是数组的情况，扁平化
   }
   var vnode, ns;
 
-  // tag如果是字符串，则判断 : (1)tag如果是保留字，则直接创建VNode  (2)tag如果不是保留字，如果含有components字段，则创建Component VNode
+  // vnode的属性tag如果是字符串，则判断 : (1)tag如果是保留字，则直接创建VNode  (2)tag如果不是保留字，如果含有components字段，则创建Component VNode
   // tag如果不是字符串，则直接创建Component VNode
   if (typeof tag === 'string') {
     var Ctor;
@@ -603,8 +617,8 @@ function getTagNamespace (tag) {
 function normalizeChildren (children) {
 
   return isPrimitive(children)     // isPrimitive()：是否是基本数据类型
-    ? [createTextVNode(children)]
-    : Array.isArray(children)
+    ? [createTextVNode(children)]  // 如果是基本数据类型，直接创建文本vnode 
+    : Array.isArray(children)      // 如果children是一个数组
       ? normalizeArrayChildren(children)
       : undefined
 }
@@ -630,8 +644,10 @@ function normalizeArrayChildren (children, nestedIndex) {
     if (isUndef(c) || typeof c === 'boolean') { continue }
     lastIndex = res.length - 1;
     last = res[lastIndex];
-    //  nested
+
     if (Array.isArray(c)) {
+      // 递归处理所有是数组的情况，扁平化，都放到res中，最后返回
+
       if (c.length > 0) {
         c = normalizeArrayChildren(c, ((nestedIndex || '') + "_" + i));
         // merge adjacent text nodes
@@ -678,12 +694,19 @@ function normalizeArrayChildren (children, nestedIndex) {
 function simpleNormalizeChildren (children) {
 
   for (var i = 0; i < children.length; i++) {
+    // 如果children数组的某个元素也是数组，则直接连接到children, 组成一维数组, 直接返回
     if (Array.isArray(children[i])) {
       return Array.prototype.concat.apply([], children);
     }
   }
   return children;
 }
+
+例如：
+var a = [
+	[1, 2, 3], [3, 4, 5]
+];
+Array.prototype.concat.apply([], a);   // [1, 2, 3, 3, 4, 5]
 ```
 
 * registerDeepBindings()
@@ -721,7 +744,8 @@ function registerDeepBindings (data) {
     // based on the rendering backend used.
     if (!prevVnode) {
       // 首次渲染
-      // initial render
+      // 第一个参数：传入的是真实的dom
+
       vm.$el = vm.__patch__(
         vm.$el, vnode, hydrating, false /* removeOnly */,
         vm.$options._parentElm,
@@ -731,6 +755,8 @@ function registerDeepBindings (data) {
       // this prevents keeping a detached DOM tree in memory (#5851)
       vm.$options._parentElm = vm.$options._refElm = null;
     } else {
+      // 数据更新
+
       vm.$el = vm.__patch__(prevVnode, vnode);        
 
     }
@@ -1008,6 +1034,7 @@ function createPatchFunction (backend) {
 
   var creatingElmInVPre = 0;
 
+  // 根据vnode创建真实的dom，并递归的处理它的孩子
   function createElm (vnode, insertedVnodeQueue, parentElm, refElm, nested, ownerArray, index) {
 
     if (isDef(vnode.elm) && isDef(ownerArray)) {
@@ -1579,8 +1606,11 @@ function createPatchFunction (backend) {
   }
 
   // 新旧两个VNode对比
+  // 首次渲染调用的时候，第一个参数是真实的dom
+  // 数据更新调用的时候，第一个参数是vnode
   return function patch (oldVnode, vnode, hydrating, removeOnly, parentElm, refElm) {
 
+    // 如果vnode不存在，则删除
     if (isUndef(vnode)) {
       if (isDef(oldVnode)) { invokeDestroyHook(oldVnode); }
       return
@@ -1596,7 +1626,9 @@ function createPatchFunction (backend) {
         isInitialPatch = true;
         createElm(vnode, insertedVnodeQueue, parentElm, refElm);
     } else {
+        // 首次渲染的时候，isRealElement是true
         var isRealElement = isDef(oldVnode.nodeType);
+
         if (!isRealElement && sameVnode(oldVnode, vnode)) {
             // patch existing root node
             patchVnode(oldVnode, vnode, insertedVnodeQueue, removeOnly);
@@ -1626,12 +1658,13 @@ function createPatchFunction (backend) {
               }
             }
 
-            // 如果不是服务器端渲染，或者服务器端渲染但是混合失败了，则创建一个新的空VNode来替代oldVnode
+            // 如果不是服务器端渲染，或者服务器端渲染但是混合失败了，则创建一个新的空VNode来替代真实的dom
             oldVnode = emptyNodeAt(oldVnode);
           }
 
           // replacing existing element
           var oldElm = oldVnode.elm;
+
           var parentElm$1 = nodeOps.parentNode(oldElm);
 
           // create new node
@@ -1690,11 +1723,18 @@ function createPatchFunction (backend) {
   }
 }
 
+// nodeOps中封装的是真实的dom操作
+// createPatchFunction()返回patch函数。
+// 这里使用函数柯里化来返回patch函数，是为了同时兼容web平台和weex平台，以便在第一次就将差异提取出来，在真正执行patch函数的时候不用再区分两种平台。
 var patch = createPatchFunction({ nodeOps: nodeOps, modules: modules });
 
 var inBrowser = typeof window !== 'undefined';    
 
+// 判断是否是浏览器环境：
+// 如果是浏览器，则赋值patch；如果是服务端，则什么都不做, noop是指一个空函数，因为在服务端是不会出现真实的dom的，所以不需要patch。即：只有浏览器环境才进行patch
 Vue.prototype.__patch__ = inBrowser ? patch : noop;
+
+
 ```
 
 * mergeVNodeHook()

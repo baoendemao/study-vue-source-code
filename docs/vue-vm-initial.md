@@ -648,12 +648,14 @@ function initRender (vm) {
   // so that we get proper render context inside it.
   // args order: tag, data, children, normalizationType, alwaysNormalize
   // internal version is used by render functions compiled from templates
+  // 由模板编译生成的render函数所调用的生成VNode的函数
   vm._c = function (a, b, c, d) { 
     return createElement(vm, a, b, c, d, false); 
   };
 
   // normalization is always applied for the public version, used in
   // user-written render functions.
+  // 由外面传入的render函数调用的生成VNode的函数，和上面的vm._c有区别, 且最后一个参数不同
   vm.$createElement = function (a, b, c, d) { return createElement(vm, a, b, c, d, true); };
 
   // $attrs & $listeners are exposed for easier HOC creation.

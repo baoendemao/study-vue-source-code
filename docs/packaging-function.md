@@ -460,6 +460,7 @@ function query (el) {
 * sharedPropertyDefinition
 
 ```
+// vue中多次使用了noop，一般用做callback的函数，如果传入noop，表示什么都不做
 function noop (a, b, c) {}
 
 var sharedPropertyDefinition = {
