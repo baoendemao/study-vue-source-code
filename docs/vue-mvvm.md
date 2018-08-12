@@ -153,7 +153,7 @@ function initData (vm) {
     } else if (!isReserved(key)) {  // data里的属性不可以是保留字
 
       // 将属性代理到vm，
-      // 即如果用户传入的data有个属性是count, 原本可以访问vm._data.count，现在可以直接vm.count访问data里的属性
+      // 即如果用户传入的data有个属性是count, 原本可以访问vm._data.count，现在可以直接vm.count访问data里的属性，即this.count
       proxy(vm, "_data", key); 
     }
   }

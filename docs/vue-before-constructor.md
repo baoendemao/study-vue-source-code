@@ -1,4 +1,4 @@
-#### 全局初始化（ 即在进入Vue构造函数之前做了哪些初始化工作 ）
+#### Vue的全局初始化工作（ 即在new Vue()进入Vue构造函数之前做了哪些初始化工作：初始化Vue全局属性方法，初始化Vue原型属性和方法）
 * 初始化Version
 ```
 
@@ -261,7 +261,7 @@ function initMixin (Vue) {
     // Vue自身实例this防止被观察
     vm._isVue = true;    
 
-    // merge options
+    // 合并options，并挂载到vm.$options
     if (options && options._isComponent) {
       // optimize internal component instantiation
       // since dynamic options merging is pretty slow, and none of the
@@ -308,6 +308,7 @@ function initMixin (Vue) {
     }
 
     if (vm.$options.el) {
+      // 挂载
       vm.$mount(vm.$options.el);  
     }
   }; 
@@ -855,6 +856,7 @@ function initGlobalAPI (Vue) {
   // exposed util methods.
   // NOTE: these are not considered part of the public API - avoid relying on
   // them unless you are aware of the risk.
+  // 不建议外面的库去使用Vue.util, 因为不稳定
   Vue.util = {
     warn: warn,
     extend: extend,
@@ -878,6 +880,7 @@ function initGlobalAPI (Vue) {
   // components with in Weex's multi-instance scenarios.
   Vue.options._base = Vue;     
 
+  // builtInComponents是vue的内置组件，将其拓展到Vue.options.components对象上
   extend(Vue.options.components, builtInComponents);
 
   // 初始化Vue.use
@@ -1812,6 +1815,7 @@ var KeepAlive = {
 }
 
 
+// builtInComponents： vue的内置组件对象
 var builtInComponents = {
   KeepAlive: KeepAlive
 }

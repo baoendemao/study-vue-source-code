@@ -1,4 +1,4 @@
-##### 如何初始化Vue实例vm (this), ( 即this._init()做的什么工作 )
+##### new Vue()是怎么初始化Vue实例vm (this), ( 即this._init()做的什么工作 )
 * 从Vue构造函数进入
 
 ```
@@ -7,7 +7,7 @@ function Vue (options) {
     warn('Vue is a constructor and should be called with the `new` keyword');
   }
 
-  this._init(options);    
+  this._init(options);    // 调用Vue.prototype._init
 }
 ```
 
@@ -805,7 +805,7 @@ function resolveInject (inject, vm) {
 
 ```
 
-* initState() => 初始化vm的属性： _watchers, _data
+* initState() => 初始化vm的属性： _watchers, _data， 并调用initProps和initMethods来初始化属性和方法
 
 ```
 
@@ -1103,11 +1103,16 @@ function initData (vm) {
 
   var data = vm.$options.data;
 
+  // data赋值给vm._data
+  // 初始化传入的data通常写成一个function的形式
   data = vm._data = typeof data === 'function'
     ? getData(data, vm)
     : data || {};
 
+
   if (!isPlainObject(data)) {
+    // 不是一个对象，则warn警告
+
     data = {};
     process.env.NODE_ENV !=='production' && warn(
       'data functions should return an object:\n' +
@@ -1116,7 +1121,7 @@ function initData (vm) {
     );
   }
 
-  var keys = Object.keys(data);
+  var keys = Object.keys(data);   // 外部传入的data里的属性数组
   var props = vm.$options.props;
   var methods = vm.$options.methods;
 
@@ -1126,7 +1131,7 @@ function initData (vm) {
   while (i--) {
     var key = keys[i];
     {
-      // data中的每一个属性不可以和methods里的属性相同
+      // data中的每一个属性不可以和methods里的属性重名
       if (methods && hasOwn(methods, key)) {
         warn(
           ("Method \"" + key + "\" has already been defined as a data property."),
@@ -1135,7 +1140,7 @@ function initData (vm) {
       }
     }
 
-    // data中的每一个属性不可以和props里的属性相同
+    // data中的每一个属性不可以和props里的属性重名
     if (props && hasOwn(props, key)) {
       process.env.NODE_ENV !=='production' && warn(
         "The data property \"" + key + "\" is already declared as a prop. " +
