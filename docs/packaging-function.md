@@ -438,7 +438,9 @@ if (typeof Set !== 'undefined' && isNative(Set)) {
 * query()
 
 ```
-// 查询el，如果没找到，则返回一个新创建的dom元素
+// 查询el，el可以是字符串，可以是dom对象：
+// 如果传入字符串，则直接querySelector返回；如果没有找到，则返回一个新创建的div空对象
+// 如果传入对象，则直接返回对象
 function query (el) {
   if (typeof el === 'string') {
     var selected = document.querySelector(el);    // 形如：document.querySelector('div#app'), 得到dom对象

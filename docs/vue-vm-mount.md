@@ -6,12 +6,12 @@
 如果不存在render字段，需要将template编译成render function<br/>
 
 ```
-
+// 调用：  vm.$mount(vm.$options.el);  
 Vue.prototype.$mount = function (el, hydrating) {
 
   el = el && query(el);    // 找到el表示的真实的dom节点对象
 
-  // 不可以mount到body和html
+  // 不可以mount挂载到body和html
   if (el === document.body || el === document.documentElement) {
     process.env.NODE_ENV !=='production' && warn(
       "Do not mount Vue to <html> or <body> - mount to normal elements instead."
@@ -21,11 +21,12 @@ Vue.prototype.$mount = function (el, hydrating) {
 
   var options = this.$options;
 
-  // 如果options.render存在，则后面直接使用其作为render function
+  // 如果options.render存在，则后面直接使用其作为render function，可以提高效率
   // 如果options.render不存在，则需要通过模板字符串生成render function
+  // 即vue的生命周期必会经过render函数
   if (!options.render) {
-    var template = options.template;
-
+    var template = options.template;   // 外面传入的template模板
+ 
      // 如果options存在template字段，则使用template字段的模板字符串
     if (template) { 
       // 检查options传入的template字段的正确性
