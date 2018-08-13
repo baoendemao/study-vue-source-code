@@ -1,12 +1,30 @@
 #### 进入$mount之后，怎么编译模板的
  在 this._init(options)初始化vm的各种属性之后，最后一步是$mount
 
+
+* mount => 当模板字符串template转换成render function后，需要初始化vm.$el, 创建virtual dom<br/>
+该方法可以直接被runtime only版本的vue直接挂载，跳过了模板编译的过程
+
+```
+Vue.prototype.$mount = function (el, hydrating) {
+ 
+  el = el && inBrowser ? query(el) : undefined;  // 挂载的元素
+
+  return mountComponent(this, el, hydrating);  
+
+};
+
+
+```
+
 * vm.$mount(vm.$options.el) => 进入 Vue.prototype.$mount() => <br/>
 如果存在render字段，则不需要template模板编译的过程，直接使用它作为render function<br/>
 如果不存在render字段，需要将template编译成render function<br/>
 其中，render函数会生成VNode
 
 ```
+var mount = Vue.prototype.$mount;     // 先保存原型上原来的$mount
+
 // 调用：  vm.$mount(vm.$options.el);  
 Vue.prototype.$mount = function (el, hydrating) {
 
@@ -88,25 +106,12 @@ Vue.prototype.$mount = function (el, hydrating) {
     }
   }
 
+  // 调用之前原型上的$mount来挂载el
   return mount.call(this, el, hydrating); 
 };
 
 ```
 
-* mount => 当模板字符串template转换成render function后，需要初始化vm.$el, 创建virtual dom
-
-```
-Vue.prototype.$mount = function (el, hydrating) {
- 
-  el = el && inBrowser ? query(el) : undefined;  
-
-  return mountComponent(this, el, hydrating);  
-
-};
-
-var mount = Vue.prototype.$mount;
-
-```
 
 * installRenderHelpers() => 这种Vue.prototype上添加了许多函数，用来辅助渲染 => render code中大量使用(with(){})
 ```

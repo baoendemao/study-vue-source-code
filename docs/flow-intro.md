@@ -15,7 +15,8 @@ drwxr-xr-x  3 wl  staff  102 Aug 11 12:25 .
 drwxr-xr-x  9 wl  staff  306 Aug 11 11:58 ..
 -rw-r--r--  1 wl  staff   58 Aug 11 12:25 .flowconfig
 
-$ cat .flowconfig
+// flow的配置文件
+$ cat .flowconfig  
 [ignore]
 
 [include]
