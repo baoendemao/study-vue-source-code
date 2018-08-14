@@ -35,4 +35,4 @@
   },
 ```
 
-* rollup官方文档： https://rollupjs.org/guide/zh
+* rollup中文官方文档： https://rollupjs.org/guide/zh

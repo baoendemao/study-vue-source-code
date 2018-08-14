@@ -17,7 +17,7 @@ Vue.prototype.$mount = function (el, hydrating) {
 
 ```
 
-* vm.$mount(vm.$options.el) => 进入 Vue.prototype.$mount() => <br/>
+* runtime + compile版本的vue需要重写mount => vm.$mount(vm.$options.el) => 进入 Vue.prototype.$mount() => <br/>
 如果存在render字段，则不需要template模板编译的过程，直接使用它作为render function<br/>
 如果不存在render字段，需要将template编译成render function<br/>
 其中，render函数会生成VNode
@@ -51,7 +51,10 @@ Vue.prototype.$mount = function (el, hydrating) {
       // 检查options传入的template字段的正确性
       if (typeof template === 'string') {
         if (template.charAt(0) === '#') {
-          template = idToTemplate(template);
+
+          // idToTemplate: 根据 id 获取元素的 innerHTML
+          template = idToTemplate(template);  
+
           /* istanbul ignore if */
           if (process.env.NODE_ENV !=='production' && !template) {
             warn(
@@ -239,7 +242,7 @@ function _createElement (context, tag, data, children, normalizationType) {
       );
 
     } else if (isDef(Ctor = resolveAsset(context.$options, 'components', tag))) {
-      
+
       vnode = createComponent(Ctor, data, context, children, tag);
     } else {
 

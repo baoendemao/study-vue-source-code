@@ -334,7 +334,9 @@ function stateMixin (Vue) {
   var propsDef = {};
   propsDef.get = function () { return this._props };
 
-  {
+  // 不能set， 即$data和$props都是只读属性
+  // 只有生产环境才会报出警告
+  if (process.env.NODE_ENV !== 'production') {
     dataDef.set = function (newData) {
       warn(
         'Avoid replacing instance root $data. ' +
@@ -342,6 +344,7 @@ function stateMixin (Vue) {
         this
       );
     };
+
     propsDef.set = function () {
       warn("$props is readonly.", this);
     };
@@ -751,7 +754,7 @@ function lifecycleMixin (Vue) {
 // Vue作为形参
 function renderMixin (Vue) {
   // install runtime convenience helpers
-  installRenderHelpers(Vue.prototype);
+  installRenderHelpers(Vue.prototype); // 在Vue.prototype上添加渲染辅助函数，如_o, _n等
 
   Vue.prototype.$nextTick = function (fn) {
     return nextTick(fn, this)
@@ -851,7 +854,8 @@ function installRenderHelpers (target) {
 function initGlobalAPI (Vue) {
   var configDef = {};
   configDef.get = function () { return config; };
-  {
+
+  if (process.env.NODE_ENV !== 'production') {
     configDef.set = function () {
       warn(
         'Do not replace the Vue.config object, set individual fields instead.'
@@ -859,6 +863,7 @@ function initGlobalAPI (Vue) {
     };
   }
 
+  // Vue.config是一个只读属性
   Object.defineProperty(Vue, 'config', configDef);
 
   // exposed util methods.
@@ -881,7 +886,13 @@ function initGlobalAPI (Vue) {
   //  'component', 'directive', 'filter'
   ASSET_TYPES.forEach(function (type) {   
     //  Vue.options.components, Vue.options.directives, Vue.options.filters
-    Vue.options[type + 's'] = Object.create(null);
+    //  Vue.options = {
+    //      components: Object.create(null),
+    //      directives: Object.create(null),
+    //      filters: Object.create(null),
+    //  }
+
+      Vue.options[type + 's'] = Object.create(null);
   });
 
   // this is used to identify the "base" constructor to extend all plain-object
@@ -889,6 +900,13 @@ function initGlobalAPI (Vue) {
   Vue.options._base = Vue;     
 
   // builtInComponents是vue的内置组件，将其拓展到Vue.options.components对象上
+  // builtInComponents如： keep-alive
+  //  Vue.options = {
+  //      components: { KeepAlive },
+  //      directives: Object.create(null),
+  //      filters: Object.create(null),
+  //      _base: Vue
+  //  }
   extend(Vue.options.components, builtInComponents);
 
   // 初始化Vue.use
@@ -1078,6 +1096,9 @@ function initAssetRegisters (Vue) {
    */
   ASSET_TYPES.forEach(function (type) {
 
+    // Vue.component: 全局注册组件
+    // Vue.directive: 全局注册指令
+    // Vue.filter: 全局注册过滤器
     Vue[type] = function (id, definition) {
       if (!definition) {
         return this.options[type + 's'][id]
@@ -1205,6 +1226,8 @@ function FunctionalRenderContext (
   }
 }
 
+// 在FunctionalRenderContext.prototype上添加渲染辅助函数，如_o，_n等
+// 为了ssr中使用
 installRenderHelpers(FunctionalRenderContext.prototype);
 
 ```
@@ -1403,7 +1426,7 @@ var createCompiler = createCompilerCreator(
 
 ```
 
-* Vue.compile => 将compileToFunctions挂在到Vue.compile上
+* Vue.compile => 将compileToFunctions挂在到Vue.compile上 => runtime + compile版本的vue需要做这一步
 
 ```
 

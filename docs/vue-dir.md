@@ -26,7 +26,7 @@ $ tree -L 1
 $ tree -L 1 src
 src
 ├── compiler  =>   模板template字符串的编译
-├── core   => Vue的核心相关
+├── core   => Vue的核心相关， 这个文件夹里的内容是和平台(web，weex)无关的
 ├── platforms =>   平台相关的代码， vue现在支持web和weex
 ├── server   => 服务端渲染相关
 ├── sfc   =>  将vue文件编译成js。 如webpack不认识vue，打包的时候需要将vue编译成js
