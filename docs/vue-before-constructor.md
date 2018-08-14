@@ -252,6 +252,8 @@ function initMixin (Vue) {
 
     vm._uid = uid$3++;    
 
+    // 生产环境下，对性能进行检测
+    // 通过mark上startTag和endTag
     var startTag, endTag;
     /* istanbul ignore if */
     if (process.env.NODE_ENV !=='production' && config.performance && mark) {

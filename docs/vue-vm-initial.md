@@ -18,7 +18,8 @@ function Vue (options) {
 Vue.prototype._init = function (options) {
     var vm = this;
 
-    vm._uid = uid$3++;    
+    // 每new一个vue, vm._uid++，即vm._uid代表new出来的vue实例的唯一标识
+    vm._uid = uid$3++;   
 
     var startTag, endTag;
     /* istanbul ignore if */

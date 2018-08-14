@@ -2,6 +2,7 @@
 * 从Vue构造函数进入
 
 ```
+// options是new vue(options)从外面传过来的对象参数
 function Vue (options) {  
 
   // 如果不是生产环境， 且this不是Vue的实例，即不是通过new Vue的方式创建的this
@@ -29,12 +30,14 @@ Vue.prototype._init = function (options) {
     vm._isVue = true;    
 
     // merge options
+    // _isComponent在创建组件时为true
     if (options && options._isComponent) {
       // optimize internal component instantiation
       // since dynamic options merging is pretty slow, and none of the
       // internal component options needs special treatment.
       initInternalComponent(vm, options);
     } else {
+      // 首次会进入else分支
       vm.$options = mergeOptions(
         resolveConstructorOptions(vm.constructor),
         options || {},
