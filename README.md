@@ -3,7 +3,7 @@
 
 ---
 
-* [Vue源码的目录结构](https://github.com/baoendemao/study-vue-source-code/tree/master/docs/vue-dir.md)
+* [Vue源码的目录结构和package.json](https://github.com/baoendemao/study-vue-source-code/tree/master/docs/vue-dir.md)
 * [snabbdom的学习](https://github.com/baoendemao/study-vue-source-code/tree/master/docs/snabbdom.md)
 * [vue中封装的函数](https://github.com/baoendemao/study-vue-source-code/tree/master/docs/packaging-function.md)
 * [Vue的全局初始化工作](https://github.com/baoendemao/study-vue-source-code/tree/master/docs/vue-before-constructor.md)
