@@ -173,6 +173,8 @@ var componentVNodeHooks = {
         parentElm,
         refElm
       );
+
+      // 子组件的$mount，其实实质上是vue.prototype.$mount
       child.$mount(hydrating ? vnode.elm : undefined, hydrating);
     }
   },

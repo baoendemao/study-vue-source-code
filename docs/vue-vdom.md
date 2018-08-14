@@ -1096,6 +1096,7 @@ function createPatchFunction (backend) {
 
   } // function createElm()结束
 
+
   function createComponent (vnode, insertedVnodeQueue, parentElm, refElm) {
 
     var i = vnode.data;
