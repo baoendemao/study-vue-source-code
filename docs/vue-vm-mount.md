@@ -84,8 +84,9 @@ Vue.prototype.$mount = function (el, hydrating) {
         mark('compile');
       }
 
-	    // 由模板字符串生成render function的入口函数
+	    // compileToFunctions函数： 由模板字符串生成render function
       // 通过模板字符串template生成AST抽象语法树 => optimize优化AST => AST转换成render code => render code生成render function
+      // 该函数有三个参数
       var ref = compileToFunctions(template, {
         shouldDecodeNewlines: shouldDecodeNewlines,
         shouldDecodeNewlinesForHref: shouldDecodeNewlinesForHref,
@@ -547,7 +548,9 @@ function resetSchedulerState () {
 
 ```
 
-* createCompiler() => 
+* createCompiler() => 创建一个编译器<br/>
+createCompilerCreator() => 创建createCompiler，<br/>
+形参是baseCompiler函数
 
 ```
 var createCompiler = createCompilerCreator(
@@ -673,7 +676,9 @@ function createCompileToFunctionFn (compile) {
   var cache = Object.create(null);
 
   return function compileToFunctions (template, options, vm) {
+
     options = extend({}, options);
+
     var warn$$1 = options.warn || warn;
     delete options.warn;
 

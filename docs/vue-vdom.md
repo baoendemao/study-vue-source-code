@@ -199,7 +199,7 @@ vm.$createElement = function (a, b, c, d) {
 };
 ```
 
-* vm._renderProxy => 在Vue.prototype._init中调用的initProxy(), 该函数是全局定义的
+* initProxy() =>在Vue.prototype._init中调用的initProxy(), 该函数是全局定义的 => 初始化vm._renderProxy => Proxy代理对象 
 ```
 
 var allowedGlobals = makeMap(
@@ -212,6 +212,7 @@ var allowedGlobals = makeMap(
 var warnNonPresent = function (target, key) {
 
     // 使用了一个没有定义的属性, 报出警告
+    // 例如：在模板中使用了某个属性，但在data里没有定义该属性
     warn(
       "Property or method \"" + key + "\" is not defined on the instance but " +
       'referenced during render. Make sure that this property is reactive, ' +
@@ -222,31 +223,10 @@ var warnNonPresent = function (target, key) {
     );
 };
 
-var hasHandler = {
-    has: function has (target, key) {
-
-      var has = key in target;
-      var isAllowed = allowedGlobals(key) || key.charAt(0) === '_';
-      if (!has && !isAllowed) {
-        warnNonPresent(target, key);
-      }
-
-      return has || !isAllowed
-    }
-};
-
-var getHandler = {
-    get: function get (target, key) {
-
-      if (typeof key === 'string' && !(key in target)) {
-        warnNonPresent(target, key);
-      }
-
-      return target[key]
-    }
-};
 
 var initProxy;
+
+// 判断宿主环境是否支持Proxy
 var hasProxy = typeof Proxy !== 'undefined' && isNative(Proxy);  // 检查浏览器是否支持es6的proxy
 
 if (hasProxy) {
@@ -296,6 +276,7 @@ initProxy = function initProxy (vm) {
         ? getHandler
         : hasHandler;
 
+      // 初始化vm的代理，赋值给vm._renderProxy
       vm._renderProxy = new Proxy(vm, handlers);
     } else {
       vm._renderProxy = vm;

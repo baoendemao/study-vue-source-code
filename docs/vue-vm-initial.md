@@ -190,6 +190,8 @@ function dedupe (latest, extended, sealed) {
 
 ```
 
+* mergeOptions => 合并父子的options，并赋值给vm.$options
+
 ```
 function mergeOptions (parent, child, vm) {
 
@@ -462,33 +464,6 @@ _base
 _parentElm
 _refElm
 __proto__
-
-```
-
-* initProxy() => 初始化vm._renderProxy => Proxy代理对象
-
-在_init()中调用： initProxy(vm)
-
-```
-
-var initProxy;
-
-var hasProxy = typeof Proxy !== 'undefined' && isNative(Proxy);
-
-initProxy = function initProxy (vm) {
-    if (hasProxy) {
-        // determine which proxy handler to use
-        var options = vm.$options;
-        var handlers = options.render && options.render._withStripped
-        ? getHandler
-        : hasHandler;
-
-        vm._renderProxy = new Proxy(vm, handlers);
-
-    } else {
-        vm._renderProxy = vm;
-    }
-};
 
 ```
 
