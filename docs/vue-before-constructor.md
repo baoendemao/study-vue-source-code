@@ -1321,6 +1321,7 @@ function createCompilerCreator (baseCompile) {
 // 柯厘化
 function createCompileToFunctionFn (compile) {
 
+  // 闭包，防止字符串模板template重复编译
   var cache = Object.create(null);
 
   return function compileToFunctions (template, options, vm) {
@@ -1330,7 +1331,7 @@ function createCompileToFunctionFn (compile) {
     delete options.warn;
 
     /* istanbul ignore if */
-    {
+    if (process.env.NODE_ENV !== 'production') {
       // detect possible CSP restriction
       try {
         new Function('return 1');
@@ -1348,6 +1349,7 @@ function createCompileToFunctionFn (compile) {
     }
 
     // check cache
+    // cache: 防止字符串模板template重复编译
     var key = options.delimiters       // delimiters改变纯文本插入分隔符的用法
       ? String(options.delimiters) + template
       : template;

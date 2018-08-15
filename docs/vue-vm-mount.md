@@ -683,8 +683,9 @@ function createCompileToFunctionFn (compile) {
     delete options.warn;
 
     /* istanbul ignore if */
-    {
+    if (process.env.NODE_ENV !== 'production') {
       // detect possible CSP restriction
+      // 在CSP内容安全策略下，new Function会出错
       try {
         new Function('return 1');
       } catch (e) {
