@@ -988,6 +988,7 @@ function initExtend (Vue) {
 
   /**
    * Class inheritance
+   * 创建Vue子类
    */
   Vue.extend = function (extendOptions) {
 
