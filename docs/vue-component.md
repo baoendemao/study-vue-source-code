@@ -30,9 +30,11 @@ function validateComponentName (name) {
 
 ```
 // 对用户传入的参数对象，检测components属性是否都是有效的组件名字
+// options里的属性有components, directives, filters, _base 
 function checkComponents (options) {
  
   for (var key in options.components) {
+    // 依次检测组件的名字是否有效
     validateComponentName(key);
   }
 }
@@ -52,6 +54,7 @@ function createComponent (Ctor, data, context, children, tag) {
 
   // plain options object: turn it into a constructor
   if (isObject(Ctor)) {
+    
     // 根据Vue, 生成组件的构造器Ctor
     Ctor = baseCtor.extend(Ctor);
   }

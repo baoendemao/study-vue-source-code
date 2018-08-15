@@ -43,7 +43,7 @@ Vue.prototype._init = function (options) {
     } else {
       // 处理用户传来的options
       vm.$options = mergeOptions(
-        resolveConstructorOptions(vm.constructor),   // 传入构造函数
+        resolveConstructorOptions(vm.constructor),   // resolveConstructorOptions：获取当前实例构造器的options属性
         options || {},
         vm
       );
@@ -111,13 +111,15 @@ function initInternalComponent (vm, options) {
 }
 ```
 
-* 处理用户传来new Vue的实参options
+* resolveConstructorOptions => 获取当前实例构造器的options属性
 
 ```
+// 调用： resolveConstructorOptions(vm.constructor), 其中vm.constructor是指的是vue的构造函数
 function resolveConstructorOptions (Ctor) {
 
-  var options = Ctor.options;   
+  var options = Ctor.options;   // 即vm.constructor.options，即Vue.options，Vue.options的属性包含了components, directives, filters
 
+  // 因为子类才会有super属性，所以Vue的子类才会走到if分支
   if (Ctor.super) {    
     var superOptions = resolveConstructorOptions(Ctor.super);
 
@@ -190,14 +192,17 @@ function dedupe (latest, extended, sealed) {
 
 ```
 
+* mergeOptions => 对父子options进行合并
+
 ```
 function mergeOptions (parent, child, vm) {
 
   {
     // 检查child.components组件名字是否有效, 必须是字母开头，后面可以跟-
-    checkComponents(child);
+    checkComponents(child);  
   }
   
+  // 合并子类的构造器的options
   if (typeof child === 'function') {
     child = child.options;
   }
@@ -216,7 +221,7 @@ function mergeOptions (parent, child, vm) {
     }
   }
 
-  var options = {};
+  var options = {};  // 最后返回的结果
   var key;
   for (key in parent) {
     mergeField(key);
@@ -246,6 +251,8 @@ function validateComponentName (name) {
     );
   }
 
+  // isBuiltInTag: 检测是否是内置标签名字
+  // is : 是否是保留字
   if (isBuiltInTag(name) || config.isReservedTag(name)) {
     warn(
       'Do not use built-in or reserved HTML elements as component ' +
@@ -255,8 +262,9 @@ function validateComponentName (name) {
 }
 ```
 
+* checkComponents => 检查options传入的组件名是否是有效的
+
 ```
-// 检查options传入的组件名是否是有效的
 function checkComponents (options) {
   for (var key in options.components) {
     validateComponentName(key);
@@ -264,15 +272,23 @@ function checkComponents (options) {
 }
 ```
 
+* normalizeProps => 处理传入的options.props格式化成对象，并返回
+
 ```
-// 处理传入的options.props格式化成对象，并返回
+// vue的props可以有两种写法：
+// 第一种：数组的形式 props: ["title"]
+// 第二种：对象的形式 props: { title: {type: String, default: "" } }
+// 此函数将统一规范化为第二种对象的形式
 function normalizeProps (options, vm) {
-  var props = options.props;
+
+  var props = options.props;   // 外面传入的props
+
+  // 如果没有传入props，直接返回不处理 
   if (!props) { return }
 
-  var res = {};
+  // 保存最后的返回结果
+  var res = {};  
   var i, val, name;
-  
   
   if (Array.isArray(props)) {
     // 如果props属性是数组
@@ -302,6 +318,7 @@ function normalizeProps (options, vm) {
         : { type: val };
     }
   } else {
+    // 如果props既不是数组又不是纯对象，则报出警告
     warn(
       "Invalid value for option \"props\": expected an Array or an Object, " +
       "but got " + (toRawType(props)) + ".",
