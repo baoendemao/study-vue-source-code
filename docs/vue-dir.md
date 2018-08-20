@@ -8,7 +8,7 @@ $ tree -L 1
 ├── README.md
 ├── benchmarks
 ├── dist
-├── examples
+├── examples => vue的使用例子
 ├── flow  =>  flow类型检查相关的类型定义
 ├── package.json
 ├── packages
