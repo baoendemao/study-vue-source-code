@@ -52,6 +52,7 @@ Vue.prototype._init = function (options) {
 
     /* istanbul ignore else */
     {
+      // 在vm上添加_renderProxy属性
       initProxy(vm);
     }
     
@@ -192,7 +193,9 @@ function dedupe (latest, extended, sealed) {
 
 ```
 
-* mergeOptions => 合并父子的options，并赋值给vm.$options
+* mergeOptions => 合并父子的options，并赋值给vm.$options <br/>
+最后vm.$options是合并父子vm的所有属性， 如component, data, directive, el, filters, inject, render, _base等等<br/>
+第三个参数vm: 如果不为空，则是在实例化_init()的时候调用的。如果为空，则是在继承时Vue.extend()调用的。
 
 ```
 function mergeOptions (parent, child, vm) {
@@ -223,18 +226,23 @@ function mergeOptions (parent, child, vm) {
 
   var options = {};  // 最后返回的结果
   var key;
+
+  // 如果parent在这里是Vue.options，那么key就是components，directives，filters，_base
   for (key in parent) {
     mergeField(key);
   }
+
   for (key in child) {
     if (!hasOwn(parent, key)) {
       mergeField(key);
     }
   }
+
   function mergeField (key) {
     var strat = strats[key] || defaultStrat;  
     options[key] = strat(parent[key], child[key], vm, key);
   }
+
   return options
 }
 ```
@@ -375,7 +383,7 @@ function normalizeDirectives (options) {
 ```
 
 ```
-// 期望value是对象，如果不是对象则报出warnning
+// 期望value是纯对象，如果不是对象则报出warnning
 function assertObjectType (name, value, vm) {
 
   if (!isPlainObject(value)) {
@@ -388,7 +396,10 @@ function assertObjectType (name, value, vm) {
 }
 ```
 
+* mergeDataOrFn() =>  merge父子的data属性
+
 ```
+// 
 function mergeDataOrFn (parentVal, childVal, vm) {
   if (!vm) {
     // vm不存在
@@ -408,6 +419,8 @@ function mergeDataOrFn (parentVal, childVal, vm) {
     // check if parentVal is a function here because
     // it has to be a function to pass previous merges.
     return function mergedDataFn () {
+
+      // 将parentVal的属性混合到childVal里，并返回childVal
       return mergeData(
         typeof childVal === 'function' ? childVal.call(this, this) : childVal,
         typeof parentVal === 'function' ? parentVal.call(this, this) : parentVal
@@ -422,14 +435,17 @@ function mergeDataOrFn (parentVal, childVal, vm) {
       var instanceData = typeof childVal === 'function'
         ? childVal.call(vm, vm)
         : childVal;
+
       var defaultData = typeof parentVal === 'function'
         ? parentVal.call(vm, vm)
         : parentVal;
+
       if (instanceData) {
         return mergeData(instanceData, defaultData)
       } else {
         return defaultData
       }
+
     }
   }
 }
@@ -452,10 +468,14 @@ function mergeData (to, from) {
     fromVal = from[key];
 
     if (!hasOwn(to, key)) {
+
       set(to, key, fromVal);
+
     } else if (isPlainObject(toVal) && isPlainObject(fromVal)) {
+
       // 如果两者的值都是对象，则需要递归深度merge
       mergeData(toVal, fromVal);
+
     }
   }
   return to
@@ -492,6 +512,8 @@ function initLifecycle (vm) {
   var parent = options.parent;
 
   // vm.$options.abstract是抽象组件，例如keep-alive，transition
+  // 如果父实例存在，且当前实例不是抽象的， 则将当前实例push到父实例的$children数组中
+  // 确定父子关系
   if (parent && !options.abstract) {
     while (parent.$options.abstract && parent.$parent) {
       parent = parent.$parent;
@@ -806,6 +828,7 @@ function initState (vm) {
   vm._watchers = [];
   var opts = vm.$options;
 
+  // props在data之前处理，以便于可以使用props来初始化data的自定义变量
   if (opts.props) { initProps(vm, opts.props); }
 
   if (opts.methods) { initMethods(vm, opts.methods); }

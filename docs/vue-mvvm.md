@@ -53,6 +53,7 @@ Vue.prototype._init = function (options) {
     }
     /* istanbul ignore else */
     {
+      // 在vm上添加_renderProxy属性
       initProxy(vm);
     }
     

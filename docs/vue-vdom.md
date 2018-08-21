@@ -250,9 +250,12 @@ var hasHandler = {
 
     var has = key in target;
     var isAllowed = allowedGlobals(key) || key.charAt(0) === '_';
+
     if (!has && !isAllowed) {
+      // 报出warning
       warnNonPresent(target, key);
     }
+
     return has || !isAllowed
   }
 };
@@ -261,8 +264,10 @@ var getHandler = {
   get: function get (target, key) {
 
     if (typeof key === 'string' && !(key in target)) {
+      // 报出warning 
       warnNonPresent(target, key);
     }
+    
     return target[key]
   }
 };
@@ -277,6 +282,7 @@ initProxy = function initProxy (vm) {
         : hasHandler;
 
       // 初始化vm的代理，赋值给vm._renderProxy
+      // 以后再访问vm的属性，就会被vm._renderProxy代理拦截，调用getHandler
       vm._renderProxy = new Proxy(vm, handlers);
     } else {
       vm._renderProxy = vm;
