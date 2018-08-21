@@ -205,7 +205,7 @@ function proxy (target, sourceKey, key) {
 调用： proxy(vm, "_data", key);   // 将vm["_data"][key]属性代理到 vm[key]
 ```
 
-* observe()  走进MVVM => 监听的参数value必须是object类型 => 监听的标志: __ob__ => new Observer() => defineReactive() => Object.defineProperty()
+* observe()  走进MVVM => 监听的参数value必须是object类型，即数组或者纯对象 => 监听的标志: __ob__ => new Observer() => defineReactive() => Object.defineProperty()
 
 ```
 // 将value变成可被观察的, 返回与其相关的Observer对象
@@ -217,6 +217,7 @@ function observe (value, asRootData) {
     return
   }
 
+  // 最后return的Observer对象
   var ob;
 
   if (hasOwn(value, '__ob__') && value.__ob__ instanceof Observer) {
@@ -248,6 +249,7 @@ function observe (value, asRootData) {
 * Observer => 深度递归的将数据value变为可被观察的，被监听 => 将当前new的Observer实例this添加到参数value的属性__ob__上
 
 ```
+// new Observer()只传入一个参数，即数据value
 // 使得value(纯对象或数组)变为可被观察的，在其上添加__ob__属性，值是new出的Observer实例
 // 如果value是对象，则深度递归处理value的每个属性值变为可被观察的
 // 如果value是数组，则通过重新定义数组的7个方法，使得数组是可被观察的，然后递归处理数组的每个元素变为可被观察的
@@ -259,7 +261,9 @@ var Observer = function Observer (value) {
 
   this.vmCount = 0;       // __ob__.vmCount
     
-  def(value, '__ob__', this);    // value对象上新加属性_ob_, 值是当前new出来的this
+  // value对象上新加属性_ob_, 值是当前new出来的this，即Observer实例自身
+  // def()函数的第四个参数不传递，表示该属性__ob__是不可枚举的，之后遍历value，就不会遍历到__ob__属性
+  def(value, '__ob__', this);    
 
   if (Array.isArray(value)) {
     // value如果是数组，借用Array.prototype来对数组进行MVVM
@@ -302,17 +306,20 @@ Observer.prototype.walk = function walk (obj) {
 ```
 
 defineReactive() => 递归的将obj[key]变为可被观察的 => 添加__ob__属性，值为new 出来的新的Observer实例
-
+=> 注意obj[key]必须是数组或者纯对象，因为对于基本数据类型，是不会被观察的，不会被添加__ob__属性的
 ```
 //  使用Object.defineProperty对obj对象绑定被观察属性key，值是val
+// 第五个参数shallow表示是否要深度变为可观察的。如果为true，则不深度递归。如果为false，则深度观察
 function defineReactive (obj, key, val, customSetter, shallow) {
 
   // 闭包到下面的get和set中， 每个将要被观察的属性obj[key]都有唯一的dep
+  // 用于依赖收集
   var dep = new Dep();
 
   // 获取obj[key]的每个属性描述符
   var property = Object.getOwnPropertyDescriptor(obj, key);  
 
+  // 如果该属性不可配置，直接return 
   if (property && property.configurable === false) {
     return
   }
@@ -320,7 +327,9 @@ function defineReactive (obj, key, val, customSetter, shallow) {
   // cater for pre-defined getter/setters
   var getter = property && property.get;    // 取出之前定义的get
 
-  if (!getter && arguments.length === 2) {  // 如果属性没有get方法，则直接获取属性对应key的值
+  // arguments.length等于2, 说明没有传递val
+  // 且如果属性没有get方法，则直接获取属性对应key的值
+  if (!getter && arguments.length === 2) {  
     val = obj[key];
   }
 

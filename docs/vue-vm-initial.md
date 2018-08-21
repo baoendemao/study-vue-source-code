@@ -677,10 +677,12 @@ function initRender (vm) {
 
   /* istanbul ignore else */
   {
+    // 不深度递归观察，因为第五个属性是true
     defineReactive(vm, '$attrs', parentData && parentData.attrs || emptyObject, function () {
       !isUpdatingChildComponent && warn("$attrs is readonly.", vm);
     }, true);
 
+    // 不深度递归观察, 因为第五个属性是true
     defineReactive(vm, '$listeners', options._parentListeners || emptyObject, function () {
       !isUpdatingChildComponent && warn("$listeners is readonly.", vm);
     }, true);
@@ -1122,7 +1124,7 @@ function initData (vm) {
   // data赋值给vm._data
   // 初始化传入的data通常写成一个function的形式
   data = vm._data = typeof data === 'function'
-    ? getData(data, vm)
+    ? getData(data, vm)       // getData()获取data函数return的真实的对象
     : data || {};
 
 
@@ -1163,17 +1165,22 @@ function initData (vm) {
         "Use prop default value instead.",
         vm
       );
-    } else if (!isReserved(key)) {    
+    } else if (!isReserved(key)) {      // Vue不会代理以$和_开头的属性的，因为Vue自己的属性是以$和_开头的，如果代理了外面传入的$和_开头的属性，会和自己的属性产生冲突的
 
-      // 将vm['_data'][key]直接代理到vm.key, 之后改变vm.key, 就可以直接触发视图的更新
+      // 将vm['_data'][key]直接代理到vm.key
+      // 之后改变vm.key, 就可以直接触发视图的更新
+      // 之后访问vm.key，实际上是在访问vm['_data'][key]
       proxy(vm, "_data", key);      
 
     }
   }
 
+  // 将data变为可被观察的，即响应式的
   observe(data, true /* asRootData */);  
 }
 ```
+
+* getData() => 因为data是个函数，通过调用data函数，来获取真正的对象
 
 ```
 function getData (data, vm) {

@@ -497,7 +497,8 @@ function proxy (target, sourceKey, key) {
 * def()
 
 ```
-// 在对象obj上定义属性key，value是val，enumerable是否可枚举
+// 在对象obj上定义属性key，value是val，第四个参数enumerable是否可枚举
+// 如果第四个参数不传，则表示该属性不可枚举
 function def (obj, key, val, enumerable) {
   Object.defineProperty(obj, key, {
     value: val,
