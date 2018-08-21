@@ -156,6 +156,8 @@ function createFunction (code, errors) {
     return new Function(code)
   } catch (err) {
     errors.push({ err: err, code: code });
+
+    // 返回空函数
     return noop
   }
 }
@@ -480,7 +482,9 @@ function callActivatedHooks (queue) {
   }
 }
 ```
+
 * createComponentInstanceForVnode()
+
 ```
 function createComponentInstanceForVnode (
   vnode, // we know it's MountedComponentVNode but flow doesn't
@@ -489,7 +493,7 @@ function createComponentInstanceForVnode (
   refElm
 ) {
   var options = {
-    _isComponent: true,
+    _isComponent: true,   // 创建组件的时候添加的内部属性
     parent: parent,
     _parentVnode: vnode,
     _parentElm: parentElm || null,

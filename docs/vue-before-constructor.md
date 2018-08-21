@@ -282,6 +282,7 @@ function initMixin (Vue) {
 
     /* istanbul ignore else */
     {
+      // 在vm上添加_renderProxy属性
       initProxy(vm);
     }
 
@@ -884,7 +885,8 @@ function initGlobalAPI (Vue) {
   Vue.delete = del;
   Vue.nextTick = nextTick;
 
-  Vue.options = Object.create(null);
+  // Vue和Vue的子类都会有options属性
+  Vue.options = Object.create(null);  
 
   //  'component', 'directive', 'filter'
   ASSET_TYPES.forEach(function (type) {   
@@ -1020,6 +1022,8 @@ function initExtend (Vue) {
     Sub.prototype.constructor = Sub;
 
     Sub.cid = cid++;
+
+    // 合并父子的options属性
     Sub.options = mergeOptions(
       Super.options,
       extendOptions
@@ -1254,7 +1258,7 @@ Vue.config.isUnknownElement = isUnknownElement;
 
 ```
 
-* 初始化Vue.options
+* 初始化Vue.options 
 ```
 var platformDirectives = {
   model: directive,
@@ -1496,11 +1500,12 @@ var shouldDecodeNewlinesForHref = inBrowser ? getShouldDecode(true) : false;
 ```
 
 
-* 初始化strats对象 => 存放合并父子各个属性的策略（strategys） 
+* 初始化strats对象 => 存放合并父子各个属性的策略（strategys） <br/>
+defaultStrat => 默认合并策略 => 如果有属性没有定义的合并策略，则直接使用默认合并策略。
 
 ```
 
-// 默认合并策略： 第二个参数存在，则使用第二个，否则使用第一个参数
+// 默认合并策略： 第二个参数子类的Options存在，则使用第二个，否则使用第一个参数分类的options
 var defaultStrat = function (parentVal, childVal) {   
   return childVal === undefined
     ? parentVal
@@ -1508,25 +1513,35 @@ var defaultStrat = function (parentVal, childVal) {
 };
 ```
 
+* strats.el, strats.propsData => el和propsData的父子合并策略
 ```
 
+// config.optionMergeStrategies: 自定义合并策略
 var strats = config.optionMergeStrategies;
 
 
-strats.el = strats.propsData = function (parent, child, vm, key) {
-    if (!vm) {
-      // 只有实例化之后才可以使用key这个option
-      warn(
-        "option \"" + key + "\" can only be used during instance " +
-        'creation with the `new` keyword.'
-      );
-    }
-    return defaultStrat(parent, child)
-};
+if (process.env.NODE_ENV !== 'production') {
+
+  strats.el = strats.propsData = function (parent, child, vm, key) {
+      if (!vm) {
+        // 如果没有传递vm, 则说明是在子类中调用的mergeOptions()
+        // 只有实例化之后才可以使用key这个option
+        warn(
+          "option \"" + key + "\" can only be used during instance " +
+          'creation with the `new` keyword.'
+        );
+      }
+      return defaultStrat(parent, child)
+  };
+
+}
 ```
+
+* strats.data => data的父子合并策略
 
 ```
 
+// 参数parentVal是指的父类的data属性，参数childVal是指的子类的data属性
 strats.data = function (
   parentVal,
   childVal,
@@ -1552,6 +1567,8 @@ strats.data = function (
   return mergeDataOrFn(parentVal, childVal, vm)
 };
 ```
+
+* mergeHook() => 生命周期钩子的父子合并策略
 
 ```
 function mergeHook (
@@ -1585,9 +1602,14 @@ var LIFECYCLE_HOOKS = [
 ];
 
 LIFECYCLE_HOOKS.forEach(function (hook) {
+
+  // 在strats数组中，会添加上面的生命周期钩子属性
   strats[hook] = mergeHook;
 });
+
 ```
+
+* mergeAssets() => merge选项：component, directive, filter => 这些属性的父子合并策略
 
 ```
 function mergeAssets (
@@ -1598,8 +1620,11 @@ function mergeAssets (
 ) {
   var res = Object.create(parentVal || null);
   if (childVal) {
+    // 判断childVal是否是一个纯对象
     process.env.NODE_ENV !=='production' && assertObjectType(key, childVal, vm);
+
     return extend(res, childVal)
+
   } else {
     return res
   }
@@ -1619,7 +1644,12 @@ ASSET_TYPES.forEach(function (type) {
 });
 ```
 
+* strats.watch => watch的父子合并策略 => 将父子的watch属性合并成一个数组
+
 ```
+// Firefox has a "watch" function on Object.prototype...
+var nativeWatch = ({}).watch;
+
 strats.watch = function (parentVal, childVal, vm, key) {
   // work around Firefox's Object.prototype.watch...
   if (parentVal === nativeWatch) { parentVal = undefined; }
@@ -1630,43 +1660,59 @@ strats.watch = function (parentVal, childVal, vm, key) {
     assertObjectType(key, childVal, vm);
   }
   if (!parentVal) { return childVal }
-  var ret = {};
+
+  // 最后返回值
+  var ret = {};   
+
+  // parentVal的属性混合到ret中
   extend(ret, parentVal);
+
+  // 遍历子vm的属性，如果父也存在，则混合到一起返回一个数组
   for (var key$1 in childVal) {
     var parent = ret[key$1];
     var child = childVal[key$1];
+
+    // 如果parent存在，则将其转换为数组
     if (parent && !Array.isArray(parent)) {
       parent = [parent];
     }
+
     ret[key$1] = parent
       ? parent.concat(child)
       : Array.isArray(child) ? child : [child];
   }
+
   return ret
 };
 ```
+
+* strats.props, strats.methods, strats.inject, strats.computed => props、methods、inject、computed 的父子合并策略
 
 ```
 strats.props =
 strats.methods =
 strats.inject =
-strats.computed = function (
-  parentVal,
-  childVal,
-  vm,
-  key
-) {
+strats.computed = function (parentVal, childVal, vm, key) {
+
   if (childVal && process.env.NODE_ENV !=='production') {
+    // 判断childVal是否是一个纯对象
     assertObjectType(key, childVal, vm);
   }
+
   if (!parentVal) { return childVal }
+
   var ret = Object.create(null);
+
   extend(ret, parentVal);
+
   if (childVal) { extend(ret, childVal); }
+
   return ret
 };
 
 ```
+
+* strats.provide => provide属性的合并策略
 
 ```
 strats.provide = mergeDataOrFn;

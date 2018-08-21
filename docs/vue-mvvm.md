@@ -53,6 +53,7 @@ Vue.prototype._init = function (options) {
     }
     /* istanbul ignore else */
     {
+      // 在vm上添加_renderProxy属性
       initProxy(vm);
     }
     
@@ -97,8 +98,10 @@ function initState (vm) {
   if (opts.methods) { initMethods(vm, opts.methods); }
 
   if (opts.data) {
-    initData(vm);    // 使用用户传入的data，即vm.$options.data来初始化
+    initData(vm);    // 使用外边传入的data，即vm.$options.data来初始化
   } else {
+    // 如果外边没有传入data属性，则observe一个空对象
+    // 并将这个空对象赋值给vm._data
     observe(vm._data = {}, true /* asRootData */);
   }
 
@@ -136,6 +139,7 @@ function initData (vm) {
 
   // proxy data on instance    
   var keys = Object.keys(data);   // 得到data里的属性数组
+
   var props = vm.$options.props;
   var methods = vm.$options.methods;
   var i = keys.length;
@@ -145,15 +149,20 @@ function initData (vm) {
     var key = keys[i];
     {
       if (methods && hasOwn(methods, key)) {
+
+      // 不允许methods中定义和data相同的key
         warn(
           ("Method \"" + key + "\" has already been defined as a data property."),
           vm
         );
       }
+
     }
 
-    // props属性不可以和data的属性重复
+   
     if (props && hasOwn(props, key)) {
+
+      // 不允许data中定义和props相同的key
       process.env.NODE_ENV !=='production' && warn(
         "The data property \"" + key + "\" is already declared as a prop. " +
         "Use prop default value instead.",
@@ -200,6 +209,7 @@ function proxy (target, sourceKey, key) {
 
 ```
 // 将value变成可被观察的, 返回与其相关的Observer对象
+// 第二个参数表示是否是根
 function observe (value, asRootData) {
    
   // 只能观察对象(纯对象和数组)，且除了VNode对象之外的
@@ -214,9 +224,11 @@ function observe (value, asRootData) {
     // 如果value已经含有__ob__属性，则说明已经被观察过了，直接return __ob__， 保证不会重复绑定新的Observer实例
     ob = value.__ob__;
 
-  } else if (shouldObserve && !isServerRendering() && 
-      (Array.isArray(value) || isPlainObject(value)) &&
-      Object.isExtensible(value) && !value._isVue) {
+  } else if (shouldObserve &&             // shouldObserve: 表示是否允许观察此数据value
+      !isServerRendering() &&             // 非服务器端渲染才允许观察此数据value
+      (Array.isArray(value) || isPlainObject(value)) &&    // 当value是数组或者纯对象的时候，才允许观察
+      Object.isExtensible(value) &&       // 对象可扩展，才允许观察
+      !value._isVue) {                    // _isVue是用来标志避免观察Vue自身
 
     // 针对对象和数组的MVVM
     // 通过new Observer，使得value变成可被观察的：value对象里多了_ob_属性, value对象的每个属性都多了get/set方法
@@ -354,6 +366,7 @@ function defineReactive (obj, key, val, customSetter, shallow) {
 
       // getter获取旧的值
       var value = getter ? getter.call(obj) : val;
+
       // 如果新值和旧的值是相等的，则不需要后面的notify
       if (newVal === value || (newVal !== newVal && value !== value)) {
         return
@@ -367,7 +380,7 @@ function defineReactive (obj, key, val, customSetter, shallow) {
       if (setter) {
         setter.call(obj, newVal);    // 如果属性原本有set，则执行原来的set
       } else {
-        val = newVal;
+        val = newVal; 
       }
 
       childOb = !shallow && observe(newVal);  // 新值需要可以被观察, 来实现深度观察
@@ -882,7 +895,7 @@ Vue.delete = del;
 
 ```
 
-* shouldObserve
+* shouldObserve => 数据是否可以被观察
 
 ```
 var shouldObserve = true;
