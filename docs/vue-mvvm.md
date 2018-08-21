@@ -209,6 +209,7 @@ function proxy (target, sourceKey, key) {
 
 ```
 // 将value变成可被观察的, 返回与其相关的Observer对象
+// 第二个参数表示是否是根
 function observe (value, asRootData) {
    
   // 只能观察对象(纯对象和数组)，且除了VNode对象之外的
@@ -223,9 +224,11 @@ function observe (value, asRootData) {
     // 如果value已经含有__ob__属性，则说明已经被观察过了，直接return __ob__， 保证不会重复绑定新的Observer实例
     ob = value.__ob__;
 
-  } else if (shouldObserve && !isServerRendering() && 
-      (Array.isArray(value) || isPlainObject(value)) &&
-      Object.isExtensible(value) && !value._isVue) {
+  } else if (shouldObserve &&             // shouldObserve: 表示是否允许观察此数据value
+      !isServerRendering() &&             // 非服务器端渲染才允许观察此数据value
+      (Array.isArray(value) || isPlainObject(value)) &&    // 当value是数组或者纯对象的时候，才允许观察
+      Object.isExtensible(value) &&       // 对象可扩展，才允许观察
+      !value._isVue) {                    // _isVue是用来标志避免观察Vue自身
 
     // 针对对象和数组的MVVM
     // 通过new Observer，使得value变成可被观察的：value对象里多了_ob_属性, value对象的每个属性都多了get/set方法
@@ -892,7 +895,7 @@ Vue.delete = del;
 
 ```
 
-* shouldObserve
+* shouldObserve => 数据是否可以被观察
 
 ```
 var shouldObserve = true;
