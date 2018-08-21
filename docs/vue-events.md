@@ -8,7 +8,7 @@ function initEvents (vm) {
   vm._hasHookEvent = false;
 
   // init parent attached events
-  var listeners = vm.$options._parentListeners;
+  var listeners = vm.$options._parentListeners;  // 子组件才有_parentListeners属性
 
   if (listeners) {
     updateComponentListeners(vm, listeners);

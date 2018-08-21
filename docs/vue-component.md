@@ -482,7 +482,9 @@ function callActivatedHooks (queue) {
   }
 }
 ```
+
 * createComponentInstanceForVnode()
+
 ```
 function createComponentInstanceForVnode (
   vnode, // we know it's MountedComponentVNode but flow doesn't

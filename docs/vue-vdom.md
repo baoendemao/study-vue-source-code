@@ -189,7 +189,7 @@ Vue.prototype._render = function () {
 
 ```
 
-* vm.$createElement()
+* vm.$createElement() => 创建VNode
 
 ```
 vm.$createElement = function (a, b, c, d) { 
@@ -267,7 +267,7 @@ var getHandler = {
       // 报出warning 
       warnNonPresent(target, key);
     }
-    
+
     return target[key]
   }
 };

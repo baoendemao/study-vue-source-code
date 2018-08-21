@@ -98,8 +98,10 @@ function initState (vm) {
   if (opts.methods) { initMethods(vm, opts.methods); }
 
   if (opts.data) {
-    initData(vm);    // 使用用户传入的data，即vm.$options.data来初始化
+    initData(vm);    // 使用外边传入的data，即vm.$options.data来初始化
   } else {
+    // 如果外边没有传入data属性，则observe一个空对象
+    // 并将这个空对象赋值给vm._data
     observe(vm._data = {}, true /* asRootData */);
   }
 
@@ -137,6 +139,7 @@ function initData (vm) {
 
   // proxy data on instance    
   var keys = Object.keys(data);   // 得到data里的属性数组
+
   var props = vm.$options.props;
   var methods = vm.$options.methods;
   var i = keys.length;
@@ -146,15 +149,20 @@ function initData (vm) {
     var key = keys[i];
     {
       if (methods && hasOwn(methods, key)) {
+
+      // 不允许methods中定义和data相同的key
         warn(
           ("Method \"" + key + "\" has already been defined as a data property."),
           vm
         );
       }
+
     }
 
-    // props属性不可以和data的属性重复
+   
     if (props && hasOwn(props, key)) {
+
+      // 不允许data中定义和props相同的key
       process.env.NODE_ENV !=='production' && warn(
         "The data property \"" + key + "\" is already declared as a prop. " +
         "Use prop default value instead.",
@@ -355,6 +363,7 @@ function defineReactive (obj, key, val, customSetter, shallow) {
 
       // getter获取旧的值
       var value = getter ? getter.call(obj) : val;
+
       // 如果新值和旧的值是相等的，则不需要后面的notify
       if (newVal === value || (newVal !== newVal && value !== value)) {
         return
@@ -368,7 +377,7 @@ function defineReactive (obj, key, val, customSetter, shallow) {
       if (setter) {
         setter.call(obj, newVal);    // 如果属性原本有set，则执行原来的set
       } else {
-        val = newVal;
+        val = newVal; 
       }
 
       childOb = !shallow && observe(newVal);  // 新值需要可以被观察, 来实现深度观察
