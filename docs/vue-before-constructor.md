@@ -858,6 +858,7 @@ function initGlobalAPI (Vue) {
   configDef.get = function () { return config; };
 
   if (process.env.NODE_ENV !== 'production') {
+    // Vue.config不允许set
     configDef.set = function () {
       warn(
         'Do not replace the Vue.config object, set individual fields instead.'
@@ -989,6 +990,10 @@ function initExtend (Vue) {
   /**
    * Class inheritance
    * 创建Vue子类
+   * 
+   * 例如：
+   * var child = Vue.extend(); 
+   * console.log(child.super)  // Vue
    */
   Vue.extend = function (extendOptions) {
 

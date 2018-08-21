@@ -23,7 +23,7 @@ Vue.prototype.$mount = function (el, hydrating) {
 其中，render函数会生成VNode
 
 ```
-var mount = Vue.prototype.$mount;     // 先保存原型上原来的$mount
+var mount = Vue.prototype.$mount;     // 先保存原型上原来的$mount， 即runtime only版本的vue直接使用的$mount方法
 
 // 调用：  vm.$mount(vm.$options.el);  
 Vue.prototype.$mount = function (el, hydrating) {
@@ -52,7 +52,7 @@ Vue.prototype.$mount = function (el, hydrating) {
       if (typeof template === 'string') {
         if (template.charAt(0) === '#') {
 
-          // idToTemplate: 根据 id 获取元素的 innerHTML
+          // idToTemplate: 根据id获取元素的innerHTML
           template = idToTemplate(template);  
 
           /* istanbul ignore if */
