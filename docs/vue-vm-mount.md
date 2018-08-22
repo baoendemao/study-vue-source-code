@@ -10,6 +10,7 @@ Vue.prototype.$mount = function (el, hydrating) {
  
   el = el && inBrowser ? query(el) : undefined;  // 挂载的元素
 
+  // 不管是runtime only版本的vue，还是完整版的vue，挂载el都是走的mountComponent函数
   return mountComponent(this, el, hydrating);  
 
 };
@@ -44,12 +45,15 @@ Vue.prototype.$mount = function (el, hydrating) {
   // 如果options.render不存在，则需要通过模板字符串生成render function
   // 即vue的生命周期必会经过render函数
   if (!options.render) {
+
     var template = options.template;   // 外面传入的template模板
  
      // 如果options存在template字段，则使用template字段的模板字符串
     if (template) { 
       // 检查options传入的template字段的正确性
       if (typeof template === 'string') {
+
+        // 如果template的第一个字符是#, 则看做是id，直接根据id获取template的html字符串
         if (template.charAt(0) === '#') {
 
           // idToTemplate: 根据id获取元素的innerHTML
@@ -63,16 +67,20 @@ Vue.prototype.$mount = function (el, hydrating) {
             );
           }
         }
+
       } else if (template.nodeType) {
+
         // 当template为dom对象的时候，取出来其中的innerHTML作为模板字符串
         template = template.innerHTML;
+
       } else {
+        // 如果外面传入的template属性既不是字符串，也不是dom对象，则报出来warnning
         {
           warn('invalid template option:' + template, this);
         }
         return this
       }
-    } else if (el) {   // 如果options没有传入template字段，则使用el字段来生成模板字符串
+    } else if (el) {   // 如果options没有传入template字段，则使用el字段来生成template模板字符串
       template = getOuterHTML(el);    
     }
 
@@ -84,7 +92,7 @@ Vue.prototype.$mount = function (el, hydrating) {
         mark('compile');
       }
 
-	    // compileToFunctions函数： 由模板字符串生成render function
+	    // compileToFunctions()： 由模板字符串生成render function。同时该函数赋值给了Vue.compile，我们可以在外面直接使用
       // 通过模板字符串template生成AST抽象语法树 => optimize优化AST => AST转换成render code => render code生成render function
       // 该函数有三个参数
       var ref = compileToFunctions(template, {

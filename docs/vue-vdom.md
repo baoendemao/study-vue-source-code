@@ -40,7 +40,7 @@ var VNode = function VNode (tag, data, children, text, elm, context, componentOp
 #### 创建virtual dom
 在Vue.prototype.$mount()中模板字符串template转换成render function后，需要初始化vm.$el, 创建virtual dom，入口函数是mountComponent()
 
-* mountComponent() => 初始化vm.$el, new Watcher(), 创建virtual dom => 调用生命周期钩子beforeMount，mounted <br/>
+* mountComponent() => 挂载el => 初始化vm.$el, new Watcher(), 创建virtual dom => 调用生命周期钩子beforeMount，mounted <br/>
 
 ```
 function mountComponent (vm, el, hydrating) {
@@ -49,7 +49,8 @@ function mountComponent (vm, el, hydrating) {
 
   if (!vm.$options.render) {   // 外面没有传入render函数，如果也没有办法由template生成render function，会报出警告
 
-    vm.$options.render = createEmptyVNode;   // 创建一个空的VNode
+    // render函数将会生成一个空的VNode
+    vm.$options.render = createEmptyVNode;   
 
     {
       if ((vm.$options.template && vm.$options.template.charAt(0) !== '#') || vm.$options.el || el) {
@@ -98,8 +99,9 @@ function mountComponent (vm, el, hydrating) {
     };
   } else {
     updateComponent = function () {
-      // 参数一：vm._render()返回一个VNode
+      // 参数一：vm._render()返回一个VNode， vm._render()会读取属性，从而触发属性的get拦截器，进行依赖收集
       // 参数二：当在浏览器端运行时，服务器端渲染表示hydrating为false
+      // vm._update将VNode渲染成真实的dom
       vm._update(vm._render(), hydrating);
     };
   }

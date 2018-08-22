@@ -236,7 +236,8 @@ function observe (value, asRootData) {
     ob = new Observer(value);   
 
   }
-
+ 
+  // 根对象的vmCount > 0
   if (asRootData && ob) {
     ob.vmCount++;
   }
@@ -257,7 +258,9 @@ var Observer = function Observer (value) {
 
   this.value = value;     // __ob__.value指向value对象自身
 
-  this.dep = new Dep();   // 新建Dep实例，__ob__.dep
+  // 新建Dep实例，__ob__.dep
+  // Vue的data增加和删除新属性的时候，用来依赖收集的。如Vue.set和Vue.delete
+  this.dep = new Dep();   
 
   this.vmCount = 0;       // __ob__.vmCount
     
@@ -351,7 +354,7 @@ function defineReactive (obj, key, val, customSetter, shallow) {
       // 取值就是为了获取value
       var value = getter ? getter.call(obj) : val;  // 如果属性原本有get方法，则执行获取value
 
-      // 只有Dep.target存在时, 才进行依赖收集
+      // 只有Dep.target存在时, 表明需要进行依赖收集
       if (Dep.target) {
         
         dep.depend();          // Dep.prototype.depend, dep对象是要被观察的属性obj[key]拥有的唯一的dep, 将watcher添加到dep的subs数组中，以便在值被改变的时候触发setter通知subs数组中的所有的watcher
@@ -376,20 +379,27 @@ function defineReactive (obj, key, val, customSetter, shallow) {
       // getter获取旧的值
       var value = getter ? getter.call(obj) : val;
 
-      // 如果新值和旧的值是相等的，则不需要后面的notify
-      if (newVal === value || (newVal !== newVal && value !== value)) {
+     // 如果新值和旧的值是相等的，说明没有变，不需要处理，不需要触发依赖
+     // 同样，针对NaN !== NaN, 也不需要处理
+      if (newVal === value || (newVal !== newVal && value !== value)) {   
         return
       }
 
-      /* eslint-enable no-self-compare */
+      // customSetter是此函数的第四个参数
       if (process.env.NODE_ENV !=='production' && customSetter) {
         customSetter();
       }
 
       if (setter) {
-        setter.call(obj, newVal);    // 如果属性原本有set，则执行原来的set
+
+        // 如果属性原本有set，则执行原来的set，来保证原来的设置不受影响
+        setter.call(obj, newVal);    
+
       } else {
+
+        // 如果原本没有set，则直接复制
         val = newVal; 
+
       }
 
       childOb = !shallow && observe(newVal);  // 新值需要可以被观察, 来实现深度观察
@@ -413,6 +423,7 @@ Dep.target = null;
 function copyAugment (target, src, keys) {
   for (var i = 0, l = keys.length; i < l; i++) {
     var key = keys[i];
+    // def()函数的第四个参数不传递，表示该属性key是不可枚举的，之后遍历target，就不会遍历到key属性
     def(target, key, src[key]);
   }
 }
@@ -446,11 +457,13 @@ var methodsToPatch = [
 ];
 
 methodsToPatch.forEach(function (method) {
-  // cache original method，  
-  var original = arrayProto[method];  // 原生方法
 
-  // 在arrayMethods上重写这7个方法，不会污染原生数组
+  // 缓存数组的原生方法
+  var original = arrayProto[method];  
+
+  // 在arrayMethods上重写这7个方法，不会污染原生数组，同时拦截
   def(arrayMethods, method, function mutator () {
+
     var args = [], len = arguments.length;
     while ( len-- ) args[ len ] = arguments[ len ];
 
@@ -508,7 +521,7 @@ Dep.prototype.removeSub = function removeSub (sub) {
   remove(this.subs, sub);   
 };
 
-// 依赖收集
+// 依赖收集, 即收集观察者
 // Watcher.prototype.addDep()。 Dep.target是全局的, 这里将当前的Dep实例添加到当前处理的Watcher的newDeps中
 // 当前的Dep实例是在defineReactive()中，针对每个要监听的属性obj[key]都new出来了唯一的Dep实例
 Dep.prototype.depend = function depend () {
@@ -517,6 +530,7 @@ Dep.prototype.depend = function depend () {
   }
 };
 
+// 触发响应
 // 当对象改变的时候，触发Object.defineProperty的set, 通知每个观察者watcher
 Dep.prototype.notify = function notify () {
   // stabilize the subscriber list first
@@ -537,7 +551,11 @@ function dependArray (value) {
   for (var e = (void 0), i = 0, l = value.length; i < l; i++) {
 
     e = value[i];
+
+    // e有__ob__属性，说明e是一个对象或者数组 
     e && e.__ob__ && e.__ob__.dep.depend();
+
+    // 如果数组的某个元素也是一个数组，则需要dependArray来收集依赖
     if (Array.isArray(e)) {
       dependArray(e);
     }
@@ -554,8 +572,12 @@ function dependArray (value) {
 <3> initComputed()
 
 ```
-
+// expOrFn: 要观察的表达式
+// cb: 表达式的值变化的时候的回调函数
+// isRenderWatcher: 是否是渲染watcher
 var Watcher = function Watcher (vm, expOrFn, cb, options, isRenderWatcher) {
+
+  // 表明当前watcher归属于哪个Vue实例
   this.vm = vm;
 
   // 是否是渲染watcher
@@ -883,18 +905,21 @@ function del (target, key) {
     return
   }
 
+  // 如果key不是target对象的属性，则不需要删除，直接return
   if (!hasOwn(target, key)) {
     return
   }
 
+  // 删除target对象上的属性key
   delete target[key];
 
-  // 如果target上的Observer不存在，则直接返回
+  // 因为删除了属性key，有变化，所以需要触发响应式依赖
+  // 如果target上的Observer不存在，触发不了响应式依赖, 则直接返回
   if (!ob) {
     return
   }
 
-  // 如果target上的Observer存在，则trigger change notification
+  // 如果target上的Observer存在，则触发响应式依赖
   ob.dep.notify();
 }
 

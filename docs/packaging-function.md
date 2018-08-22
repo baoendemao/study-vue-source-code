@@ -457,6 +457,18 @@ function query (el) {
 }
 ```
 
+* idToTemplate => 通过id获取html字符串
+
+```
+
+var idToTemplate = cached(function (id) {
+  var el = query(id);
+  return el && el.innerHTML
+});
+
+```
+
+
 * sharedPropertyDefinition
 
 ```
