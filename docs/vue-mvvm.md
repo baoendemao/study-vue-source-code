@@ -588,8 +588,8 @@ var Watcher = function Watcher (vm, expOrFn, cb, options, isRenderWatcher) {
   vm._watchers.push(this);
 
   if (options) {
-    this.deep = !!options.deep;   // 监听对象内部属性的改变
-    this.user = !!options.user;  
+    this.deep = !!options.deep;   // 是否深度观察
+    this.user = !!options.user;   
     this.lazy = !!options.lazy;
     this.sync = !!options.sync;
   } else {
@@ -599,11 +599,11 @@ var Watcher = function Watcher (vm, expOrFn, cb, options, isRenderWatcher) {
   this.cb = cb;         // new Watcher的第三个参数，callback。当数据变化的时候，就是传入的这个函数来改变的视图。
 
   this.id = ++uid$1;    // uid for batching。id用来区分不同的Watcher，防止被重复放入watcher队列中。
-  this.active = true;
+  this.active = true;   // true：表示当前watcher实例是激活的
   this.dirty = this.lazy; // for lazy watchers
   this.deps = [];
   this.newDeps = [];
-  this.depIds = new _Set();
+  this.depIds = new _Set();   // 避免收集重复依赖
   this.newDepIds = new _Set();
   this.expression = expOrFn.toString();
 
