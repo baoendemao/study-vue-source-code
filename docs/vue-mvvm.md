@@ -300,6 +300,8 @@ Observer.prototype.observeArray = function observeArray (items) {
 ```
 // 遍历obj对象的每一个属性进行绑定
 Observer.prototype.walk = function walk (obj) {
+
+  // 遍历obj的属性。其中__ob__不会被观察，因为它是不可枚举的，且不会轻易去改变__ob__，不需要去观察__ob__属性
   var keys = Object.keys(obj);
   for (var i = 0; i < keys.length; i++) {
     defineReactive(obj, keys[i]);   // 使得obj的属性keys[i]变成可被观察的
@@ -338,7 +340,7 @@ function defineReactive (obj, key, val, customSetter, shallow) {
 
   var setter = property && property.set;    // 取出之前定义的set
 
-  // 对obj[key]进行递归被观察（凡是其属性，属性的属性，属性的属性的属性...， 都依次被观察，添加__ob__属性，值为new 出来的新的Observer实例)
+  // 对obj[key]进行递归被观察（凡是其属性，属性的属性，属性的属性的属性...， 都依次被观察，添加__ob__属性）childOb的值为new 出来的新的Observer实例
   var childOb = !shallow && observe(val);   
 
   // 响应式的关键

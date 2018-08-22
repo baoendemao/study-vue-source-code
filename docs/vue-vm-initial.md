@@ -762,7 +762,7 @@ function callHook (vm, hook) {
 function initInjections (vm) {
   var result = resolveInject(vm.$options.inject, vm);
   if (result) {
-    toggleObserving(false);
+    toggleObserving(false);      // 将shouldObserve置为false
     Object.keys(result).forEach(function (key) {
       /* istanbul ignore else */
       {
@@ -860,9 +860,10 @@ function initProps (vm, propsOptions) {
   // instead of dynamic object key enumeration.
   var keys = vm.$options._propKeys = [];
   var isRoot = !vm.$parent;
+
   // root instance props should be converted
   if (!isRoot) {
-    toggleObserving(false);
+    toggleObserving(false);   
   }
   
   var loop = function ( key ) {
