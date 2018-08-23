@@ -931,7 +931,7 @@ Vue.delete = del;
 
 ```
 
-* shouldObserve => 数据是否可以被观察
+* shouldObserve => 全局变量，表示数据是否可以被观察
 
 ```
 var shouldObserve = true;

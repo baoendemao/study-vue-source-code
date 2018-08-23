@@ -851,6 +851,8 @@ function initState (vm) {
 
 ```
 
+* initProps() => 初始化props属性，并将其变为响应式的
+
 ```
 function initProps (vm, propsOptions) {
 
@@ -863,6 +865,7 @@ function initProps (vm, propsOptions) {
 
   // root instance props should be converted
   if (!isRoot) {
+    // 对于props属性来说，非根元素不需要被观察
     toggleObserving(false);   
   }
   
