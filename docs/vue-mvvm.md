@@ -503,7 +503,7 @@ var arrayKeys = Object.getOwnPropertyNames(arrayMethods);
 
 * 订阅者Dep => 发布订阅模式 => <br/>
 (1）管理内部成员变量数组subs，操作为添加删除其中的某一项 <br/>
-(2) subs是一个观察者数组
+(2) subs是一个观察者数组
 (3) 当数据改变的时候，notify subs数组中的所有观察者对象，并调用subs[i]的update方法
 
 ```
@@ -610,11 +610,17 @@ var Watcher = function Watcher (vm, expOrFn, cb, options, isRenderWatcher) {
   this.expression = expOrFn.toString();
 
   // parse expression for getter
-
+  // getter属性是一个函数
   if (typeof expOrFn === 'function') {
+
+    // 如果expOrFn是一个函数，则直接赋值
     this.getter = expOrFn;
+
   } else {
-    this.getter = parsePath(expOrFn);
+
+    // 将expOrFn字符串表达式转换为函数
+    this.getter = parsePath(expOrFn);  
+
     if (!this.getter) {
       this.getter = function () {};
       process.env.NODE_ENV !=='production' && warn(
@@ -632,9 +638,12 @@ var Watcher = function Watcher (vm, expOrFn, cb, options, isRenderWatcher) {
 
 Watcher.prototype.get = function get () {
 
-  pushTarget(this);  // 将当前的Watcher实例赋值给Dep.target
+  // 将当前的Watcher实例赋值给Dep.target，即Watcher自己
+  pushTarget(this);  
 
+  // 最后返回的值
   var value;
+
   var vm = this.vm;
   try {
     value = this.getter.call(vm, vm); 

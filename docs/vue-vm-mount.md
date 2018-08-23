@@ -92,7 +92,8 @@ Vue.prototype.$mount = function (el, hydrating) {
         mark('compile');
       }
 
-	    // compileToFunctions()： 由模板字符串生成render function。同时该函数赋值给了Vue.compile，我们可以在外面直接使用
+	    // compileToFunctions()： 由模板字符串生成render function
+      // 同时该函数赋值给了Vue.compile，我们可以在外面直接调用Vue.compile来通过模板字符串创建render function
       // 通过模板字符串template生成AST抽象语法树 => optimize优化AST => AST转换成render code => render code生成render function
       // 该函数有三个参数
       var ref = compileToFunctions(template, {
