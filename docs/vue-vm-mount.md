@@ -535,12 +535,12 @@ function callUpdatedHooks (queue) {
 ```
 var MAX_UPDATE_COUNT = 100;
 
-var queue = [];
+var queue = [];   // 全局观察者数组
 var activatedChildren = [];
 var has = {};
 var circular = {};
-var waiting = false;
-var flushing = false;
+var waiting = false;   // 
+var flushing = false;  // 是否在更新数据, 即pop队列中的观察者
 var index = 0;
 
 /**
@@ -1211,7 +1211,7 @@ function wrapFilter (exp, filter) {
   }
 }
 ```
-* createASTElement() => ASTElement抽象数据结构
+* createASTElement() => ASTElement抽象数据结构 => js对象
 ```
 
 function createASTElement (tag, attrs, parent) {

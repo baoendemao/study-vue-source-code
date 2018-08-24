@@ -50,6 +50,8 @@ var microTimerFunc;
 var macroTimerFunc;
 var useMacroTask = false;
 
+// 注册宏任务的macroTimerFunc
+// 优先选择setImmediate。如果它不存在，则选用 MessageChannel
 if (typeof setImmediate !== 'undefined' && isNative(setImmediate)) {
 
   macroTimerFunc = function () {
@@ -80,6 +82,7 @@ if (typeof setImmediate !== 'undefined' && isNative(setImmediate)) {
 
 }
 
+// 注册微任务的microTimerFunc
 if (typeof Promise !== 'undefined' && isNative(Promise)) {
 
   var p = Promise.resolve();
@@ -628,7 +631,7 @@ var nodeOps = Object.freeze({
 // Vue作为形参
 function lifecycleMixin (Vue) {
 
-  // _update: 将vnode映射成真实的dom
+  // _update: 将render函数生成的VNode渲染成真实的dom
   // _update的调用时刻：(1)首次渲染  （2）数据的改变
   Vue.prototype._update = function (vnode, hydrating) {
     var vm = this;

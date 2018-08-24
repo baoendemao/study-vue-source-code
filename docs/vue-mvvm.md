@@ -582,11 +582,12 @@ var Watcher = function Watcher (vm, expOrFn, cb, options, isRenderWatcher) {
   // 表明当前watcher归属于哪个Vue实例
   this.vm = vm;
 
-  // 是否是渲染watcher
+  // 是否是渲染watcher, 即渲染函数的watcher
   if (isRenderWatcher) {
     vm._watcher = this;
   }
 
+  // vm._watchers保存了该组件相关的所有观察者实例
   vm._watchers.push(this);
 
   if (options) {
@@ -636,6 +637,8 @@ var Watcher = function Watcher (vm, expOrFn, cb, options, isRenderWatcher) {
 
 };
 
+
+// watcher求值
 Watcher.prototype.get = function get () {
 
   // 将当前的Watcher实例赋值给Dep.target，即Watcher自己
@@ -661,6 +664,8 @@ Watcher.prototype.get = function get () {
       traverse(value);
     }
     popTarget();
+
+    // 清空deps相关： newDepIds, newDeps
     this.cleanupDeps();
   }
   return value
@@ -669,6 +674,8 @@ Watcher.prototype.get = function get () {
 
 Watcher.prototype.addDep = function addDep (dep) {
   var id = dep.id;
+
+  // 避免重复收集依赖，比如模板字符串中引用了多个一模一样的属性名
   if (!this.newDepIds.has(id)) {
     this.newDepIds.add(id);
     this.newDeps.push(dep);
@@ -679,6 +686,7 @@ Watcher.prototype.addDep = function addDep (dep) {
 };
 
 
+// 清空
 Watcher.prototype.cleanupDeps = function cleanupDeps () {
 
   var this$1 = this;
@@ -715,17 +723,22 @@ Watcher.prototype.update = function update () {
 // render渲染视图 => 调用callback，该callback是在new Watcher的时候传入的参数
 Watcher.prototype.run = function run () {
   if (this.active) {
+
+    // 重新求值
     var value = this.get();
+
     if (
-      value !== this.value ||
+      value !== this.value ||           // 比较值是否有变化, 值要有变化才会进入if
       // Deep watchers and watchers on Object/Arrays should fire even
       // when the value is the same, because the value may
       // have mutated.
-      isObject(value) ||
+      isObject(value) ||                // 对象是引用类型的比较，直接进入if
       this.deep
     ) {
+
       // set new value
       var oldValue = this.value;
+      
       this.value = value;
       if (this.user) {
         try {
@@ -794,21 +807,26 @@ function popTarget () {
 
 ```
 
+* queueWatcher()
+
 ```
 var has = {};   // 全局的，存放watcher的id的map，存在某id则对应值为true
 
-// 观察者队列
+// 观察者队列, 等到一个loop之后，统一执行
 function queueWatcher (watcher) {
 
   var id = watcher.id;
 
   if (has[id] == null) {
 
-    has[id] = true;
+    // 存放watcher的id的map，存在某id则对应值为true
+    has[id] = true;  
 
     if (!flushing) {
+      // 当没有在更新数据的时候，即没有pop队列中的watcher
 
-      queue.push(watcher);  
+      // queue是一个全局的数组
+      queue.push(watcher);    
 
     } else {
       // if already flushing, splice the watcher based on its id
@@ -820,8 +838,11 @@ function queueWatcher (watcher) {
       queue.splice(i + 1, 0, watcher);
     }
 
+    // waiting来控制if里的语句只执行一次
     if (!waiting) {
       waiting = true;
+
+      // 将queue中的观察者拿出来重新执行
       nextTick(flushSchedulerQueue);
     }
   }
