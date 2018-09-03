@@ -1205,7 +1205,7 @@ function wrapFilter (exp, filter) {
   }
 }
 ```
-* createASTElement() => ASTElement抽象数据结构
+* createASTElement() => ASTElement抽象数据结构 => js对象
 ```
 
 function createASTElement (tag, attrs, parent) {

@@ -639,7 +639,7 @@ var nodeOps = Object.freeze({
 // Vue作为形参
 function lifecycleMixin (Vue) {
 
-  // _update: 将vnode映射成真实的dom
+  // _update: 将render函数生成的VNode渲染成真实的dom
   // _update的调用时刻：(1)首次渲染  （2）数据的改变
   Vue.prototype._update = function (vnode, hydrating) {
     var vm = this;
