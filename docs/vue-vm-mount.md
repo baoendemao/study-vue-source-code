@@ -301,20 +301,6 @@ function registerDeepBindings (data) {
 }
 ```
 
-* withMacroTask()
-
-```
-function withMacroTask (fn) {
-
-  return fn._withTask || (fn._withTask = function () {
-    useMacroTask = true;
-    var res = fn.apply(null, arguments);
-    useMacroTask = false;
-    return res
-  })
-}
-```
-
 * updateDOMProps()
 
 ```
@@ -441,9 +427,10 @@ function updateDOMListeners (oldVnode, vnode) {
 }
 ```
 
-* flushCallbacks() => 全局的message channel
+* flushCallbacks() => 遍历callbacks数组并执行
+
 ```
-var callbacks = [];
+var callbacks = [];     // 全局的callbacks 
 var pending = false;
 
 function flushCallbacks () {
@@ -457,22 +444,27 @@ function flushCallbacks () {
 }
 
 ```
-* flushSchedulerQueue()
+
+* flushSchedulerQueue() => 遍历queue队列
+
 ```
 function flushSchedulerQueue () {
 
   flushing = true;
   var watcher, id;
 
-  // Sort queue before flush.
+  // Sort queue before flush.  queue中的watcher按照id从小到大排序
   // This ensures that:
   // 1. Components are updated from parent to child. (because parent is always
-  //    created before the child)
+  //    created before the child) => 组件的更新从父到子，因为父组件总是先于子组件被创建的
+
   // 2. A component's user watchers are run before its render watcher (because
-  //    user watchers are created before the render watcher)
+  //    user watchers are created before the render watcher) => 
+  //    组件中用户创建的user watcher将会在render watcher之前被运行。 
+  //    user watcher是指的是组件中用户自定义的watcher，或者是调用$watch
+
   // 3. If a component is destroyed during a parent component's watcher run,
   //    its watchers can be skipped.
-  
   queue.sort(function (a, b) { return a.id - b.id; });
 
   // do not cache length because more watchers might be pushed
@@ -486,6 +478,8 @@ function flushSchedulerQueue () {
     // in dev build, check and stop circular updates.
     if (process.env.NODE_ENV !=='production' && has[id] != null) {
       circular[id] = (circular[id] || 0) + 1;
+
+      // 当循环更新，报出来warning
       if (circular[id] > MAX_UPDATE_COUNT) {
         warn(
           'You may have an infinite update loop ' + (
@@ -533,12 +527,12 @@ function callUpdatedHooks (queue) {
 ```
 
 ```
-var MAX_UPDATE_COUNT = 100;
+var MAX_UPDATE_COUNT = 100;  // 循环更新允许的最大次数
 
-var queue = [];
-var activatedChildren = [];
-var has = {};
-var circular = {};
+var queue = [];   // watcher全局数组，用来当做队列的数据结构
+var activatedChildren = [];   // 已被激活的children
+var has = {};     // watcher不重复添加
+var circular = {};     // 循环更新
 var waiting = false;
 var flushing = false;
 var index = 0;

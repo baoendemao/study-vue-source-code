@@ -350,7 +350,7 @@ function defineReactive (obj, key, val, customSetter, shallow) {
     // 可配置
     configurable: true,
 
-    // 读的时候，触发reactiveGetter()方法
+    // 读obj[key]的值，触发reactiveGetter()方法
     get: function reactiveGetter () {
 
       // 取值就是为了获取value
@@ -406,14 +406,12 @@ function defineReactive (obj, key, val, customSetter, shallow) {
 
       childOb = !shallow && observe(newVal);  // 新值需要可以被观察, 来实现深度观察
 
-      dep.notify();        // dep对象是要被观察的属性obj[key]拥有的唯一的dep， 通知所有的dep数组中的所有的观察者watcher，
+      dep.notify();        // dep对象是要被观察的属性obj[key]拥有的唯一的dep， 通知所有的dep数组中的所有的观察者watcher
     }
   });
 }  
 
-// Dep.target是全局的， 且存放唯一的Watcher实例，因为在任何时刻，当且仅当只有一个可被处理
-// 收集依赖完毕之后，需要置空Dep.target, 防止重复收集依赖
-Dep.target = null;  
+
 ```
 
 * 数组的MVVM
@@ -487,7 +485,7 @@ methodsToPatch.forEach(function (method) {
     // 如果数组中插入了新元素，则对新元素observe
     if (inserted) { ob.observeArray(inserted); }
 
-    // notify change
+    // notify change， 主动触发
     ob.dep.notify();
     return result;
   });
@@ -501,10 +499,11 @@ var arrayKeys = Object.getOwnPropertyNames(arrayMethods);
 
 
 
-* 订阅者Dep => 发布订阅模式 => <br/>
+* Dep => 发布订阅模式 => <br/>
 (1）管理内部成员变量数组subs，操作为添加删除其中的某一项 <br/>
-(2) subs是一个观察者数组
-(3) 当数据改变的时候，notify subs数组中的所有观察者对象，并调用subs[i]的update方法
+(2) subs是一个观察者watcher数组
+(3) 即Dep用来收集订阅者watcher，当数据改变的时候，notify subs数组中的所有观察者对象，并调用subs[i]的update方法.
+
 
 ```
 
@@ -512,6 +511,10 @@ var Dep = function Dep () {
   this.id = uid++;      // dep对象的唯一标识 => Watcher添加dep的时候，保证不重复添加dep
   this.subs = [];       // 存放 (观察者Watcher对象)。
 };
+
+// Dep.target是全局的， 指向唯一的Watcher实例，因为在任何时刻，当且仅当只有一个可被处理
+// 收集依赖完毕之后，需要置空Dep.target, 防止重复收集依赖
+Dep.target = null;  
 
 // 添加观察者
 Dep.prototype.addSub = function addSub (sub) {
@@ -591,7 +594,7 @@ var Watcher = function Watcher (vm, expOrFn, cb, options, isRenderWatcher) {
 
   if (options) {
     this.deep = !!options.deep;   // 是否深度观察
-    this.user = !!options.user;   
+    this.user = !!options.user;   // 是否是user watcher
     this.lazy = !!options.lazy;
     this.sync = !!options.sync;
   } else {
@@ -603,10 +606,12 @@ var Watcher = function Watcher (vm, expOrFn, cb, options, isRenderWatcher) {
   this.id = ++uid$1;    // uid for batching。id用来区分不同的Watcher，防止被重复放入watcher队列中。
   this.active = true;   // true：表示当前watcher实例是激活的
   this.dirty = this.lazy; // for lazy watchers
+
   this.deps = [];
   this.newDeps = [];
   this.depIds = new _Set();   // 避免收集重复依赖
   this.newDepIds = new _Set();
+
   this.expression = expOrFn.toString();
 
   // parse expression for getter
@@ -678,18 +683,20 @@ Watcher.prototype.addDep = function addDep (dep) {
   }
 };
 
-
+// 清除依赖，清除之前的用不到的依赖
 Watcher.prototype.cleanupDeps = function cleanupDeps () {
 
   var this$1 = this;
 
   var i = this.deps.length;
+
   while (i--) {
     var dep = this$1.deps[i];
     if (!this$1.newDepIds.has(dep.id)) {
       dep.removeSub(this$1);
     }
   }
+
   var tmp = this.depIds;
   this.depIds = this.newDepIds;
   this.newDepIds = tmp;
@@ -727,7 +734,7 @@ Watcher.prototype.run = function run () {
       // set new value
       var oldValue = this.value;
       this.value = value;
-      if (this.user) {
+      if (this.user) {    // 是user watcher
         try {
           this.cb.call(this.vm, value, oldValue);
         } catch (e) {
@@ -794,12 +801,15 @@ function popTarget () {
 
 ```
 
+* queueWatcher() => 将watcher push到queue里
+
 ```
 var has = {};   // 全局的，存放watcher的id的map，存在某id则对应值为true
 
 // 观察者队列
 function queueWatcher (watcher) {
 
+  // 每个watcher唯一的id
   var id = watcher.id;
 
   if (has[id] == null) {
@@ -808,6 +818,7 @@ function queueWatcher (watcher) {
 
     if (!flushing) {
 
+      // queue是全局数组
       queue.push(watcher);  
 
     } else {
@@ -820,8 +831,11 @@ function queueWatcher (watcher) {
       queue.splice(i + 1, 0, watcher);
     }
 
+    // waiting是全局变量，保证nextTick(flushSchedulerQueue)这句代码只执行一次
     if (!waiting) {
       waiting = true;
+
+      // 在下一个tick执行flushSchedulerQueue
       nextTick(flushSchedulerQueue);
     }
   }
@@ -837,7 +851,8 @@ function queueWatcher (watcher) {
 // 为什么还要用这种this.$set()的方式添加属性？ 因为实例创建之后再添加属性，新添加的属性是不会被观察的。
 
 function set (target, key, val) {
-
+   
+  // 当taret是undefined，或者基本数据类型的时候，不能使用Vue.set添加响应式属性
   if (process.env.NODE_ENV !=='production' &&
     (isUndef(target) || isPrimitive(target))      // isPrimitive()：是否是基本数据类型
   ) {
@@ -896,6 +911,8 @@ Vue.set = set;
 ```
 // Vue实例删除属性，可以被观察到， this.$delete()
 function del (target, key) {
+
+  // 当taret是undefined，或者基本数据类型的时候，不能使用Vue.delete删除响应式属性
   if (process.env.NODE_ENV !=='production' &&
     (isUndef(target) || isPrimitive(target))    // isPrimitive()：是否是基本数据类型
   ) {

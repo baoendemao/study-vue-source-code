@@ -43,13 +43,15 @@ var VNode = function VNode (tag, data, children, text, elm, context, componentOp
 
 * 初始化各种map, makeMap()
 
-* 初始化异步任务处理机制
+* 初始化异步任务处理机制 => 宏任务macro task， 微任务micro task
 
 ```
-var microTimerFunc;
-var macroTimerFunc;
-var useMacroTask = false;
+// 三个全局变量
+var microTimerFunc;         //  微任务micro task函数
+var macroTimerFunc;         //  宏任务macro task函数
+var useMacroTask = false;   //  默认使用micro task微任务
 
+// 宏任务macro task:  setImmediate => MessageChannel => setTimeout
 if (typeof setImmediate !== 'undefined' && isNative(setImmediate)) {
 
   macroTimerFunc = function () {
@@ -65,6 +67,7 @@ if (typeof setImmediate !== 'undefined' && isNative(setImmediate)) {
 )) {
 
   var channel = new MessageChannel();
+  // port1来onmessage，port2来postMessage
   var port = channel.port2;
   channel.port1.onmessage = flushCallbacks;
   macroTimerFunc = function () {
@@ -80,6 +83,7 @@ if (typeof setImmediate !== 'undefined' && isNative(setImmediate)) {
 
 }
 
+// 微任务micro task : Promise => 宏任务
 if (typeof Promise !== 'undefined' && isNative(Promise)) {
 
   var p = Promise.resolve();
@@ -103,6 +107,8 @@ if (typeof Promise !== 'undefined' && isNative(Promise)) {
 
 ```
 
+* withMacroTask()
+
 ```
 
 function withMacroTask (fn) {
@@ -117,7 +123,7 @@ function withMacroTask (fn) {
 }
 
 ```
-* nextTick() => 挂载到Vue.nextTick => 全局使用
+* nextTick() => 挂载到Vue.nextTick和Vue.prototype.nextTick => 全局使用
 
 ```
 
@@ -125,7 +131,9 @@ function nextTick (cb, ctx) {
 
   var _resolve;
   callbacks.push(function () {
+  
     if (cb) {
+      // 防止外面传入的callback函数会报出异常
       try {
         cb.call(ctx);
       } catch (e) {
@@ -135,11 +143,14 @@ function nextTick (cb, ctx) {
       _resolve(ctx);
     }
   });
+
+  // pending是全局变量，保证if里的代码只执行一次
   if (!pending) {
     pending = true;
-    if (useMacroTask) {
-      macroTimerFunc();
-    } else {
+
+    if (useMacroTask) {   // 使用宏任务
+      macroTimerFunc(); 
+    } else {        // 使用微任务
       microTimerFunc();
     }
   }

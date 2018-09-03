@@ -101,12 +101,13 @@ function mountComponent (vm, el, hydrating) {
     updateComponent = function () {
       // 参数一：vm._render()返回一个VNode， vm._render()会读取属性，从而触发属性的get拦截器，进行依赖收集
       // 参数二：当在浏览器端运行时，服务器端渲染表示hydrating为false
-      // vm._update将VNode渲染成真实的dom
+      // vm._update将VNode渲染成真实的dom, patch到真实的dom上
       vm._update(vm._render(), hydrating);
     };
   }
  
   // new render wathcer，即渲染watcher
+  // updateComponent作为该watcher实例的属性getter
   new Watcher(vm, updateComponent, noop, null, true /* isRenderWatcher */);
   hydrating = false;
 
