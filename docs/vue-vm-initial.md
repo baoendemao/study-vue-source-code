@@ -1209,7 +1209,7 @@ function getData (data, vm) {
 }
 ```
 
-initComputed() => 初始化new Vue传入的computed属性 => 服务器端渲染的时候，禁止了响应式，避免将对象转换为响应式可被观察的性能开销
+* initComputed() => 初始化new Vue传入的computed属性 => 服务器端渲染的时候，禁止了响应式，避免将对象转换为响应式可被观察的性能开销
 
 ```
 var computedWatcherOptions = { lazy: true };
@@ -1217,10 +1217,16 @@ var computedWatcherOptions = { lazy: true };
 function initComputed (vm, computed) {
 
   var watchers = vm._computedWatchers = Object.create(null);
+
+  // 是否是服务器渲染
   var isSSR = isServerRendering();
 
+  // computed是外面传入的
   for (var key in computed) {
     var userDef = computed[key];   // 用户自定义的computed的key的函数
+
+    // 每一个computed属性可以是函数或者对象
+    // 当是对象的时候，必须要有get属性
     var getter = typeof userDef === 'function' ? userDef : userDef.get;
     if (process.env.NODE_ENV !=='production' && getter == null) {
       warn(
@@ -1254,6 +1260,9 @@ function initComputed (vm, computed) {
   }
 }
 ```
+
+* defineComputed()
+
 ```
 function defineComputed (
   target,
@@ -1293,6 +1302,7 @@ function defineComputed (
 
 ```
 
+* createComputedGetter()
 ```
 function createComputedGetter (key) {
 
@@ -1311,6 +1321,8 @@ function createComputedGetter (key) {
 }
 
 ```
+
+* initWatch()
 
 ```
 function initWatch (vm, watch) {
