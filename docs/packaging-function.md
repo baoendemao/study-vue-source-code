@@ -800,26 +800,6 @@ function getOuterHTML (el) {
 }
 ```
 
-* parsePath()
-
-```
-// 解析点分隔的字符串
-var bailRE = /[^\w.$]/;
-function parsePath (path) {
-  if (bailRE.test(path)) {
-    return
-  }
-  var segments = path.split('.');
-  return function (obj) {
-    for (var i = 0; i < segments.length; i++) {
-      if (!obj) { return }
-      obj = obj[segments[i]];
-    }
-    return obj
-  }
-}
-```
-
 * 防止滚动时的卡顿： passive设为true来告诉浏览器，事件处理程序不会调用preventDefault来阻止默认行为
 
 ```

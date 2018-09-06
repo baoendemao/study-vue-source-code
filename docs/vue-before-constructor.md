@@ -1026,9 +1026,11 @@ function initExtend (Vue) {
       validateComponentName(name);
     }
 
+    // 子组件的构造函数
     var Sub = function VueComponent (options) {
       this._init(options);   // 调用vue原型上的_init()
     };
+
     Sub.prototype = Object.create(Super.prototype);  
     Sub.prototype.constructor = Sub;
 
@@ -1048,6 +1050,7 @@ function initExtend (Vue) {
       initProps$1(Sub);
     }
 
+    // 如果子组件Sub有computed属性
     if (Sub.options.computed) {
       initComputed$1(Sub);
     }
@@ -1093,12 +1096,15 @@ function initProps$1 (Comp) {
 ```
 
 * initComputed$1()
+
 ```
+// 参数Comp是组件
 function initComputed$1 (Comp) {
 
   var computed = Comp.options.computed;
   for (var key in computed) {
     
+    // 在组件的原型上定义属性key
     defineComputed(Comp.prototype, key, computed[key]);
   }
 }

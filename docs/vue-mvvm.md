@@ -105,9 +105,11 @@ function initState (vm) {
     observe(vm._data = {}, true /* asRootData */);
   }
 
-  if (opts.computed) { initComputed(vm, opts.computed); }
+  if (opts.computed) {     // 如果外边传入computed属性
+    initComputed(vm, opts.computed); 
+  }
 
-  if (opts.watch && opts.watch !== nativeWatch) {
+  if (opts.watch && opts.watch !== nativeWatch) {   // 如果外边传入watch属性
     initWatch(vm, opts.watch);
   }
 }
@@ -624,7 +626,7 @@ var Watcher = function Watcher (vm, expOrFn, cb, options, isRenderWatcher) {
 
   } else {
 
-    // 将expOrFn字符串表达式转换为函数
+    // 将expOrFn字符串表达式转换为getter函数， 例如外边传入的watch要监听a.b.c
     this.getter = parsePath(expOrFn);  
 
     if (!this.getter) {
@@ -759,6 +761,7 @@ Watcher.prototype.run = function run () {
   }
 };
 
+// 求值
 Watcher.prototype.evaluate = function evaluate () {
   this.value = this.get();
   this.dirty = false;
@@ -795,6 +798,31 @@ Watcher.prototype.teardown = function teardown () {
 };
 
 ```
+
+* parsePath()
+
+```
+// 解析点分隔的字符串，例如外边传入的watch要监听a.b.c
+var bailRE = /[^\w.$]/;
+
+function parsePath (path) {
+  if (bailRE.test(path)) {
+    return
+  }
+  var segments = path.split('.');
+  return function (obj) {
+    for (var i = 0; i < segments.length; i++) {
+      if (!obj) { return }
+
+      // 每次访问就会触发此响应式属性的getter
+      obj = obj[segments[i]];
+    }
+    return obj
+  }
+}
+```
+
+* pushTarget()
 
 ```
 // targetStack是保存watcher实例的栈，因为在一个时刻只能够改变一个对象，即只能有一个watcher

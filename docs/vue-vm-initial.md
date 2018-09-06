@@ -1264,11 +1264,7 @@ function initComputed (vm, computed) {
 * defineComputed()
 
 ```
-function defineComputed (
-  target,
-  key,
-  userDef
-) {
+function defineComputed (target, key, userDef) {
 
   var shouldCache = !isServerRendering();
   if (typeof userDef === 'function') {
@@ -1302,18 +1298,20 @@ function defineComputed (
 
 ```
 
-* createComputedGetter()
+* createComputedGetter() 
+
 ```
 function createComputedGetter (key) {
 
+  // 当访问computed属性key的时候，就会调用该函数
   return function computedGetter () {
     var watcher = this._computedWatchers && this._computedWatchers[key];
     if (watcher) {
       if (watcher.dirty) {
         watcher.evaluate();
       }
-      if (Dep.target) {
-        watcher.depend();
+      if (Dep.target) {   // Dep.target是render watcher
+        watcher.depend(); // 依赖收集render watcher
       }
       return watcher.value
     }
@@ -1326,7 +1324,8 @@ function createComputedGetter (key) {
 
 ```
 function initWatch (vm, watch) {
-
+  
+  // 遍历外边传入的watch要监听的变量
   for (var key in watch) {
     var handler = watch[key];
 
@@ -1339,6 +1338,11 @@ function initWatch (vm, watch) {
     }
   }
 }
+```
+
+* createWatcher()
+
+```
 
 function createWatcher (vm, expOrFn, handler, options) {
 
@@ -1348,8 +1352,10 @@ function createWatcher (vm, expOrFn, handler, options) {
   }
 
   if (typeof handler === 'string') {
+    // 如果handler是个字符串，直接调用method
     handler = vm[handler];
   }
+
   return vm.$watch(expOrFn, handler, options)  
 }
 ```
