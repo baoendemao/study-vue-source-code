@@ -13,21 +13,21 @@ var VNode = function VNode (tag, data, children, text, elm, context, componentOp
   this.tag = tag;             // 标签名，如div
   this.data = data;           // 节点对象，包含节点相关的属性，如on属性对应click事件函数, staticClass对应class的值
   this.children = children;   // 孩子节点数组，VNode数组
-  this.text = text;           // 文本
+  this.text = text;           // 文本节点，可以用来判断是否是文本节点
   this.elm = elm;             // 真实的dom
   this.ns = undefined;
   this.context = context;
   this.fnContext = undefined;
   this.fnOptions = undefined;
   this.fnScopeId = undefined;
-  this.key = data && data.key;
+  this.key = data && data.key;  // v-for的时候写的:key
   this.componentOptions = componentOptions;
-  this.componentInstance = undefined;
+  this.componentInstance = undefined;  // 此变量如果存在，则是组件VNode
   this.parent = undefined;
   this.raw = false;
   this.isStatic = false;   // 是否是静态节点，用来optimize diff的过程
   this.isRootInsert = true;
-  this.isComment = false;
+  this.isComment = false;  // 是否是注释节点
   this.isCloned = false;  // 是否是clone的VNode节点
   this.isOnce = false;    // 节点中是否有v-once
   this.asyncFactory = asyncFactory;
@@ -1024,7 +1024,7 @@ function createPatchFunction (backend) {
 
   var creatingElmInVPre = 0;
 
-  // 根据vnode创建真实的dom，并递归的处理它的孩子
+  // 根据vnode创建真实的dom，并递归的处理它的children
   function createElm (vnode, insertedVnodeQueue, parentElm, refElm, nested, ownerArray, index) {
 
     if (isDef(vnode.elm) && isDef(ownerArray)) {
@@ -1290,7 +1290,7 @@ function createPatchFunction (backend) {
     }
   }
 
-  // 比较孩子数组
+  // 比较新旧children, 递归执行patchVnode
   function updateChildren (parentElm, oldCh, newCh, insertedVnodeQueue, removeOnly) {
 
     var oldStartIdx = 0;
@@ -1336,13 +1336,16 @@ function createPatchFunction (backend) {
           canMove && nodeOps.insertBefore(parentElm, oldEndVnode.elm, oldStartVnode.elm);
           oldEndVnode = oldCh[--oldEndIdx];
           newStartVnode = newCh[++newStartIdx];
-        } else {
+        } else {   // 两节点不同
           if (isUndef(oldKeyToIdx)) { oldKeyToIdx = createKeyToOldIdx(oldCh, oldStartIdx, oldEndIdx); }
           idxInOld = isDef(newStartVnode.key)
             ? oldKeyToIdx[newStartVnode.key]
             : findIdxInOld(newStartVnode, oldCh, oldStartIdx, oldEndIdx);
           if (isUndef(idxInOld)) { // New element
+            
+            // 创建新的dom节点
             createElm(newStartVnode, insertedVnodeQueue, parentElm, oldStartVnode.elm, false, newCh, newStartIdx);
+
           } else {
             vnodeToMove = oldCh[idxInOld];
             if (sameVnode(vnodeToMove, newStartVnode)) {
@@ -1393,7 +1396,8 @@ function createPatchFunction (backend) {
     }
   }
 
-  // 比较新旧VNode, 如果是静态节点即节点的isStatic属性是true，则跳过静态节点的比较，optimize优化
+  // 如果新旧VNode是sameVnode()，则调用此patchVnode()函数, 来patch children
+  // 如果是静态节点即节点的isStatic属性是true，则跳过静态节点的比较，optimize优化
   function patchVnode (oldVnode, vnode, insertedVnodeQueue, removeOnly) {
 
     // 如果新旧VNode完全相同，则直接返回
@@ -1437,20 +1441,29 @@ function createPatchFunction (backend) {
       for (i = 0; i < cbs.update.length; ++i) { cbs.update[i](oldVnode, vnode); }
       if (isDef(i = data.hook) && isDef(i = i.update)) { i(oldVnode, vnode); }
     }
-    if (isUndef(vnode.text)) {
-      if (isDef(oldCh) && isDef(ch)) {
+
+    if (isUndef(vnode.text)) {   // 新的vnode没有text, 判断即是否是文本节点
+
+      if (isDef(oldCh) && isDef(ch)) {  // 老的有children，新的有children，且不同，则更新children
         if (oldCh !== ch) { updateChildren(elm, oldCh, ch, insertedVnodeQueue, removeOnly); }
-      } else if (isDef(ch)) {
+
+      } else if (isDef(ch)) {   // 老的没有children，新的有children，则添加
+
         if (isDef(oldVnode.text)) { nodeOps.setTextContent(elm, ''); }
         addVnodes(elm, null, ch, 0, ch.length - 1, insertedVnodeQueue);
-      } else if (isDef(oldCh)) {
+
+      } else if (isDef(oldCh)) {   // 老的有children，新的没有children，则删除
+
         removeVnodes(elm, oldCh, 0, oldCh.length - 1);
-      } else if (isDef(oldVnode.text)) {
+
+      } else if (isDef(oldVnode.text)) {  // 新的老的都没有children，新的没有text，老的有text, 直接将text置空
         nodeOps.setTextContent(elm, '');
       }
-    } else if (oldVnode.text !== vnode.text) {
+
+    } else if (oldVnode.text !== vnode.text) {  // 如果新旧节点的text不相等，直接更新成新的节点的text
       nodeOps.setTextContent(elm, vnode.text);
     }
+
     if (isDef(data)) {
       if (isDef(i = data.hook) && isDef(i = i.postpatch)) { i(oldVnode, vnode); }
     }
@@ -1620,10 +1633,12 @@ function createPatchFunction (backend) {
         // 首次渲染的时候，isRealElement是true
         var isRealElement = isDef(oldVnode.nodeType);
 
-        if (!isRealElement && sameVnode(oldVnode, vnode)) {
+        if (!isRealElement && sameVnode(oldVnode, vnode)) {   // 新旧节点相同的情况
+
             // patch existing root node
             patchVnode(oldVnode, vnode, insertedVnodeQueue, removeOnly);
-        } else {
+
+        } else {    // 新旧节点不同的情况
           if (isRealElement) {
             // mounting to a real element
             // check if this is server-rendered content and if we can perform

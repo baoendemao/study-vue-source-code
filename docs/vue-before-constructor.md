@@ -166,6 +166,7 @@ Vue.nextTick = nextTick;
 ```
 
 * 初始化componentVNodeHooks => 组件的钩子hooks： init, prepatch, insert, destroy
+
 ```
 var componentVNodeHooks = {
   init: function init (vnode, hydrating, parentElm, refElm) {
@@ -640,18 +641,19 @@ var nodeOps = Object.freeze({
 function lifecycleMixin (Vue) {
 
   // _update: 将render函数生成的VNode渲染成真实的dom
-  // _update的调用时刻：(1)首次渲染  （2）数据的改变
+  // _update的调用时刻：(1)首次渲染  （2）数据改变，重新渲染
   Vue.prototype._update = function (vnode, hydrating) {
     var vm = this;
 
     if (vm._isMounted) {
       callHook(vm, 'beforeUpdate');
     }
-    var prevEl = vm.$el;  
-    var prevVnode = vm._vnode;
-    var prevActiveInstance = activeInstance;
+    var prevEl = vm.$el;        // 上一次挂载的 $el
+    var prevVnode = vm._vnode;  // 上一次的vnode保存起来
+    var prevActiveInstance = activeInstance;  
     activeInstance = vm;
-    vm._vnode = vnode;
+
+    vm._vnode = vnode;  
 
     // Vue.prototype.__patch__ is injected in entry points
     // based on the rendering backend used.
@@ -774,7 +776,7 @@ function renderMixin (Vue) {
     return nextTick(fn, this)
   };
 
-  // 返回VNode
+  // 渲染VNode, 该函数返回VNode
   Vue.prototype._render = function () {
     var vm = this;
     var ref = vm.$options;
@@ -1103,7 +1105,7 @@ function initComputed$1 (Comp) {
 
   var computed = Comp.options.computed;
   for (var key in computed) {
-    
+
     // 在组件的原型上定义属性key
     defineComputed(Comp.prototype, key, computed[key]);
   }
@@ -1295,6 +1297,7 @@ extend(Vue.options.components, platformComponents);
 ```
 
 * createCompilerCreator()
+
 ```
 function createCompilerCreator (baseCompile) {
 

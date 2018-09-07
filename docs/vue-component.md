@@ -333,7 +333,8 @@ function getFirstComponentChild (children) {
 
 ```
 
-* updateChildComponent()
+* updateChildComponent() => 更新子组件
+
 ```
 var activeInstance = null;
 var isUpdatingChildComponent = false;

@@ -597,7 +597,7 @@ var Watcher = function Watcher (vm, expOrFn, cb, options, isRenderWatcher) {
 
   if (options) {
     this.deep = !!options.deep;   // 是否深度观察
-    this.user = !!options.user;   // 是否是user watcher
+    this.user = !!options.user;   // 是否是user watcher, user watcher即外边用户自己在watch属性中定义的
     this.lazy = !!options.lazy;
     this.sync = !!options.sync;
   } else {
@@ -728,7 +728,8 @@ Watcher.prototype.update = function update () {
   }
 };
 
-// render渲染视图 => 调用callback，该callback是在new Watcher的时候传入的参数
+// render渲染视图 => 调用cb，该cb是在new Watcher的时候传入的第三个参数 
+// 渲染的时候，cb被赋值为updateComponent方法
 Watcher.prototype.run = function run () {
   if (this.active) {
 
