@@ -40,7 +40,7 @@ function checkComponents (options) {
 }
 ```
 
-* createComponent() =>  根据组件创建VNode，该函数返回vnode => 组件的构造器继承自Vue
+* createComponent() =>  根据组件创建组件VNode => 组件的构造器继承自Vue
 
 ```
 function createComponent (Ctor, data, context, children, tag) {
@@ -148,6 +148,7 @@ function createComponent (Ctor, data, context, children, tag) {
   return vnode
 }
 ```
+
 * createFunction()
 ```
 function createFunction (code, errors) {
@@ -517,7 +518,7 @@ function installComponentHooks (data) {
 
   var hooks = data.hook || (data.hook = {});
 
-  // 遍历组件的钩子hooks
+  // 遍历组件的钩子hooks: init, prepatch, insert, destroy
   for (var i = 0; i < hooksToMerge.length; i++) {
     var key = hooksToMerge[i];
     hooks[key] = componentVNodeHooks[key];

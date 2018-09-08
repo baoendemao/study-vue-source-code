@@ -37,11 +37,29 @@
 
 * rollup中文官方文档： https://rollupjs.org/guide/zh
 
+* 两种不同版本的vue
+  * runtime only
+  * runtime + compiler
+
 * vue的rollup配置文件scripts/config.js
   * 由package.json中的scripts字段，可以看出rollup的配置文件是在scripts/config.js中
-  * scripts/config.js文件的builds对象表示构建输出：
+  * scripts/config.js文件：
   ```
+    const aliases = require('./alias')
+    const resolve = p => {
+      const base = p.split('/')[0]
+      if (aliases[base]) {
+        return path.resolve(aliases[base], p.slice(base.length + 1))
+      } else {
+        return path.resolve(__dirname, '../', p)
+      }
+    }
 
+    //  builds对象表示构建输出：
+    //  entry表示打包入口
+    //  dest表示打包出口
+    //  format表示vue支持三种规范: commonjs, es module, umd
+    //  env字段表示build了两种不同的环境：开发环境和生产环境
     const builds = {
       // Runtime only (CommonJS). Used by bundlers e.g. Webpack & Browserify
       'web-runtime-cjs': {
@@ -176,11 +194,214 @@
       }
     }
   ```
+  
+* build的js： scripts/build.js
 
-  entry表示打包入口<br/>
-  dest表示打包出口<br/>
-  format表示vue支持三种规范: commonjs, es module, umd。<br/>
-  env字段表示build了两种不同的环境：开发环境和生产环境。<br/>
-  * build除了模块规范不同以外，还分为了:
-    * runtime only
-    * runtime + compiler
+```
+const fs = require('fs')
+const path = require('path')
+const zlib = require('zlib')
+const rollup = require('rollup')
+const uglify = require('uglify-js')
+
+if (!fs.existsSync('dist')) {
+  fs.mkdirSync('dist')
+}
+
+// 读取scripts/config.js
+let builds = require('./config').getAllBuilds()
+
+// filter builds via command line arg
+// 根据命令行参数
+if (process.argv[2]) {
+  const filters = process.argv[2].split(',')
+  builds = builds.filter(b => {
+    return filters.some(f => b.output.file.indexOf(f) > -1 || b._name.indexOf(f) > -1)
+  })
+} else {
+  // filter out weex builds by default
+  builds = builds.filter(b => {
+    return b.output.file.indexOf('weex') === -1
+  })
+}
+
+build(builds)
+
+function build (builds) {
+  let built = 0
+  const total = builds.length
+  const next = () => {
+    buildEntry(builds[built]).then(() => {
+      built++
+      if (built < total) {
+        next()
+      }
+    }).catch(logError)
+  }
+
+  next()
+}
+
+function buildEntry (config) {
+  const output = config.output
+  const { file, banner } = output
+  const isProd = /min\.js$/.test(file)
+  return rollup.rollup(config)
+    .then(bundle => bundle.generate(output))
+    .then(({ code }) => {
+      if (isProd) {
+        var minified = (banner ? banner + '\n' : '') + uglify.minify(code, {
+          output: {
+            ascii_only: true
+          },
+          compress: {
+            pure_funcs: ['makeMap']
+          }
+        }).code
+        return write(file, minified, true)
+      } else {
+        return write(file, code)
+      }
+    })
+}
+
+function write (dest, code, zip) {
+  return new Promise((resolve, reject) => {
+    function report (extra) {
+      console.log(blue(path.relative(process.cwd(), dest)) + ' ' + getSize(code) + (extra || ''))
+      resolve()
+    }
+
+    fs.writeFile(dest, code, err => {
+      if (err) return reject(err)
+      if (zip) {
+        zlib.gzip(code, (err, zipped) => {
+          if (err) return reject(err)
+          report(' (gzipped: ' + getSize(zipped) + ')')
+        })
+      } else {
+        report()
+      }
+    })
+  })
+}
+
+function getSize (code) {
+  return (code.length / 1024).toFixed(2) + 'kb'
+}
+
+function logError (e) {
+  console.log(e)
+}
+
+function blue (str) {
+  return '\x1b[1m\x1b[34m' + str + '\x1b[39m\x1b[22m'
+}
+
+```
+
+* web的entry入口文件 web/entry-runtime-with-compiler.js
+
+```
+/* @flow */
+
+import config from 'core/config'
+import { warn, cached } from 'core/util/index'
+import { mark, measure } from 'core/util/perf'
+
+import Vue from './runtime/index'
+import { query } from './util/index'
+import { compileToFunctions } from './compiler/index'
+import { shouldDecodeNewlines, shouldDecodeNewlinesForHref } from './util/compat'
+
+const idToTemplate = cached(id => {
+  const el = query(id)
+  return el && el.innerHTML
+})
+
+const mount = Vue.prototype.$mount
+Vue.prototype.$mount = function (
+  el?: string | Element,
+  hydrating?: boolean
+): Component {
+  el = el && query(el)
+
+  /* istanbul ignore if */
+  if (el === document.body || el === document.documentElement) {
+    process.env.NODE_ENV !== 'production' && warn(
+      `Do not mount Vue to <html> or <body> - mount to normal elements instead.`
+    )
+    return this
+  }
+
+  const options = this.$options
+  // resolve template/el and convert to render function
+  if (!options.render) {
+    let template = options.template
+    if (template) {
+      if (typeof template === 'string') {
+        if (template.charAt(0) === '#') {
+          template = idToTemplate(template)
+          /* istanbul ignore if */
+          if (process.env.NODE_ENV !== 'production' && !template) {
+            warn(
+              `Template element not found or is empty: ${options.template}`,
+              this
+            )
+          }
+        }
+      } else if (template.nodeType) {
+        template = template.innerHTML
+      } else {
+        if (process.env.NODE_ENV !== 'production') {
+          warn('invalid template option:' + template, this)
+        }
+        return this
+      }
+    } else if (el) {
+      template = getOuterHTML(el)
+    }
+    if (template) {
+      /* istanbul ignore if */
+      if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
+        mark('compile')
+      }
+
+      const { render, staticRenderFns } = compileToFunctions(template, {
+        shouldDecodeNewlines,
+        shouldDecodeNewlinesForHref,
+        delimiters: options.delimiters,
+        comments: options.comments
+      }, this)
+      options.render = render
+      options.staticRenderFns = staticRenderFns
+
+      /* istanbul ignore if */
+      if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
+        mark('compile end')
+        measure(`vue ${this._name} compile`, 'compile', 'compile end')
+      }
+    }
+  }
+  return mount.call(this, el, hydrating)
+}
+
+/**
+ * Get outerHTML of elements, taking care
+ * of SVG elements in IE as well.
+ */
+function getOuterHTML (el: Element): string {
+  if (el.outerHTML) {
+    return el.outerHTML
+  } else {
+    const container = document.createElement('div')
+    container.appendChild(el.cloneNode(true))
+    return container.innerHTML
+  }
+}
+
+Vue.compile = compileToFunctions
+
+export default Vue
+
+```

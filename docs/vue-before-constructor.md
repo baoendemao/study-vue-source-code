@@ -617,6 +617,7 @@ function setStyleScope (node, scopeId) {
 }
 
 
+// 封装真实的dom操作
 var nodeOps = Object.freeze({
 	createElement: createElement$1,
 	createElementNS: createElementNS,
@@ -641,7 +642,7 @@ var nodeOps = Object.freeze({
 function lifecycleMixin (Vue) {
 
   // _update: 将render函数生成的VNode渲染成真实的dom
-  // _update的调用时刻：(1)首次渲染  （2）数据改变，重新渲染
+  // _update的调用时刻：(1)首次渲染  （2）数据改变 => mvvm => 重新渲染
   Vue.prototype._update = function (vnode, hydrating) {
     var vm = this;
 
@@ -670,7 +671,7 @@ function lifecycleMixin (Vue) {
       // this prevents keeping a detached DOM tree in memory (#5851)
       vm.$options._parentElm = vm.$options._refElm = null;
     } else {
-      // 数据更新
+      // 数据更新 => mvvm => 渲染更新
       
       vm.$el = vm.__patch__(prevVnode, vnode);         
     }
@@ -756,7 +757,7 @@ function lifecycleMixin (Vue) {
     }
 
     // release circular reference (#6759)
-    if (vm.$vnode) {
+    if (vm.$vnode) {  // vm的父节点vnode
       vm.$vnode.parent = null;
     }
   };
@@ -776,12 +777,12 @@ function renderMixin (Vue) {
     return nextTick(fn, this)
   };
 
-  // 渲染VNode, 该函数返回VNode
+  // 将vm渲染VNode, 该函数返回VNode
   Vue.prototype._render = function () {
     var vm = this;
     var ref = vm.$options;
-    var render = ref.render;   // 外面传入的render
-    var _parentVnode = ref._parentVnode;
+    var render = ref.render;   // 外面传入的render属性，即用户自定义的render
+    var _parentVnode = ref._parentVnode;  // 父vnode
 
     // reset _rendered flag on slots for duplicate slot check
     {
@@ -801,6 +802,18 @@ function renderMixin (Vue) {
     // render self
     var vnode;
     try {
+      /*
+       * 外边传入的render函数:
+       * render: function(createElement) {
+            return createElement('div', 
+                {
+                  attrs: {id: 'app'}, 
+                },
+                this.hello
+            );
+          }
+       * 通过createElement()函数创建了vnode
+       */
       vnode = render.call(vm._renderProxy, vm.$createElement);
     } catch (e) {
       handleError(e, vm, "render");
@@ -1004,7 +1017,7 @@ function initExtend (Vue) {
 
   /**
    * Class inheritance
-   * 创建Vue子类
+   * 创建Vue子类，返回子的构造器
    * 
    * 例如：
    * var child = Vue.extend(); 
@@ -1013,13 +1026,14 @@ function initExtend (Vue) {
   Vue.extend = function (extendOptions) {
 
     extendOptions = extendOptions || {};
-    var Super = this;
+    var Super = this;    // this是Vue
     var SuperId = Super.cid;
     var cachedCtors = extendOptions._Ctor || (extendOptions._Ctor = {});
     if (cachedCtors[SuperId]) {
       return cachedCtors[SuperId]
     }
 
+    // 组件的name
     var name = extendOptions.name || Super.options.name;
 
     // 开发环境下
@@ -1033,6 +1047,7 @@ function initExtend (Vue) {
       this._init(options);   // 调用vue原型上的_init()
     };
 
+    // 原型继承
     Sub.prototype = Object.create(Super.prototype);  
     Sub.prototype.constructor = Sub;
 

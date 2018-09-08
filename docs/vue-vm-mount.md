@@ -10,7 +10,7 @@ Vue.prototype.$mount = function (el, hydrating) {
  
   el = el && inBrowser ? query(el) : undefined;  // 挂载的元素
 
-  // 不管是runtime only版本的vue，还是完整版的vue，挂载el都是走的mountComponent函数
+  // 不管是runtime only版本的vue，还是完整版的vue，挂载el最后都是走的mountComponent函数
   return mountComponent(this, el, hydrating);  
 
 };
@@ -27,6 +27,8 @@ Vue.prototype.$mount = function (el, hydrating) {
 var mount = Vue.prototype.$mount;     // 先保存原型上原来的$mount， 即runtime only版本的vue直接使用的$mount方法
 
 // 调用：  vm.$mount(vm.$options.el);  
+// 第一个参数： 挂载的dom对象
+// 第二个参数：服务器端需要传入，浏览器端不需要
 Vue.prototype.$mount = function (el, hydrating) {
 
   el = el && query(el);    // 找到el表示的真实的dom节点对象
@@ -240,10 +242,12 @@ function _createElement (context, tag, data, children, normalizationType) {
   }
 
   var vnode, ns;
-  if (typeof tag === 'string') {
+  if (typeof tag === 'string') {   // 如div
 
     var Ctor;
     ns = (context.$vnode && context.$vnode.ns) || config.getTagNamespace(tag);
+
+
     if (config.isReservedTag(tag)) {
       // platform built-in elements
       vnode = new VNode(
@@ -251,7 +255,7 @@ function _createElement (context, tag, data, children, normalizationType) {
         undefined, undefined, context
       );
 
-    } else if (isDef(Ctor = resolveAsset(context.$options, 'components', tag))) {
+    } else if (isDef(Ctor = resolveAsset(context.$options, 'components', tag))) {   // 组件，需要创建组件vnode
 
       vnode = createComponent(Ctor, data, context, children, tag);
     } else {

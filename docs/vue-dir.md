@@ -12,7 +12,7 @@ $ tree -L 1
 ├── flow  =>  flow类型检查相关的类型定义
 ├── package.json
 ├── packages
-├── scripts
+├── scripts => rollup构建相关
 ├── src
 ├── test
 ├── types
@@ -25,10 +25,10 @@ $ tree -L 1
 ```
 $ tree -L 1 src
 src
-├── compiler  =>   模板template字符串的编译
+├── compiler  =>   模板template字符串的编译：先生成抽象语法树(AST)，optimize AST, 然后将AST转换成render函数
 ├── core   => Vue的核心相关， 这个文件夹里的内容是和平台(web，weex)无关的
 ├── platforms =>   平台相关的代码， vue现在支持web和weex
-├── server   => 服务端渲染相关
+├── server   => 服务端渲染相关，跑在node端
 ├── sfc   =>  将vue文件编译成js。 如webpack不认识vue，打包的时候需要将vue编译成js
 └── shared  => 被全局共享的辅助方法
 
@@ -48,6 +48,25 @@ src/core
 ├── util => 工具函数
 └── vdom => 虚拟dom
 
+
+```
+
+* src/server目录 => 服务器渲染相关， 跑在node端 => 组件渲染成html，发送到浏览器，并与浏览器比较混合
+
+```
+ $ tree -L 1 src/server
+src/server
+├── bundle-renderer
+├── create-basic-renderer.js
+├── create-renderer.js
+├── optimizing-compiler
+├── render-context.js
+├── render-stream.js
+├── render.js
+├── template-renderer 
+├── util.js
+├── webpack-plugin
+└── write.js
 
 ```
 

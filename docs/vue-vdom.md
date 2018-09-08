@@ -12,16 +12,16 @@
 var VNode = function VNode (tag, data, children, text, elm, context, componentOptions, asyncFactory) {
   this.tag = tag;             // 标签名，如div
   this.data = data;           // 节点对象，包含节点相关的属性，如on属性对应click事件函数, staticClass对应class的值
-  this.children = children;   // 孩子节点数组，VNode数组
+  this.children = children;   // 孩子节点数组，VNode数组。 注意：组件VNode的children是undefined
   this.text = text;           // 文本节点，可以用来判断是否是文本节点
-  this.elm = elm;             // 真实的dom
+  this.elm = elm;             // 真实的dom。其中组件VNode的elm是undefined
   this.ns = undefined;
   this.context = context;
   this.fnContext = undefined;
   this.fnOptions = undefined;
   this.fnScopeId = undefined;
   this.key = data && data.key;  // v-for的时候写的:key
-  this.componentOptions = componentOptions;
+  this.componentOptions = componentOptions;   // 组件的componentOptions包含了Ctor, propsData, listeners, tag, children
   this.componentInstance = undefined;  // 此变量如果存在，则是组件VNode
   this.parent = undefined;
   this.raw = false;
@@ -88,7 +88,7 @@ function mountComponent (vm, el, hydrating) {
       var endTag = "vue-perf-end:" + id;
 
       mark(startTag);
-      var vnode = vm._render();  // 调用Vue.prototype._render()
+      var vnode = vm._render();  // 调用Vue.prototype._render()创建vnode
       mark(endTag);
       measure(("vue " + name + " render"), startTag, endTag);
 
@@ -98,23 +98,29 @@ function mountComponent (vm, el, hydrating) {
       measure(("vue " + name + " patch"), startTag, endTag);
     };
   } else {
+    
+
     updateComponent = function () {
       // 参数一：vm._render()返回一个VNode， vm._render()会读取属性，从而触发属性的get拦截器，进行依赖收集
       // 参数二：当在浏览器端运行时，服务器端渲染表示hydrating为false
-      // vm._update将VNode渲染成真实的dom, patch到真实的dom上
+      // vm._update将VNode渲染成真实的dom, 并将变化patch到真实的dom上
+
       vm._update(vm._render(), hydrating);
     };
   }
  
   // new render wathcer，即渲染watcher
   // updateComponent作为该watcher实例的属性getter
+  // 两次：首次渲染，数据变化的时候
   new Watcher(vm, updateComponent, noop, null, true /* isRenderWatcher */);
   hydrating = false;
 
  
-  if (vm.$vnode == null) {
-    vm._isMounted = true;     // 声明周期走到mounted的标志
+  if (vm.$vnode == null) {    // vm.$vnode表示的是父的vnode, null表明是根节点
+
+    vm._isMounted = true;     // 声明周期走到mounted的标志，表明已被挂载
     callHook(vm, 'mounted');  // 生成dom树之后
+
   }
 
   return vm 
@@ -434,6 +440,7 @@ child: (...)
 这里重点讲解VNode数据结构中的children属性。根据例子来看，children是div#app虚拟节点所包含的14个VNode元素的数组。为什么这里是14个？<br/>
 首先v-for是6个VNode， div.name-node是1个VNode，div.count-node是1个VNode，div.click-node是1个VNode， div.obj-data-node是1个VNode， 其余4个VNode是指的div与div之间的换行表示的文本节点(如果把换行去掉，这4个VNode将不会产生)
 <br/>
+
 * _createElement() => 创建VNode
 
 ```
@@ -714,7 +721,7 @@ function registerDeepBindings (data) {
 }
 ```
 
-*  Vue.prototype._update() => 调用生命周期钩子beforeUpdate
+*  Vue.prototype._update() => 调用生命周期钩子beforeUpdate => 重点是调用vm.__patch__
 ```
   Vue.prototype._update = function (vnode, hydrating) {
 
@@ -724,8 +731,10 @@ function registerDeepBindings (data) {
       callHook(vm, 'beforeUpdate');
     }
     var prevEl = vm.$el;   
-    var prevVnode = vm._vnode;
-    var prevActiveInstance = activeInstance;
+    var prevVnode = vm._vnode;   // vm._render()返回的vnode
+
+    var prevActiveInstance = activeInstance;  // 保存上一次的activeInstance， 将它作为当前vm的父vue实例，即是按照深度优先遍历来初始化的
+
     activeInstance = vm;
     vm._vnode = vnode;
 
@@ -745,7 +754,7 @@ function registerDeepBindings (data) {
       // this prevents keeping a detached DOM tree in memory (#5851)
       vm.$options._parentElm = vm.$options._refElm = null;
     } else {
-      // 数据更新
+      // 数据更新 => mvvm => 渲染更新
 
       vm.$el = vm.__patch__(prevVnode, vnode);        
 
@@ -760,128 +769,16 @@ function registerDeepBindings (data) {
     if (vm.$el) {
       vm.$el.__vue__ = vm;
     }
+
     // if parent is an HOC, update its $el as well
+    // vm.$vnode是指的父vnode，其中根节点的$vnode是undefined
     if (vm.$vnode && vm.$parent && vm.$vnode === vm.$parent._vnode) {
       vm.$parent.$el = vm.$el;
     }
+
     // updated hook is called by the scheduler to ensure that children are
     // updated in a parent's updated hook.
   };
-```
-* createComponent() => 创建组件对应的VNode
-```
-function createComponent (Ctor, data, context, children, tag) {
-
-  if (isUndef(Ctor)) {
-    return
-  }
-
-  var baseCtor = context.$options._base;
-
-  // plain options object: turn it into a constructor
-  if (isObject(Ctor)) {
-    Ctor = baseCtor.extend(Ctor);
-  }
-
-  // if at this stage it's not a constructor or an async component factory,
-  // reject.
-  if (typeof Ctor !== 'function') {
-    {
-      warn(("Invalid Component definition: " + (String(Ctor))), context);
-    }
-    return
-  }
-
-  // async component
-  var asyncFactory;
-  if (isUndef(Ctor.cid)) {
-    asyncFactory = Ctor;
-    Ctor = resolveAsyncComponent(asyncFactory, baseCtor, context);
-    if (Ctor === undefined) {
-      // return a placeholder node for async component, which is rendered
-      // as a comment node but preserves all the raw information for the node.
-      // the information will be used for async server-rendering and hydration.
-      return createAsyncPlaceholder(
-        asyncFactory,
-        data,
-        context,
-        children,
-        tag
-      )
-    }
-  }
-
-  data = data || {};
-
-  // resolve constructor options in case global mixins are applied after
-  // component constructor creation
-  resolveConstructorOptions(Ctor);
-
-  // transform component v-model data into props & events
-  if (isDef(data.model)) {
-    transformModel(Ctor.options, data);
-  }
-
-  // extract props
-  var propsData = extractPropsFromVNodeData(data, Ctor, tag);
-
-  // functional component
-  if (isTrue(Ctor.options.functional)) {
-    return createFunctionalComponent(Ctor, propsData, data, context, children)
-  }
-
-  // extract listeners, since these needs to be treated as
-  // child component listeners instead of DOM listeners
-  var listeners = data.on;
-  // replace with listeners with .native modifier
-  // so it gets processed during parent component patch.
-  data.on = data.nativeOn;
-
-  // vm.$options.abstract是抽象组件，例如keep-alive，transition
-  if (isTrue(Ctor.options.abstract)) {
-    // abstract components do not keep anything
-    // other than props & listeners & slot
-
-    // work around flow
-    var slot = data.slot;
-    data = {};
-    if (slot) {
-      data.slot = slot;
-    }
-  }
-
-  // install component management hooks onto the placeholder node
-  installComponentHooks(data);
-
-  // return a placeholder vnode
-  var name = Ctor.options.name || tag;
-
-  /*
-    new VNode()传递的属性依次是：
-    vnode.tag,
-    vnode.data,
-    vnode.children,
-    vnode.text,
-    vnode.elm,
-    vnode.context,
-    vnode.componentOptions, => 是一个对象，包含属性：Ctor, propsData, listners, tag, children
-    vnode.asyncFactory
-  */
-  var vnode = new VNode(
-    ("vue-component-" + (Ctor.cid) + (name ? ("-" + name) : '')),
-    data, undefined, undefined, undefined, context,
-    { Ctor: Ctor, propsData: propsData, listeners: listeners, tag: tag, children: children },
-    asyncFactory
-  );
-
-  // Weex specific: invoke recycle-list optimized @render function for
-  // extracting cell-slot template.
-  // https://github.com/Hanks10100/weex-native-directive/tree/master/component
-  /* istanbul ignore if */
-  return vnode
-} 
-
-
 ```
 
 * createFunctionalComponent()
@@ -958,7 +855,7 @@ function cloneAndMarkFunctionalResult (vnode, data, contextVm, options) {
 
 ```
 
-* createPatchFunction() => 返回patch()函数 => 将VNode生成真实的dom
+* createPatchFunction() => 返回patch()函数 => 将虚拟dom生成真实的dom(只在浏览器端需要)
 
 ```
 var hooks = ['create', 'activate', 'update', 'remove', 'destroy'];
@@ -1024,7 +921,7 @@ function createPatchFunction (backend) {
 
   var creatingElmInVPre = 0;
 
-  // 根据vnode创建真实的dom，并递归的处理它的children
+  // 根据vnode创建真实的dom，并插入到父节点
   function createElm (vnode, insertedVnodeQueue, parentElm, refElm, nested, ownerArray, index) {
 
     if (isDef(vnode.elm) && isDef(ownerArray)) {
@@ -1091,9 +988,9 @@ function createPatchFunction (backend) {
 
     var i = vnode.data;
     if (isDef(i)) {
-      var isReactivated = isDef(vnode.componentInstance) && i.keepAlive;
+      var isReactivated = isDef(vnode.componentInstance) && i.keepAlive;  // 如果vnode是组件vnode
       if (isDef(i = i.hook) && isDef(i = i.init)) {
-        i(vnode, false /* hydrating */, parentElm, refElm);
+        i(vnode, false /* hydrating */, parentElm, refElm);  // i被赋值为init钩子
       }
       // after calling the init hook, if the vnode is a child component
       // it should've created a child instance and mounted it. the child
@@ -1736,8 +1633,8 @@ var patch = createPatchFunction({ nodeOps: nodeOps, modules: modules });
 
 var inBrowser = typeof window !== 'undefined';    
 
-// 判断是否是浏览器环境：
-// 如果是浏览器，则赋值patch；如果是服务端，则什么都不做, noop是指一个空函数，因为在服务端是不会出现真实的dom的，所以不需要patch。即：只有浏览器环境才进行patch
+// Vue.prototype.__patch__将vdom转换成真实的dom
+// 判断是否是浏览器环境： 如果是浏览器，则赋值patch；如果是服务端，则什么都不做, noop是指一个空函数，因为在服务端是不会出现真实的dom的，所以不需要将虚vdom patch成真实的dom。即：只有浏览器环境才进行patch
 Vue.prototype.__patch__ = inBrowser ? patch : noop;
 
 

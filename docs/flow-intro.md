@@ -59,3 +59,7 @@ Cannot call func with 'vue' bound to y because string [1] is incompatible with n
 
 Found 1 error
 ```
+
+* flow的github地址： https://github.com/facebook/flow
+
+学习flow，更有助于学习vue的源码。

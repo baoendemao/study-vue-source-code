@@ -65,7 +65,7 @@ Vue.prototype._init = function (options) {
 
     initRender(vm);        // 初始化渲染render
 
-    callHook(vm, 'beforeCreate');    // 在生命周期beforeCreated
+    callHook(vm, 'beforeCreate');    // 在生命周期beforeCreated, 获取不到data, props的值， 不能访问dom
 
     initInjections(vm); 
 
@@ -73,7 +73,7 @@ Vue.prototype._init = function (options) {
 
     initProvide(vm);   
 
-    callHook(vm, 'created');   // 在生命周期created
+    callHook(vm, 'created');   // 在生命周期created， 不能访问dom
 
     /* istanbul ignore if */
     if (process.env.NODE_ENV !=='production' && config.performance && mark) {
@@ -83,17 +83,19 @@ Vue.prototype._init = function (options) {
     }
 
     if (vm.$options.el) {
-      vm.$mount(vm.$options.el);   // 模板的编译，渲染
+      vm.$mount(vm.$options.el);   // 挂载el => 模板编译 => 渲染成真实的dom
     }
 };
 ```
+
+* initInternalComponent()
 
 ```
 function initInternalComponent (vm, options) {
 
   var opts = vm.$options = Object.create(vm.constructor.options);
   // doing this because it's faster than dynamic enumeration.
-  var parentVnode = options._parentVnode;
+  var parentVnode = options._parentVnode;  // 父vnode
   opts.parent = options.parent;
   opts._parentVnode = parentVnode;
   opts._parentElm = options._parentElm;
