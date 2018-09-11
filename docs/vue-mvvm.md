@@ -174,6 +174,7 @@ function initData (vm) {
     }
   }
   // observe data
+  // 根数据的时候，第二个参数为true
   observe(data, true /* asRootData */);   // data开始被观察，递归的
 }
 ```
@@ -192,6 +193,7 @@ var sharedPropertyDefinition = {
 // 将原本this[sourceKey][key], 代理到target[key]
 function proxy (target, sourceKey, key) {
   sharedPropertyDefinition.get = function proxyGetter () {
+    // 这里如果访问vm上的属性，也会触发响应式get
     return this[sourceKey][key]
   };
   sharedPropertyDefinition.set = function proxySetter (val) {
@@ -250,11 +252,13 @@ function observe (value, asRootData) {
 ```
 // new Observer()只传入一个参数，即数据value
 // 使得value(纯对象或数组)变为可被观察的，在其上添加__ob__属性，值是new出的Observer实例
-// 如果value是对象，则深度递归处理value的每个属性值变为可被观察的
-// 如果value是数组，则通过重新定义数组的7个方法，使得数组是可被观察的，然后递归处理数组的每个元素变为可被观察的
+// value只可能是对象或者数组：
+//  （1）如果value是对象，则深度递归处理value的每个属性值变为可被观察的 
+//  （2）如果value是数组，则通过重新定义数组的7个方法，使得数组是可被观察的，然后递归处理数组的每个元素变为可被观察的
 var Observer = function Observer (value) {
 
-  this.value = value;     // __ob__.value指向value对象自身
+  // __ob__有三个属性：dep, value, vmCount
+  this.value = value;     // __ob__.value指向value自身
 
   // 新建Dep实例，__ob__.dep
   // Vue的data增加和删除新属性的时候，用来依赖收集的。如Vue.set和Vue.delete
@@ -308,8 +312,9 @@ Observer.prototype.walk = function walk (obj) {
 
 ```
 
-defineReactive() => 递归的将obj[key]变为可被观察的 => 添加__ob__属性，值为new 出来的新的Observer实例
+* defineReactive() => 递归的将obj[key]变为可被观察的 => 添加__ob__属性，值为new 出来的新的Observer实例
 => 注意obj[key]必须是数组或者纯对象，因为对于基本数据类型，是不会被观察的，不会被添加__ob__属性的
+
 ```
 //  使用Object.defineProperty对obj对象绑定被观察属性key，值是val
 // 第五个参数shallow表示是否要深度变为可观察的。如果为true，则不深度递归。如果为false，则深度观察
@@ -339,10 +344,11 @@ function defineReactive (obj, key, val, customSetter, shallow) {
 
   var setter = property && property.set;    // 取出之前定义的set
 
-  // 对obj[key]进行递归被观察（凡是其属性，属性的属性，属性的属性的属性...， 都依次被观察，添加__ob__属性）childOb的值为new 出来的新的Observer实例
+  // 对obj[key]的值也递归的被观察（凡是其属性，属性的属性，属性的属性的属性...， 都依次被观察，添加__ob__属性）childOb的值为new 出来的新的Observer实例
+  // 且只有当shallow为false, 且val是数组或者纯对象的时候，才会被观察
   var childOb = !shallow && observe(val);   
 
-  // 响应式的关键
+  // 响应式的关键 => 将obj[key]变为可被观察的
   Object.defineProperty(obj, key, {
     // 可枚举
     enumerable: true,  
@@ -507,6 +513,7 @@ var arrayKeys = Object.getOwnPropertyNames(arrayMethods);
 
 
 ```
+var uid = 0;
 
 var Dep = function Dep () {
   this.id = uid++;      // dep对象的唯一标识 => Watcher添加dep的时候，保证不重复添加dep

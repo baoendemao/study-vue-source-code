@@ -31,7 +31,7 @@ var mount = Vue.prototype.$mount;     // 先保存原型上原来的$mount， �
 // 第二个参数：服务器端需要传入，浏览器端不需要
 Vue.prototype.$mount = function (el, hydrating) {
 
-  el = el && query(el);    // 找到el表示的真实的dom节点对象
+  el = el && query(el);    // 找到el字符串表示的真实的dom对象, 并重新复制给el
 
   // 不可以mount挂载到body和html
   if (el === document.body || el === document.documentElement) {
@@ -41,7 +41,7 @@ Vue.prototype.$mount = function (el, hydrating) {
     return this
   }
 
-  var options = this.$options;
+  var options = this.$options;   // 外边new Vue()传入的参数对象
 
   // 如果options.render存在，则后面直接使用其作为render function，可以提高效率
   // 如果options.render不存在，则需要通过模板字符串生成render function
@@ -50,7 +50,7 @@ Vue.prototype.$mount = function (el, hydrating) {
 
     var template = options.template;   // 外面传入的template模板
  
-     // 如果options存在template字段，则使用template字段的模板字符串
+     // 如果外边传入了template字段，则直接使用template字段的模板字符串
     if (template) { 
       // 检查options传入的template字段的正确性
       if (typeof template === 'string') {
@@ -82,8 +82,11 @@ Vue.prototype.$mount = function (el, hydrating) {
         }
         return this
       }
-    } else if (el) {   // 如果options没有传入template字段，则使用el字段来生成template模板字符串
-      template = getOuterHTML(el);    
+    } else if (el) {   // 如果外边没有传入template字段，则使用el字段来生成template模板字符串
+ 
+      // template保存模板字符串
+      template = getOuterHTML(el); 
+
     }
 
 	
@@ -563,17 +566,17 @@ createCompilerCreator() => 创建createCompiler，<br/>
 var createCompiler = createCompilerCreator(
   function baseCompile (template, options) {
 
-    var ast = parse(template.trim(), options);  // 解析模板字符串，生成AST抽象语法树, 返回树的根节点
+    var ast = parse(template.trim(), options);  // 解析模板字符串，生成AST抽象语法树, 返回AST的树根给变量ast
 
     if (options.optimize !== false) {
       optimize(ast, options);   // 优化AST抽象语法树，标记静态节点，只更新需要改变的部分子树
     }
 
-    var code = generate(ast, options);  // 由AST抽象语法树，生成render code
+    var code = generate(ast, options);  // 由AST抽象语法树，生成render code，返回给变量code
     
     return {
-      ast: ast,
-      render: code.render,    // code.render就是这段代码 with(this) {  }
+      ast: ast,               // AST的树根
+      render: code.render,    // render code, 就是这段代码 with(this) {  }
       staticRenderFns: code.staticRenderFns
     }
 
@@ -736,7 +739,10 @@ function createCompileToFunctionFn (compile) {
     // turn code into functions
     var res = {};
     var fnGenErrors = [];
-    res.render = createFunction(compiled.render, fnGenErrors);
+
+    // 根据render code字符串，生成render函数，赋值给res.render
+    res.render = createFunction(compiled.render, fnGenErrors);  
+    
     res.staticRenderFns = compiled.staticRenderFns.map(function (code) {
       return createFunction(code, fnGenErrors)
     });
@@ -849,7 +855,9 @@ function parse (template, options) {
         attrs = guardIESVGBug(attrs);
       }
 
-      // 新建AST节点
+      // 返回新建的AST节点
+      // 如果<div id="app">, 则此时调用为：传参第一个参数tag为div
+      // 第二个参数attrs为数组，它的第一个元素为{name: "id", value: "app"}
       var element = createASTElement(tag, attrs, currentParent);
       if (ns) {
         element.ns = ns;
@@ -1209,25 +1217,26 @@ function wrapFilter (exp, filter) {
   }
 }
 ```
-* createASTElement() => ASTElement抽象数据结构 => js对象
+* createASTElement() => 创建AST元素节点
 ```
 
 function createASTElement (tag, attrs, parent) {
 
   return {
     type: 1,
-    tag: tag,   // 标签
-    attrsList: attrs,
-    attrsMap: makeAttrsMap(attrs),   // 在节点中添加attrsMap属性，如指令v-if,v-for,v-once等
+    tag: tag,           // html标签， 如div
+    attrsList: attrs,   // html的属性数组, 如<div id="app">， 则attrsList为[{name: "id", value: "app"}]
+    attrsMap: makeAttrsMap(attrs),   // html的属性map, 如<div id="app">， 则attrsMap为{id: "map"}
     parent: parent,
-    children: []
+    children: []        // 孩子节点数组，每个元素也是一个AST元素节点
   }
 }
 ```
 
 * makeAttrsMap() => 处理节点的属性， 属性数组attrs转换成属性对象并返回
 ```
-
+// 形参attrs为数组
+// 例如：一个节点为<div id="app">, 则传入attrs是一个一维数组：[{name: "id", value: "app"}], 则最后return的map是 {"id": "app"}
 function makeAttrsMap (attrs) {
   var map = {};
   for (var i = 0, l = attrs.length; i < l; i++) {
@@ -1262,6 +1271,8 @@ function isForbiddenTag (el) {
 * getAndRemoveAttr() => 如果el.attrsMap对象中含有Key是name，则从el.attrsList数组中删除该key，并返回对应的value。默认不删除el.attrsMap中的对应的key，除非提供第三个参数为true
 
 ```
+// 第一个形参： AST抽象语法树的节点
+// 第二个形参：如v-pre，v-for， v-if， v-bind， :key， :class
 function getAndRemoveAttr (el, name, removeFromMap) {
 
   var val;
@@ -1284,9 +1295,11 @@ function getAndRemoveAttr (el, name, removeFromMap) {
 
 * processPre() => 处理v-pre => 如果el.attrsMap对象中含有Key是'v-pre'，则从el.attrsList数组中删除该key, 并设置el.pre=true
 ```
+// 形参el为AST元素对象
 function processPre (el) {
 
   if (getAndRemoveAttr(el, 'v-pre') != null) {
+    
     el.pre = true;
   }
 }
@@ -1373,6 +1386,8 @@ function processSlot (el) {
       }
       el.slotScope = slotScope;
     }
+
+    // 处理slot
     var slotTarget = getBindingAttr(el, 'slot');
     if (slotTarget) {
       el.slotTarget = slotTarget === '""' ? '"default"' : slotTarget;
@@ -1386,8 +1401,9 @@ function processSlot (el) {
 }
 
 ```
-* processKey() => 处理key
+* processKey() => 处理:key
 ```
+// 形参el表示AST的节点对象
 function processKey (el) {
   var exp = getBindingAttr(el, 'key');
   if (exp) {
@@ -1398,7 +1414,7 @@ function processKey (el) {
   }
 }
 ```
-* processRef() => 处理ref
+* processRef() => 处理模板中的属性:ref， v-bind:ref
 ```
 function processRef (el) {
 
@@ -1475,7 +1491,7 @@ function processComponent (el) {
   }
 }
 ```
-* processAttrs() => 处理模板中的其他属性，如v-bind，v-on
+* processAttrs() => 处理模板字符串中的属性
 
 ```
 var onRE = /^@|^v-on:/;     // 匹配 @ 或者 v-on 开头
@@ -1484,6 +1500,7 @@ var argRE = /:(.*)$/;       // 匹配冒号: 开头
 var bindRE = /^:|^v-bind:/;    // 匹配 : 或者 v-bind 开头
 var modifierRE = /\.[^.]+/g;   // 匹配事件中的修饰符，比如@keyup.enter
 
+// 形参el为AST的节点对象
 function processAttrs (el) {
 
   var list = el.attrsList;
@@ -1620,6 +1637,7 @@ function parseModifiers (name) {
 * processIf() => 处理v-if, v-else, v-else-if => 如果el.attrsMap对象中含有Key是'v-if'或者'v-else'或者'v-else-if'，则从el.attrsList数组中删除该key
 
 ```
+// 形参el为AST节点对象
 function processIf (el) {
 
   //  exp是key为v-if所对应的表达式
@@ -2075,6 +2093,7 @@ var conditionalComment = /^<!\[/;
 
 var isPlainTextElement = makeMap('script,style,textarea', true);
 
+// 解析模板字符串，生成AST
 function parseHTML (html, options) {
     var stack = [];  
     var expectHTML = options.expectHTML;
@@ -2088,7 +2107,10 @@ function parseHTML (html, options) {
       
       // lastTag不可以是script, style, textarea
       if (!lastTag || !isPlainTextElement(lastTag)) {
+
+        // 左括号索引位置
         var textEnd = html.indexOf('<');
+
         if (textEnd === 0) {
           // Comment:
           if (comment.test(html)) {
@@ -2208,6 +2230,7 @@ function parseHTML (html, options) {
       html = html.substring(n);
     }
 
+    // 解析模板字符串的开始标签
     function parseStartTag () {
 
       var start = html.match(startTagOpen);
@@ -2217,7 +2240,10 @@ function parseHTML (html, options) {
           attrs: [],
           start: index
         };
+
+        // 模板字符串html去除开始标签
         advance(start[0].length);
+
         var end, attr;
         while (!(end = html.match(startTagClose)) && (attr = html.match(attribute))) {
           advance(attr[0].length);

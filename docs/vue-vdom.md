@@ -46,7 +46,7 @@ var VNode = function VNode (tag, data, children, text, elm, context, componentOp
 function mountComponent (vm, el, hydrating) {
 
   vm.$el = el;
-
+  
   if (!vm.$options.render) {   // 外面没有传入render函数，如果也没有办法由template生成render function，会报出警告
 
     // render函数将会生成一个空的VNode

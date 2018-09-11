@@ -1344,14 +1344,14 @@ function createComputedGetter (key) {
 
 ```
 
-* initWatch()
+* initWatch() => 初始化外边传入的watch
 
 ```
 function initWatch (vm, watch) {
   
   // 遍历外边传入的watch要监听的变量
   for (var key in watch) {
-    var handler = watch[key];
+    var handler = watch[key];  // 函数
 
     if (Array.isArray(handler)) {
       for (var i = 0; i < handler.length; i++) {
@@ -1367,7 +1367,8 @@ function initWatch (vm, watch) {
 * createWatcher()
 
 ```
-
+// expOrFn: 要watch的变量
+// handler: watch变量的相应的函数
 function createWatcher (vm, expOrFn, handler, options) {
 
   if (isPlainObject(handler)) {
@@ -1380,6 +1381,8 @@ function createWatcher (vm, expOrFn, handler, options) {
     handler = vm[handler];
   }
 
+  // 创建user watcher => watcher对象的this.user = true
+  // 并在vm上添加属性_watch，来存放外边传入的user watcher
   return vm.$watch(expOrFn, handler, options)  
 }
 ```

@@ -149,7 +149,8 @@ function createComponent (Ctor, data, context, children, tag) {
 }
 ```
 
-* createFunction()
+* createFunction() => 根据render code字符串，生成render函数
+
 ```
 function createFunction (code, errors) {
 
@@ -657,7 +658,7 @@ function addHandler (
 }
 
 ```
-* getBindingAttr()
+* getBindingAttr() => 处理绑定的属性，如:key, v-bind:key， :ref, v-bind:ref
 ```
 
 function getBindingAttr (
@@ -680,32 +681,7 @@ function getBindingAttr (
 }
 
 ```
-* getAndRemoveAttr()
-```
 
-function getAndRemoveAttr (
-  el,
-  name,
-  removeFromMap
-) {
-
-  var val;
-  if ((val = el.attrsMap[name]) != null) {
-    var list = el.attrsList;
-    for (var i = 0, l = list.length; i < l; i++) {
-      if (list[i].name === name) {
-        list.splice(i, 1);
-        break
-      }
-    }
-  }
-  if (removeFromMap) {
-    delete el.attrsMap[name];
-  }
-  return val
-}
-
-```
 * genComponentModel()
 ```
 function genComponentModel (

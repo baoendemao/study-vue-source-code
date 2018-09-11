@@ -803,8 +803,10 @@ function genNode (node, state) {
 }
 ```
 
-* getOuterHTML()
+* getOuterHTML() => 根据dom对象获取html字符串
+
 ```
+// 形参el: dom对象
 // new Vue()没有传入render字段，也没有传入template字段，只能根据el字段来生成模板字符串
 // 函数作用： 根据el返回它自己的Html字符串，如果没有则内部创建
 function getOuterHTML (el) {
@@ -824,7 +826,7 @@ function getOuterHTML (el) {
 var supportsPassive = false;
 if (inBrowser) {
   try {
-    
+
     var opts = {};
     Object.defineProperty(opts, 'passive', ({
       get: function get () {
