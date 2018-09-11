@@ -13,12 +13,6 @@ function Vue (options) {
   this._init(options);
 }
 
-initMixin(Vue);
-stateMixin(Vue);
-eventsMixin(Vue);
-lifecycleMixin(Vue);
-renderMixin(Vue);
-
 Vue.prototype._init = function (options) {
     var vm = this;
 
@@ -45,8 +39,10 @@ Vue.prototype._init = function (options) {
     } else {
       // 首次会进入else分支
       vm.$options = mergeOptions(
-        resolveConstructorOptions(vm.constructor),
-        options || {},
+        resolveConstructorOptions(vm.constructor),  // {components: {}, directives: {}, filters: {}, _base: Vue}
+
+        options || {},    // new Vue()外边传入的参数对象
+        
         vm
       );
       
@@ -323,7 +319,8 @@ function defineReactive (obj, key, val, customSetter, shallow) {
   // 用于依赖收集
   var dep = new Dep();
 
-  // 获取obj[key]的每个属性描述符
+  // 如果之前obj中已经定义了属性key，则可以获取obj[key]的属性描述符
+  // 如果没有定义过属性key，这里获取的属性描述符是undefined
   var property = Object.getOwnPropertyDescriptor(obj, key);  
 
   // 如果该属性不可配置，直接return 
@@ -464,6 +461,8 @@ methodsToPatch.forEach(function (method) {
   var original = arrayProto[method];  
 
   // 在arrayMethods上重写这7个方法，不会污染原生数组，同时拦截
+  // 且arrayMethods.__proto__ === arrayProto，即原生数组的原型
+  // 即此时：arrayMethods里有8个属性：push, pop, shift, unshift, splice, sort, reverse, __proto__
   def(arrayMethods, method, function mutator () {
 
     var args = [], len = arguments.length;
@@ -494,7 +493,7 @@ methodsToPatch.forEach(function (method) {
 });
 
 // getOwnPropertyNames() : 获取对象的属性名字数组
-// arrayKeys是：["push", "pop", "shift", "unshift", "splice", "sort", "reverse"]
+// arrayKeys是含有7个元素的数组：["push", "pop", "shift", "unshift", "splice", "sort", "reverse"]
 var arrayKeys = Object.getOwnPropertyNames(arrayMethods);
 
 ```
@@ -1000,10 +999,10 @@ Vue.delete = del;
 
 ```
 
-* shouldObserve => 全局变量，表示数据是否可以被观察
+* shouldObserve => 全局变量，控制数据是否可以被观察
 
 ```
-var shouldObserve = true;
+var shouldObserve = true;  
 
 function toggleObserving (value) {
   shouldObserve = value;

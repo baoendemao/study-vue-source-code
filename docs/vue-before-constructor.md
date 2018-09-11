@@ -83,7 +83,7 @@ if (typeof setImmediate !== 'undefined' && isNative(setImmediate)) {
 
 }
 
-// 微任务micro task : Promise => 宏任务
+// 微任务micro task : Promise => macroTimerFunc
 if (typeof Promise !== 'undefined' && isNative(Promise)) {
 
   var p = Promise.resolve();
@@ -253,6 +253,18 @@ Vue.prototype.$mount = function (el, hydrating) {
 };
 ```
 
+* Vue构造函数的相关初始化
+
+```
+
+initMixin(Vue);
+stateMixin(Vue);
+eventsMixin(Vue);
+lifecycleMixin(Vue);
+renderMixin(Vue);
+
+```
+
 * initMixin() => 初始化Vue原型上的_init()
 
 ```
@@ -301,21 +313,21 @@ function initMixin (Vue) {
     // expose real self
     vm._self = vm;
 
-    initLifecycle(vm);    
+    initLifecycle(vm);     // 初始化生命周期
 
-    initEvents(vm);       
+    initEvents(vm);        // 初始化事件
 
-    initRender(vm);       
+    initRender(vm);        // 初始化渲染render
 
-    callHook(vm, 'beforeCreate');   
+    callHook(vm, 'beforeCreate');    // 在生命周期beforeCreated
 
-    initInjections(vm);
+    initInjections(vm); 
 
-    initState(vm);   
+    initState(vm);     // 初始化prop/data/computed/methods/watch被观察
 
-    initProvide(vm);
+    initProvide(vm);   
 
-    callHook(vm, 'created');  
+    callHook(vm, 'created');   // 在生命周期created
 
     /* istanbul ignore if */
     if (process.env.NODE_ENV !=='production' && config.performance && mark) {
@@ -854,8 +866,10 @@ function renderMixin (Vue) {
 
 ```
 
+* installRenderHelpers() => 在target上添加15个短属性
+
 ```
-// target是Vue.prototype
+// 调用：installRenderHelpers(Vue.prototype); => target是Vue.prototype
 function installRenderHelpers (target) {
 
   target._o = markOnce;
@@ -1301,12 +1315,15 @@ var platformDirectives = {
   show: show
 };
 
+// Vue.options.directives此对象的属性有： model, show
 extend(Vue.options.directives, platformDirectives);
 
 var platformComponents = {
   Transition: Transition,
   TransitionGroup: TransitionGroup
 }
+
+// Vue.options.components此对象的属性有： KeepAlive, Transition, TransitionGroup
 extend(Vue.options.components, platformComponents);
 
 ```
@@ -1542,7 +1559,7 @@ defaultStrat => 默认合并策略 => 如果有属性没有定义的合并策略
 
 ```
 
-// 默认合并策略： 第二个参数子类的Options存在，则使用第二个，否则使用第一个参数分类的options
+// 默认合并策略： 如果子没有，则默认使用父的
 var defaultStrat = function (parentVal, childVal) {   
   return childVal === undefined
     ? parentVal
@@ -1605,7 +1622,8 @@ strats.data = function (
 };
 ```
 
-* mergeHook() => 生命周期钩子的父子合并策略
+* mergeHook() => 生命周期钩子的父子合并策略 => <br/>
+strats.beforeCreate, strats.created, strats.beforeMount, strats.mounted, strats.beforeUpdate, strats.updated, strats.beforeDestroy, strats.destroyed, strats.activated, strats.deactivated, strats.errorCaptured
 
 ```
 function mergeHook (
@@ -1623,7 +1641,7 @@ function mergeHook (
 ```
 
 ```
-// 生命周期钩子
+// 生命周期钩子, 11种钩子
 var LIFECYCLE_HOOKS = [
   'beforeCreate',
   'created',
@@ -1646,7 +1664,8 @@ LIFECYCLE_HOOKS.forEach(function (hook) {
 
 ```
 
-* mergeAssets() => merge选项：component, directive, filter => 这些属性的父子合并策略
+* mergeAssets() => merge选项：component, directive, filter => 这些属性的父子合并策略<br/>
+strats.components, strats.directive, strats.filters
 
 ```
 function mergeAssets (
@@ -1942,7 +1961,7 @@ var KeepAlive = {
 }
 
 
-// builtInComponents： vue的内置组件对象
+// builtInComponents： vue的内置组件对象， 如KeepAlive
 var builtInComponents = {
   KeepAlive: KeepAlive
 }
@@ -1979,14 +1998,71 @@ var isFalsyAttrValue = function (val) {
 };
 
 ```
-* platformModules
+
+* ref对象
 ```
+var ref = {
+  create: function create (_, vnode) {
+    registerRef(vnode);
+  },
+  update: function update (oldVnode, vnode) {
+
+    if (oldVnode.data.ref !== vnode.data.ref) {
+      registerRef(oldVnode, true);
+      registerRef(vnode);
+    }
+  },
+  destroy: function destroy (vnode) {
+    registerRef(vnode, true);
+  }
+}
+
+
+function registerRef (vnode, isRemoval) {
+
+  var key = vnode.data.ref;
+  if (!isDef(key)) { return }
+
+  var vm = vnode.context;
+  var ref = vnode.componentInstance || vnode.elm;
+
+  var refs = vm.$refs;
+  if (isRemoval) {
+    if (Array.isArray(refs[key])) {
+      remove(refs[key], ref);
+    } else if (refs[key] === ref) {
+      refs[key] = undefined;
+    }
+  } else {
+    if (vnode.data.refInFor) {
+      if (!Array.isArray(refs[key])) {
+        refs[key] = [ref];
+      } else if (refs[key].indexOf(ref) < 0) {
+        // $flow-disable-line
+        refs[key].push(ref);
+      }
+    } else {
+      refs[key] = ref;
+    }
+  }
+}
+
+```
+* platformModules => 
+
+```
+
+var baseModules = [
+  ref,           // {create: , destroy:,  update:,}
+  directives     // {create: , destroy:,  update:,}
+]
+
 var platformModules = [
-  attrs,
-  klass,
-  events,
-  domProps,
-  style,
+  attrs,        // {create: updateAttrs(),  update: updateAttrs()}
+  klass,        // {create: updateClass(),  update: updateClass()}
+  events,       // {create: updateDOMListeners(),  update: updateDOMListeners()}
+  domProps,     // {create: updateDOMProps(),  update: updateDOMProps()}
+  style,        // {create: updateStyle(),  update: updateStyle()}
   transition
 ]
 

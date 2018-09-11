@@ -113,16 +113,34 @@ var identity = function (_) { return _; };
 * 浏览器环境
 
 ```
+// 判断是否是浏览器环境，是则为true
+var inBrowser = typeof window !== 'undefined';     
 
-var inBrowser = typeof window !== 'undefined';     // 判断如果window存在，则inBrowser为true
-var inWeex = typeof WXEnvironment !== 'undefined' && !!WXEnvironment.platform;
+// 判断是否是weex环境, 不是则为false
+var inWeex = typeof WXEnvironment !== 'undefined' && !!WXEnvironment.platform; 
+
+// 判断是否是weex平台, 不是则为false
 var weexPlatform = inWeex && WXEnvironment.platform.toLowerCase();
+
+// 浏览器的UA
 var UA = inBrowser && window.navigator.userAgent.toLowerCase();
+
+// 是否是ie浏览器
 var isIE = UA && /msie|trident/.test(UA);
+
+// 是否是ie9
 var isIE9 = UA && UA.indexOf('msie 9.0') > 0;
+
+// 是否是edge
 var isEdge = UA && UA.indexOf('edge/') > 0;
+
+// 是否是android
 var isAndroid = (UA && UA.indexOf('android') > 0) || (weexPlatform === 'android');
+
+// 是否是ios
 var isIOS = (UA && /iphone|ipad|ipod|ios/.test(UA)) || (weexPlatform === 'ios');
+
+// 是否是chrome
 var isChrome = UA && /chrome\/\d+/.test(UA) && !isEdge;
 
 
@@ -806,6 +824,7 @@ function getOuterHTML (el) {
 var supportsPassive = false;
 if (inBrowser) {
   try {
+    
     var opts = {};
     Object.defineProperty(opts, 'passive', ({
       get: function get () {

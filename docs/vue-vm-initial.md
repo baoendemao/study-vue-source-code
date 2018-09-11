@@ -118,9 +118,9 @@ function initInternalComponent (vm, options) {
 
 ```
 // 调用： resolveConstructorOptions(vm.constructor), 其中vm.constructor是指的是vue的构造函数
-function resolveConstructorOptions (Ctor) {
+function resolveConstructorOptions (Ctor) {   // Ctor即Vue
 
-  var options = Ctor.options;   // 即vm.constructor.options，即Vue.options，Vue.options的属性包含了components, directives, filters
+  var options = Ctor.options;   // Vue.options的属性包含了components, directives, filters
 
   // 因为子类才会有super属性，所以Vue的子类才会走到if分支
   if (Ctor.super) {    
@@ -149,6 +149,7 @@ function resolveConstructorOptions (Ctor) {
 
     }
   }
+
   return options
 }
 
@@ -200,6 +201,7 @@ function dedupe (latest, extended, sealed) {
 第三个参数vm: 如果不为空，则是在实例化_init()的时候调用的。如果为空，则是在继承时Vue.extend()调用的。
 
 ```
+//
 function mergeOptions (parent, child, vm) {
 
   {
@@ -220,13 +222,14 @@ function mergeOptions (parent, child, vm) {
     parent = mergeOptions(parent, extendsFrom, vm);
   } 
 
+  // 外边传入的new Vue()的参数是否包含mixins属性
   if (child.mixins) {
     for (var i = 0, l = child.mixins.length; i < l; i++) {
       parent = mergeOptions(parent, child.mixins[i], vm);
     }
   }
 
-  var options = {};  // 最后返回的结果
+  var options = {};  // 将父子的属性按照一定的策略整理到一起，最后返回
   var key;
 
   // 如果parent在这里是Vue.options，那么key就是components，directives，filters，_base
@@ -240,6 +243,7 @@ function mergeOptions (parent, child, vm) {
     }
   }
 
+  // 根据相应的合并策略来合并父子
   function mergeField (key) {
     var strat = strats[key] || defaultStrat;  
     options[key] = strat(parent[key], child[key], vm, key);
@@ -289,11 +293,12 @@ function checkComponents (options) {
 // 第一种：数组的形式 props: ["title"]
 // 第二种：对象的形式 props: { title: {type: String, default: "" } }
 // 此函数将统一规范化为第二种对象的形式
+// 第一个参数options是外边new Vue()传入的
 function normalizeProps (options, vm) {
 
   var props = options.props;   // 外面传入的props
 
-  // 如果没有传入props，直接返回不处理 
+  // 如果外边没有传入props，直接返回不处理 
   if (!props) { return }
 
   // 保存最后的返回结果
@@ -338,13 +343,17 @@ function normalizeProps (options, vm) {
   options.props = res;
 }
 ```
+* normalizeInject() => 处理options.inject
 
 ```
 // 处理options.inject
 function normalizeInject (options, vm) {
 
   var inject = options.inject;
+
+  // 如果外边没有传入inject，直接返回不处理 
   if (!inject) { return }
+
   var normalized = options.inject = {};
 
   if (Array.isArray(inject)) {
@@ -367,12 +376,15 @@ function normalizeInject (options, vm) {
   }
 }
 ```
+* normalizeDirectives() => 处理options.directives
 
 ```
 // 处理options.directives成对象的形式，尤其针对函数
 function normalizeDirectives (options) {
 
   var dirs = options.directives;
+
+  // 如果外边没有传入directives，则不处理 
   if (dirs) {
     for (var key in dirs) {
       var def = dirs[key];
@@ -384,6 +396,7 @@ function normalizeDirectives (options) {
 }
 ```
 
+* assertObjectType() 
 ```
 // 期望value是纯对象，如果不是对象则报出warnning
 function assertObjectType (name, value, vm) {
@@ -682,7 +695,7 @@ function initRender (vm) {
     // 不深度递归观察，因为第五个属性是true
     defineReactive(vm, '$attrs', parentData && parentData.attrs || emptyObject, function () {
       !isUpdatingChildComponent && warn("$attrs is readonly.", vm);
-    }, true);
+    }, true);    // shadow为true，表示vm['$attrs']不必深层mvvm, 只将它变成可被观察的即可
 
     // 不深度递归观察, 因为第五个属性是true
     defineReactive(vm, '$listeners', options._parentListeners || emptyObject, function () {
@@ -733,17 +746,19 @@ function resolveSlots (children, context) {
 }
 ```
 
-* callHook(vm, 'beforeCreate'); 
+* callHook(); 
 
 ```
-
+// 调用如：callHook(vm, 'beforeCreate'); 
 function callHook (vm, hook) {
   // #7573 disable dep collection when invoking lifecycle hooks
   pushTarget();
+
+  // 获取用户自己传入的钩子函数，用户自己的需要try catch
   var handlers = vm.$options[hook];
   if (handlers) {
     for (var i = 0, j = handlers.length; i < j; i++) {
-      try {
+      try {  
         handlers[i].call(vm);
       } catch (e) {
         handleError(e, vm, (hook + " hook"));
@@ -1087,8 +1102,9 @@ function getPropDefaultValue (vm, prop, key) {
 
 ```
 
+* initMethods() => 将外边传入的methods直接代理到vm的属性上
+
 ```
-// 将vm.options.methods直接代理到vm的属性上
 function initMethods (vm, methods) {
 
   var props = vm.$options.props;
@@ -1101,12 +1117,16 @@ function initMethods (vm, methods) {
           vm
         );
       }
+
+      // 外边传入的methods和props不允许有相同的属性
       if (props && hasOwn(props, key)) {
         warn(
           ("Method \"" + key + "\" has already been defined as a prop."),
           vm
         );
       }
+
+      // 外边传入的methods里的属性不允许是保留字
       if ((key in vm) && isReserved(key)) {
         warn(
           "Method \"" + key + "\" conflicts with an existing Vue instance method. " +
@@ -1114,7 +1134,9 @@ function initMethods (vm, methods) {
         );
       }
     }
+
     vm[key] = methods[key] == null ? noop : bind(methods[key], vm);
+
   }
 }
 ```
@@ -1181,7 +1203,7 @@ function initData (vm) {
     }
   }
 
-  // 将data变为可被观察的，即响应式的
+  // 将外边传入的data对象变为可被观察的，即响应式的
   observe(data, true /* asRootData */);  
 }
 ```
