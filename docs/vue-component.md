@@ -40,7 +40,7 @@ function checkComponents (options) {
 }
 ```
 
-* createComponent() =>  根据组件创建组件VNode => 组件的构造器继承自Vue
+* createComponent() =>  创建一个组件VNode, 并返回 => 组件的构造器继承自Vue
 
 ```
 function createComponent (Ctor, data, context, children, tag) {
@@ -496,7 +496,7 @@ function createComponentInstanceForVnode (
   refElm
 ) {
   var options = {
-    _isComponent: true,   // 创建组件的时候添加的内部属性
+    _isComponent: true,   // 创建组件的时候添加的内部属性, 表示是一个组件
     parent: parent,
     _parentVnode: vnode,
     _parentElm: parentElm || null,
@@ -513,7 +513,7 @@ function createComponentInstanceForVnode (
 } 
 ```
 
-* installComponentHooks()
+* installComponentHooks() => 组件钩子
 ```
 function installComponentHooks (data) {
 

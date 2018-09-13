@@ -650,11 +650,15 @@ var nodeOps = Object.freeze({
 * lifecycleMixin() => 初始化原型上的生命周期相关的函数_update(), $forceUpdate(), $destroy()
 
 ```
+Vue.prototype.__patch__ = inBrowser ? patch : noop;
+
 // Vue作为形参
 function lifecycleMixin (Vue) {
 
   // _update: 将render函数生成的VNode渲染成真实的dom
   // _update的调用时刻：(1)首次渲染  （2）数据改变 => mvvm => 重新渲染
+  // 参数二hydrating: 只有在服务器端的时候为true。 注意：在服务器端，不需要讲VNode渲染成真实的dom。所以在服务器端，__patch__函数是个空函数，什么也不做。
+  
   Vue.prototype._update = function (vnode, hydrating) {
     var vm = this;
 
@@ -789,7 +793,7 @@ function renderMixin (Vue) {
     return nextTick(fn, this)
   };
 
-  // 将vm渲染VNode, 该函数返回VNode
+  // 将vm渲染成VNode, 并返回该VNode
   Vue.prototype._render = function () {
     var vm = this;
     var ref = vm.$options;

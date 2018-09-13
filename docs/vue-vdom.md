@@ -101,11 +101,12 @@ function mountComponent (vm, el, hydrating) {
     
 
     updateComponent = function () {
-      // 参数一：vm._render()返回一个VNode， vm._render()会读取属性，从而触发属性的get拦截器，进行依赖收集
-      // 参数二：当在浏览器端运行时，服务器端渲染表示hydrating为false
-      // vm._update将VNode渲染成真实的dom, 并将变化patch到真实的dom上
 
+      // 参数一：vm._render()生成一个VNode， vm._render()会读取属性，从而触发属性的get拦截器，进行依赖收集
+      // 参数二：当在浏览器端运行时，服务器端渲染表示hydrating为false
+      // vm._update将生成的VNode渲染成真实的dom
       vm._update(vm._render(), hydrating);
+
     };
   }
  
@@ -118,7 +119,7 @@ function mountComponent (vm, el, hydrating) {
  
   if (vm.$vnode == null) {    // vm.$vnode表示的是父的vnode, null表明是根节点
 
-    vm._isMounted = true;     // 声明周期走到mounted的标志，表明已被挂载
+    vm._isMounted = true;     // 声明周期走到mounted的标志，表明已完成挂载el
     callHook(vm, 'mounted');  // 生成dom树之后
 
   }
@@ -512,6 +513,7 @@ function _createElement (context, tag, data, children, normalizationType) {
 
     } else if (isDef(Ctor = resolveAsset(context.$options, 'components', tag))) {
       // component
+      // 创建组件VNode
       vnode = createComponent(Ctor, data, context, children, tag);
     } else {
 
@@ -525,6 +527,7 @@ function _createElement (context, tag, data, children, normalizationType) {
     }
   } else {
     // direct component options / constructor
+    // 创建组件VNode
     vnode = createComponent(tag, data, context, children);
   }
   if (Array.isArray(vnode)) {

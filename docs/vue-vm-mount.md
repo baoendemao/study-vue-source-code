@@ -245,7 +245,7 @@ function _createElement (context, tag, data, children, normalizationType) {
   }
 
   var vnode, ns;
-  if (typeof tag === 'string') {   // 如div
+  if (typeof tag === 'string') {   // 如div，创建一个普通的VNode
 
     var Ctor;
     ns = (context.$vnode && context.$vnode.ns) || config.getTagNamespace(tag);
@@ -258,9 +258,11 @@ function _createElement (context, tag, data, children, normalizationType) {
         undefined, undefined, context
       );
 
-    } else if (isDef(Ctor = resolveAsset(context.$options, 'components', tag))) {   // 组件，需要创建组件vnode
+    } else if (isDef(Ctor = resolveAsset(context.$options, 'components', tag))) {   // 组件字符串标志，需要创建组件vnode
 
+      // 创建组件VNode
       vnode = createComponent(Ctor, data, context, children, tag);
+
     } else {
 
       // unknown or unlisted namespaced elements
@@ -274,11 +276,14 @@ function _createElement (context, tag, data, children, normalizationType) {
   } else {
 
     // direct component options / constructor
+    // 创建组件VNode
     vnode = createComponent(tag, data, context, children);
   }
+
   if (Array.isArray(vnode)) {
 
     return vnode
+    
   } else if (isDef(vnode)) {
 
     if (isDef(ns)) { applyNS(vnode, ns); }
@@ -742,7 +747,7 @@ function createCompileToFunctionFn (compile) {
 
     // 根据render code字符串，生成render函数，赋值给res.render
     res.render = createFunction(compiled.render, fnGenErrors);  
-    
+
     res.staticRenderFns = compiled.staticRenderFns.map(function (code) {
       return createFunction(code, fnGenErrors)
     });

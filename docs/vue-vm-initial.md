@@ -33,7 +33,7 @@ Vue.prototype._init = function (options) {
     vm._isVue = true;    
 
     // merge options
-    if (options && options._isComponent) {
+    if (options && options._isComponent) {    // 表明是一个组件
       // optimize internal component instantiation
       // since dynamic options merging is pretty slow, and none of the
       // internal component options needs special treatment.
