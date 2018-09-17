@@ -547,7 +547,7 @@ function eventsMixin (Vue) {
 
 ```
 
-* nodeOps => 由VNode创建真实的dom => nodeOps对象中封装的都是真实的dom操作
+* nodeOps => 由VNode创建真实的dom => nodeOps对象中封装的都是真实的dom操作 => 不同的平台，nodeOps分装了不同的操作，进而vue实现了跨平台, 这里只来看浏览器web的部分，不考虑weex
 
 ```
 

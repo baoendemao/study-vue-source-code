@@ -1058,6 +1058,8 @@ var buildRegex = cached(function (delimiters) {
 });
 
 
+// 解析模板字符串中的文本
+// 如：<div>hello world {{name}}</div> => 将返回 "hello world" + _s(name) 
 function parseText (text, delimiters) {
 
   var tagRE = delimiters ? buildRegex(delimiters) : defaultTagRE;
@@ -1077,11 +1079,13 @@ function parseText (text, delimiters) {
       rawTokens.push(tokenValue = text.slice(lastIndex, index));
       tokens.push(JSON.stringify(tokenValue));
     }
+
     // tag token
     var exp = parseFilters(match[1].trim());
-    tokens.push(("_s(" + exp + ")"));
+    tokens.push(("_s(" + exp + ")"));    // 模板中双括号{{}}，将会转换为_s()
     rawTokens.push({ '@binding': exp });
     lastIndex = index + match[0].length;
+
   }
   if (lastIndex < text.length) {
     rawTokens.push(tokenValue = text.slice(lastIndex));
@@ -1239,6 +1243,7 @@ function createASTElement (tag, attrs, parent) {
 ```
 
 * makeAttrsMap() => 处理节点的属性， 属性数组attrs转换成属性对象并返回
+
 ```
 // 形参attrs为数组
 // 例如：一个节点为<div id="app">, 则传入attrs是一个一维数组：[{name: "id", value: "app"}], 则最后return的map是 {"id": "app"}
@@ -1750,7 +1755,7 @@ function optimize (root, options) {
 }
 ```
 
-* markStaticRoots() => 标记所有的静态节点
+* markStaticRoots() => 标记静态根节点
 
 ```
 function markStaticRoots (node, isInFor) {
@@ -1787,17 +1792,17 @@ function markStaticRoots (node, isInFor) {
 
 ```
 
-* generate() => 由AST抽象语法树生成render code
+* generate() => 由AST抽象语法树生成render code字符串
 
 ```
 function generate (ast, options) {
 
   var state = new CodegenState(options);
 
-  var code = ast ? genElement(ast, state) : '_c("div")';
+  var code = ast ? genElement(ast, state) : '_c("div")';   // 如果根为空，则返回一个div标签
 
   return {
-    render: ("with(this){ return " + code + "}"),      // render code
+    render: ("with(this){ return " + code + "}"),      // render code字符串
     staticRenderFns: state.staticRenderFns
   }
 }
@@ -1898,7 +1903,19 @@ function genOnce (el, state) {
 }
 ```
 
-* genIf() => v-if => 生成render code
+* genText() => 文本节点 => 生成render code字符串
+
+```
+
+function genText (text) {
+
+  return ("_v(" + (text.type === 2
+    ? text.expression // no need for () because already wrapped in _s()
+    : transformSpecialNewlines(JSON.stringify(text.text))) + ")")
+}
+```
+
+* genIf() => v-if => 生成render code字符串
 
 ```
 function genIf (el, state, altGen, altEmpty) {
@@ -2098,7 +2115,7 @@ var conditionalComment = /^<!\[/;
 
 var isPlainTextElement = makeMap('script,style,textarea', true);
 
-// 解析模板字符串，生成AST
+// 解析template模板字符串，生成AST
 function parseHTML (html, options) {
     var stack = [];  
     var expectHTML = options.expectHTML;
@@ -2107,6 +2124,7 @@ function parseHTML (html, options) {
     var index = 0;
     var last, lastTag;
 
+    // 解析template字符串
     while (html) {
       last = html;
       
@@ -2229,11 +2247,13 @@ function parseHTML (html, options) {
     // Clean up any remaining tags
     parseEndTag();
 
-    function advance (n) {
 
+    // 解析template的时候，解析完了一部分，就将已经解析完了的字符串去掉
+    function advance (n) {
       index += n;
       html = html.substring(n);
     }
+
 
     // 解析模板字符串的开始标签
     function parseStartTag () {
@@ -2314,6 +2334,7 @@ function parseHTML (html, options) {
       }
     }
 
+    // 匹配结束标签
     function parseEndTag (tagName, start, end) {
 
       var pos, lowerCasedTagName;
@@ -2325,6 +2346,7 @@ function parseHTML (html, options) {
       }
 
       // Find the closest opened tag of the same type
+      // 在栈中找到最近的相同的标签
       if (tagName) {
         for (pos = stack.length - 1; pos >= 0; pos--) {
           if (stack[pos].lowerCasedTag === lowerCasedTagName) {
@@ -2409,20 +2431,21 @@ function markStatic$1 (node) {
 
 ```
 
-* isStatic() => 如何标记静态节点
+* isStatic() => 判断是否是静态节点
+
 ```
 function isStatic (node) {
 
-  if (node.type === 2) { // expression，表达式不是静态节点，返回false
+  if (node.type === 2) { // expression，表达式节点不是静态节点，返回false
     return false
   }
   if (node.type === 3) { // text， 文本节点是静态节点，返回true
     return true
   }
   return !!(node.pre || (
-    !node.hasBindings &&                   // 没有动态绑定
-    !node.if && !node.for &&               // 没有v-if, v-for, v-else
-    !isBuiltInTag(node.tag) &&             // 不是内建tag， 如slot，component
+    !node.hasBindings &&                   // 没有动态绑定，才是静态节点
+    !node.if && !node.for &&               // 没有v-if, v-for, v-else，才是静态节点
+    !isBuiltInTag(node.tag) &&             // 不是内建tag， 如slot，component，才是静态节点
     isPlatformReservedTag(node.tag) &&      // 
     !isDirectChildOfTemplateFor(node) &&    // 
     Object.keys(node).every(isStaticKey)

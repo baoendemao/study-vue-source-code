@@ -1515,7 +1515,7 @@ function createPatchFunction (backend) {
   // 数据更新调用的时候，第一个参数是vnode
   return function patch (oldVnode, vnode, hydrating, removeOnly, parentElm, refElm) {
 
-    // 如果vnode不存在，则删除
+    // 如果新的vnode不存在，则删除
     if (isUndef(vnode)) {
       if (isDef(oldVnode)) { invokeDestroyHook(oldVnode); }
       return
@@ -1524,7 +1524,7 @@ function createPatchFunction (backend) {
     var isInitialPatch = false;
     var insertedVnodeQueue = [];
 
-    // 如果不存在oldVnode， 则创建新的根元素
+    // 如果不存在oldVnode， 则创建新的节点元素， 添加到parentElm
     // 如果存在oldVnode, 则判断oldVnode和vnode是否是相同的节点： 如果是相同的节点则patchVnode
     if (isUndef(oldVnode)) {
         // empty mount (likely as component), create new root element
@@ -1534,12 +1534,12 @@ function createPatchFunction (backend) {
         // 首次渲染的时候，isRealElement是true
         var isRealElement = isDef(oldVnode.nodeType);
 
-        if (!isRealElement && sameVnode(oldVnode, vnode)) {   // 新旧节点相同的情况
+        if (!isRealElement && sameVnode(oldVnode, vnode)) {   // 新旧节点相同的情况 => 则patch对比新旧节点
 
             // patch existing root node
             patchVnode(oldVnode, vnode, insertedVnodeQueue, removeOnly);
 
-        } else {    // 新旧节点不同的情况
+        } else {    // 新旧节点不同的情况 => 删除老的，添加新的
           if (isRealElement) {
             // mounting to a real element
             // check if this is server-rendered content and if we can perform
