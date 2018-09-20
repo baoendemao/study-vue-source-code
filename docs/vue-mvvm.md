@@ -321,7 +321,7 @@ Observer.prototype.walk = function walk (obj) {
 function defineReactive (obj, key, val, customSetter, shallow) {
 
   // 闭包到下面的get和set中， 每个将要被观察的属性obj[key]都有唯一的dep
-  // 用于依赖收集
+  // 用于依赖收集 => 收集watcher
   var dep = new Dep();
 
   // 如果之前obj中已经定义了属性key，则可以获取obj[key]的属性描述符
@@ -856,7 +856,7 @@ var has = {};   // 全局的，存放watcher的id的map，存在某id则对应�
 // 观察者队列, 等到一个loop之后，统一执行
 function queueWatcher (watcher) {
 
-  // 每个watcher唯一的id
+  // 每个watcher唯一的id，防止数据被更新多次
   var id = watcher.id;
 
   if (has[id] == null) {

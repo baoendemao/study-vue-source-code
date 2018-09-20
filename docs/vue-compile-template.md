@@ -17,7 +17,7 @@ function markOnce (tree, index, key) {
 }
 ```
 
-* markStatic()
+* markStatic() => 将vdom树上的所有节点标记static
 ```
 // 对以tree为根的子树，标记静态子树， isOnce是指的是是否存在v-once
 function markStatic (tree, key, isOnce) {
