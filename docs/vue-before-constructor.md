@@ -658,7 +658,7 @@ function lifecycleMixin (Vue) {
   // _update: 将render函数生成的VNode渲染成真实的dom
   // _update的调用时刻：(1)首次渲染  （2）数据改变 => mvvm => 重新渲染
   // 参数二hydrating: 只有在服务器端的时候为true。 注意：在服务器端，不需要讲VNode渲染成真实的dom。所以在服务器端，__patch__函数是个空函数，什么也不做。
-  
+
   Vue.prototype._update = function (vnode, hydrating) {
     var vm = this;
 
@@ -949,7 +949,7 @@ function initGlobalAPI (Vue) {
   Vue.options._base = Vue;     
 
   // builtInComponents是vue的内置组件，将其拓展到Vue.options.components对象上
-  // builtInComponents如： keep-alive
+  // builtInComponents如： keep-alive, transition, transition-group
   //  Vue.options = {
   //      components: { KeepAlive },
   //      directives: Object.create(null),
