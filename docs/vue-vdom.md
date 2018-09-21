@@ -99,7 +99,7 @@ function mountComponent (vm, el, hydrating) {
     };
   } else {
     
-
+    // 渲染成真实的dom
     updateComponent = function () {
 
       // 参数一：vm._render()生成一个VNode， vm._render()会读取属性，从而触发属性的get拦截器，进行依赖收集

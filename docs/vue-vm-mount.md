@@ -70,9 +70,9 @@ Vue.prototype.$mount = function (el, hydrating) {
           }
         }
 
-      } else if (template.nodeType) {
-
-        // 当template为dom对象的时候，取出来其中的innerHTML作为模板字符串
+      } else if (template.nodeType) {  // 当template为dom对象的时候
+      
+        // 取出来其中的innerHTML作为模板字符串
         template = template.innerHTML;
 
       } else {
@@ -1737,7 +1737,8 @@ function processOnce (el) {
 }
 ```
 
-* optimize ast => 优化：遍历生成的AST树，标记静态节点，只更新需要改变的部分子树
+* optimize ast => 优化：遍历生成的AST树，标记静态节点，只更新需要改变的部分子树 <br/>
+为什么要做标记，因为在模板中有些数据不是响应式的，不需要更新改变，在patch的过程中可以跳过这些数据的diff 
 
 ```
 function optimize (root, options) {
@@ -2436,7 +2437,7 @@ function markStatic$1 (node) {
 ```
 function isStatic (node) {
 
-  if (node.type === 2) { // expression，表达式节点不是静态节点，返回false
+  if (node.type === 2) { // expression，表达式节点不是静态节点，返回false。因为表达式根据数据的变化而变化。
     return false
   }
   if (node.type === 3) { // text， 文本节点是静态节点，返回true

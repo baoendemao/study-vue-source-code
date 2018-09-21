@@ -595,6 +595,7 @@ var Watcher = function Watcher (vm, expOrFn, cb, options, isRenderWatcher) {
 
   // 是否是渲染watcher, 即渲染函数的watcher
   if (isRenderWatcher) {
+    // 渲染watcher，在vm上添加_watcher标志
     vm._watcher = this;
   }
 
