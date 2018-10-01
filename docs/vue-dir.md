@@ -30,7 +30,7 @@ src
 ├── platforms =>   平台相关的代码， vue现在支持web和weex
 ├── server   => 服务端渲染相关，跑在node端
 ├── sfc   =>  将vue文件编译成js。 如webpack不认识vue，打包的时候需要将vue编译成js
-└── shared  => 被全局共享的辅助方法
+└── shared  => 被全局共享的辅助方法, 如util工具方法
 
 6 directories, 0 files
 ```

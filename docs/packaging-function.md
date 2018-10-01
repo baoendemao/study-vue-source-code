@@ -260,7 +260,7 @@ function cached (fn) {
 ```
 // 确保函数只执行一次
 function once (fn) {
-  var called = false;
+  var called = false;   // 闭包
   return function () {
     if (!called) {
       called = true;

@@ -208,7 +208,7 @@ if (!fs.existsSync('dist')) {
   fs.mkdirSync('dist')
 }
 
-// 读取scripts/config.js
+// 读取scripts/config.js配置文件
 let builds = require('./config').getAllBuilds()
 
 // filter builds via command line arg

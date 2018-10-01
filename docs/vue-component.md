@@ -1024,6 +1024,7 @@ function genDefaultModel (
   addProp(el, 'value', ("(" + value + ")"));
   addHandler(el, event, code, null, true);
   if (trim || number) {
+  
     addHandler(el, 'blur', '$forceUpdate()');
   }
 }

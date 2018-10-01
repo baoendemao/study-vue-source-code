@@ -676,13 +676,14 @@ function initRender (vm) {
   // so that we get proper render context inside it.
   // args order: tag, data, children, normalizationType, alwaysNormalize
   // internal version is used by render functions compiled from templates
-  // 由模板编译生成的render函数所调用的生成VNode的函数
+  // 由模板编译生成的render函数所调用的生成VNode的函数，即内置使用的
   vm._c = function (a, b, c, d) { 
     return createElement(vm, a, b, c, d, false); 
   };
 
   // normalization is always applied for the public version, used in
   // user-written render functions.
+  // 用户自己使用的， 和vm._c一样的功能
   // 由外面传入的render函数调用的生成VNode的函数，和上面的vm._c有区别, 且最后一个参数不同
   vm.$createElement = function (a, b, c, d) { return createElement(vm, a, b, c, d, true); };
 
@@ -746,7 +747,7 @@ function resolveSlots (children, context) {
 }
 ```
 
-* callHook(); 
+* callHook() => 执行生命周期钩子函数
 
 ```
 // 调用如：callHook(vm, 'beforeCreate'); 
@@ -1217,7 +1218,7 @@ function getData (data, vm) {
   pushTarget();  // 将全局Dep.target清空
 
   try {
-
+    // data即vm.data函数
     return data.call(vm, vm)
 
   } catch (e) {

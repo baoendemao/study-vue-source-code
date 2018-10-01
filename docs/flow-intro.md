@@ -7,7 +7,7 @@ $ flow
 Could not find a .flowconfig in . or any of its parent directories.
 See "flow init --help" for more info
 
-// 初始化
+// 初始化， 创建.flowconfig文件
 $ flow init
 $ ls -la
 total 8

@@ -47,7 +47,7 @@ function mountComponent (vm, el, hydrating) {
 
   vm.$el = el;
   
-  if (!vm.$options.render) {   // 外面没有传入render函数，如果也没有办法由template生成render function，会报出警告
+  if (!vm.$options.render) {   // 外面没有传入render函数，也没有由template生成render function，会报出警告
 
     // render函数将会生成一个空的VNode
     vm.$options.render = createEmptyVNode;   
@@ -310,7 +310,7 @@ var createEmptyVNode = function (text) {
 
   var node = new VNode();
   node.text = text;
-  node.isComment = true;  
+  node.isComment = true;     // 注释节点
 
   return node
 };
