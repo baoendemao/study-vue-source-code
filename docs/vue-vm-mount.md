@@ -71,7 +71,7 @@ Vue.prototype.$mount = function (el, hydrating) {
         }
 
       } else if (template.nodeType) {  // 当template为dom对象的时候
-      
+
         // 取出来其中的innerHTML作为模板字符串
         template = template.innerHTML;
 
@@ -2347,7 +2347,7 @@ function parseHTML (html, options) {
       }
 
       // Find the closest opened tag of the same type
-      // 在栈中找到最近的相同的标签
+      // 在栈中找到最近的相同的标签, 目的是为了开始和结束标签是否匹配
       if (tagName) {
         for (pos = stack.length - 1; pos >= 0; pos--) {
           if (stack[pos].lowerCasedTag === lowerCasedTagName) {

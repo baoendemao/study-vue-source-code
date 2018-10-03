@@ -1420,7 +1420,7 @@ function createCompileToFunctionFn (compile) {
     var key = options.delimiters       // delimiters改变纯文本插入分隔符的用法
       ? String(options.delimiters) + template
       : template;
-    if (cache[key]) {
+    if (cache[key]) {  
       return cache[key]
     }
 

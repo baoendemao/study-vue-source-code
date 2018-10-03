@@ -364,7 +364,7 @@ function defineReactive (obj, key, val, customSetter, shallow) {
       // 只有Dep.target存在时, 表明需要进行依赖收集
       if (Dep.target) {
         
-        dep.depend();          // Dep.prototype.depend, dep对象是要被观察的属性obj[key]拥有的唯一的dep, 将watcher添加到dep的subs数组中，以便在值被改变的时候触发setter通知subs数组中的所有的watcher
+        dep.depend();          // Dep.prototype.depend, dep对象是要被观察的属性obj[key]拥有的唯一的dep, 将watcher添加到dep的subs数组中，以便在值被改变的时候触发setter通知subs数组中的所有的watcher => 依赖收集
 
         // childOb是obj[key].__ob__, 
         if (childOb) {
@@ -693,7 +693,8 @@ Watcher.prototype.addDep = function addDep (dep) {
   if (!this.newDepIds.has(id)) {
     this.newDepIds.add(id);
     this.newDeps.push(dep);
-    if (!this.depIds.has(id)) {
+
+    if (!this.depIds.has(id)) {  
       dep.addSub(this);    // Dep.prototype.addSub
     }
   }
@@ -926,7 +927,7 @@ function set (target, key, val) {
   // 获得target对象上的Observer
   var ob = (target).__ob__;
   
-  // 该响应式对象不能是Vue实例，或者Vue实例的根数据对象
+  // 该响应式对象不能是Vue实例，或者Vue实例的根数据对象 (根对象的vmCount > 0)
   if (target._isVue || (ob && ob.vmCount)) {
    
     process.env.NODE_ENV !=='production' && warn(
@@ -945,6 +946,7 @@ function set (target, key, val) {
   // 如果target上的Observer存在，则trigger change notification
   defineReactive(ob.value, key, val);
 
+  // // notify change， 主动触发， watcher重新渲染
   ob.dep.notify();
 
   return val
@@ -997,7 +999,7 @@ function del (target, key) {
     return
   }
 
-  // 如果target上的Observer存在，则触发响应式依赖
+  // 如果target上的Observer存在，则主动触发响应式依赖
   ob.dep.notify();
 }
 

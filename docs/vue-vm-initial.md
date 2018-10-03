@@ -1261,6 +1261,7 @@ function initComputed (vm, computed) {
     }
 
     if (!isSSR) {
+      // 外边传入的computed的每个key都新建一个watcher
       // create internal watcher for the computed property.
       watchers[key] = new Watcher(
         vm,
@@ -1273,6 +1274,7 @@ function initComputed (vm, computed) {
     // component-defined computed properties are already defined on the
     // component prototype. We only need to define computed properties defined
     // at instantiation here.
+    // 检测计算属性的key是否已经定义，如果已经定义了，则报出警告
     if (!(key in vm)) {
       defineComputed(vm, key, userDef);
     } else {
@@ -1292,6 +1294,8 @@ function initComputed (vm, computed) {
 function defineComputed (target, key, userDef) {
 
   var shouldCache = !isServerRendering();
+
+  // 如果计算属性的key对应的是个函数
   if (typeof userDef === 'function') {
     sharedPropertyDefinition.get = shouldCache
       ? createComputedGetter(key)

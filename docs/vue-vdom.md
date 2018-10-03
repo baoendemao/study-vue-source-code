@@ -358,6 +358,7 @@ function cloneVNode (vnode) {
 function sameVnode (a, b) {
 
   return (
+    // v-for中写的key
     a.key === b.key && (
       (
         a.tag === b.tag &&
@@ -1037,7 +1038,7 @@ function createPatchFunction (backend) {
     // again. It's not ideal to involve module-specific logic in here but
     // there doesn't seem to be a better way to do it.
     var innerNode = vnode;
-    while (innerNode.componentInstance) {
+    while (innerNode.componentInstance) {  // 组件vnode
       innerNode = innerNode.componentInstance._vnode;
       if (isDef(i = innerNode.data) && isDef(i = i.transition)) {
         for (i = 0; i < cbs.activate.length; ++i) {
@@ -1343,7 +1344,9 @@ function createPatchFunction (backend) {
       if (isDef(i = data.hook) && isDef(i = i.update)) { i(oldVnode, vnode); }
     }
 
-    if (isUndef(vnode.text)) {   // 新的vnode没有text, 判断即是否是文本节点
+    // 判断即是否是文本节点。
+    // 因为text文本节点是单独的一层，不可能有children，所以这边单独做处理
+    if (isUndef(vnode.text)) {   // 新的vnode没有text，不是文本节点
 
       if (isDef(oldCh) && isDef(ch)) {  // 老的有children，新的有children，且不同，则更新children
         if (oldCh !== ch) { updateChildren(elm, oldCh, ch, insertedVnodeQueue, removeOnly); }
