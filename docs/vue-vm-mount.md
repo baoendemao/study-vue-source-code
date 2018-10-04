@@ -2411,11 +2411,13 @@ function markStatic$1 (node) {
     ) {
       return
     }
+    
+    // 如果子节点中有一个不是static, 则它就不是static节点
     for (var i = 0, l = node.children.length; i < l; i++) {
       var child = node.children[i];
       markStatic$1(child);
       if (!child.static) {
-        node.static = false;
+        node.static = false;   
       }
     }
     if (node.ifConditions) {
