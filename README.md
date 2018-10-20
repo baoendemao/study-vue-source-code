@@ -16,6 +16,7 @@
 * [虚拟dom](https://github.com/baoendemao/study-vue-source-code/tree/master/docs/vue-vdom.md)
 * [flow类型检查](https://github.com/baoendemao/study-vue-source-code/tree/master/docs/flow-intro.md)
 * [rollup打包](https://github.com/baoendemao/study-vue-source-code/tree/master/docs/rollup.md)
+* [vue的指令](https://github.com/baoendemao/study-vue-source-code/tree/master/docs/vue-directive.md)
 * 如何查看之前vue源码的历史版本
     * git log命令可以查看push的commit编码（可以git log重定向到某个文件，以后每次方便查找）
     * git checkout commit编码的前六位就可以切换到相应的commit版本
