@@ -1,4 +1,5 @@
 #### vue-router
+* vue-router可以看做是vue的一个插件，也是通过Vue.use()注册到全局的
 * 三种路由方式
     * hash
     * history

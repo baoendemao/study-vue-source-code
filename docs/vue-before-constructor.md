@@ -974,10 +974,10 @@ function initGlobalAPI (Vue) {
 ```
 
 
-* initUse() => 初始化Vue.use
+* initUse() => 初始化Vue.use => 安装vue的插件，如vue-router, vuex
 
 ```
-// 安装Vue插件
+
 function initUse (Vue) {
 
   Vue.use = function (plugin) {
