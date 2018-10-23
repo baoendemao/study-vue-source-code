@@ -982,6 +982,7 @@ function initUse (Vue) {
 
   Vue.use = function (plugin) {
 
+    // _installedPlugins存储所有注册过的plugin插件
     var installedPlugins = (this._installedPlugins || (this._installedPlugins = []));
 
     if (installedPlugins.indexOf(plugin) > -1) {
@@ -1000,7 +1001,7 @@ function initUse (Vue) {
 
     } else if (typeof plugin === 'function') {
 
-      // 如果插件是一个函数，会被当做install方法
+      // 如果插件是一个函数，会被当做install方法， 直接执行
       plugin.apply(null, args);    
 
     }
