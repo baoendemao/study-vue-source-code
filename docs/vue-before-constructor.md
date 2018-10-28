@@ -985,18 +985,21 @@ function initUse (Vue) {
     // _installedPlugins存储所有注册过的plugin插件
     var installedPlugins = (this._installedPlugins || (this._installedPlugins = []));
 
+    // 防止重复注册插件plugin
     if (installedPlugins.indexOf(plugin) > -1) {
       return this
     }
 
     // additional parameters
+    // 第一个参数是plugin
     var args = toArray(arguments, 1);   
+
+    // 将Vue添加到参数args中
     args.unshift(this);
 
-   
     if (typeof plugin.install === 'function') {
 
-       // 如果插件是一个对象，必须提供install方法
+       // 如果插件是一个对象, 必须要提供install方法
       plugin.install.apply(plugin, args);    
 
     } else if (typeof plugin === 'function') {
