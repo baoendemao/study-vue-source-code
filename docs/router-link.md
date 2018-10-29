@@ -9,7 +9,7 @@
     * 带有自动激活的 CSS class 的链接
     * HTML5 历史模式或 hash 模式，在 IE9 中自动降级
     * 自定义的滚动条行为
-* 三种路由方式
+* 三种路由mode
     * hash
     * history
     * abstract

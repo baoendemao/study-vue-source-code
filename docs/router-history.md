@@ -217,6 +217,198 @@ export class History {
 
 ```
 
+export class HashHistory extends History {
+  constructor (router: Router, base: ?string, fallback: boolean) {
+    super(router, base)
+    // check history fallback deeplinking
+    if (fallback && checkFallback(this.base)) {
+      return
+    }
+    ensureSlash()
+  }
 
+  // this is delayed until the app mounts
+  // to avoid the hashchange listener being fired too early
+  setupListeners () {
+    const router = this.router
+    const expectScroll = router.options.scrollBehavior
+    const supportsScroll = supportsPushState && expectScroll
+
+    if (supportsScroll) {
+      setupScroll()
+    }
+
+    window.addEventListener(supportsPushState ? 'popstate' : 'hashchange', () => {
+      const current = this.current
+      if (!ensureSlash()) {
+        return
+      }
+      this.transitionTo(getHash(), route => {
+        if (supportsScroll) {
+          handleScroll(this.router, route, current, true)
+        }
+        if (!supportsPushState) {
+          replaceHash(route.fullPath)
+        }
+      })
+    })
+  }
+
+  push (location: RawLocation, onComplete?: Function, onAbort?: Function) {
+    const { current: fromRoute } = this
+    this.transitionTo(location, route => {
+      pushHash(route.fullPath)
+      handleScroll(this.router, route, fromRoute, false)
+      onComplete && onComplete(route)
+    }, onAbort)
+  }
+
+  replace (location: RawLocation, onComplete?: Function, onAbort?: Function) {
+    const { current: fromRoute } = this
+    this.transitionTo(location, route => {
+      replaceHash(route.fullPath)
+      handleScroll(this.router, route, fromRoute, false)
+      onComplete && onComplete(route)
+    }, onAbort)
+  }
+
+  go (n: number) {
+    window.history.go(n)
+  }
+
+  ensureURL (push?: boolean) {
+    const current = this.current.fullPath
+    if (getHash() !== current) {
+      push ? pushHash(current) : replaceHash(current)
+    }
+  }
+
+  getCurrentLocation () {
+    return getHash()
+  }
+}
+
+
+```
+#### Html5History构造器
+
+```
+export class HTML5History extends History {
+  constructor (router: Router, base: ?string) {
+    super(router, base)
+
+    const expectScroll = router.options.scrollBehavior
+    const supportsScroll = supportsPushState && expectScroll
+
+    if (supportsScroll) {
+      setupScroll()
+    }
+
+    const initLocation = getLocation(this.base)
+    window.addEventListener('popstate', e => {
+      const current = this.current
+
+      // Avoiding first `popstate` event dispatched in some browsers but first
+      // history route not updated since async guard at the same time.
+      const location = getLocation(this.base)
+      if (this.current === START && location === initLocation) {
+        return
+      }
+
+      this.transitionTo(location, route => {
+        if (supportsScroll) {
+          handleScroll(router, route, current, true)
+        }
+      })
+    })
+  }
+
+  go (n: number) {
+    window.history.go(n)
+  }
+
+  push (location: RawLocation, onComplete?: Function, onAbort?: Function) {
+    const { current: fromRoute } = this
+    this.transitionTo(location, route => {
+      pushState(cleanPath(this.base + route.fullPath))
+      handleScroll(this.router, route, fromRoute, false)
+      onComplete && onComplete(route)
+    }, onAbort)
+  }
+
+  replace (location: RawLocation, onComplete?: Function, onAbort?: Function) {
+    const { current: fromRoute } = this
+    this.transitionTo(location, route => {
+      replaceState(cleanPath(this.base + route.fullPath))
+      handleScroll(this.router, route, fromRoute, false)
+      onComplete && onComplete(route)
+    }, onAbort)
+  }
+
+  ensureURL (push?: boolean) {
+    if (getLocation(this.base) !== this.current.fullPath) {
+      const current = cleanPath(this.base + this.current.fullPath)
+      push ? pushState(current) : replaceState(current)
+    }
+  }
+
+  getCurrentLocation (): string {
+    return getLocation(this.base)
+  }
+}
+
+
+```
+
+#### AbstractHistory构造器
+
+```
+
+export class AbstractHistory extends History {
+  index: number;
+  stack: Array<Route>;
+
+  constructor (router: Router, base: ?string) {
+    super(router, base)
+    this.stack = []
+    this.index = -1
+  }
+
+  push (location: RawLocation, onComplete?: Function, onAbort?: Function) {
+    this.transitionTo(location, route => {
+      this.stack = this.stack.slice(0, this.index + 1).concat(route)
+      this.index++
+      onComplete && onComplete(route)
+    }, onAbort)
+  }
+
+  replace (location: RawLocation, onComplete?: Function, onAbort?: Function) {
+    this.transitionTo(location, route => {
+      this.stack = this.stack.slice(0, this.index).concat(route)
+      onComplete && onComplete(route)
+    }, onAbort)
+  }
+
+  go (n: number) {
+    const targetIndex = this.index + n
+    if (targetIndex < 0 || targetIndex >= this.stack.length) {
+      return
+    }
+    const route = this.stack[targetIndex]
+    this.confirmTransition(route, () => {
+      this.index = targetIndex
+      this.updateRoute(route)
+    })
+  }
+
+  getCurrentLocation () {
+    const current = this.stack[this.stack.length - 1]
+    return current ? current.fullPath : '/'
+  }
+
+  ensureURL () {
+    // noop
+  }
+}
 
 ```
