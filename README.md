@@ -24,7 +24,7 @@
 
 #### vue-router
 * vue-router的github地址：https://github.com/vuejs/vue-router
-* [浏览器的history](https://github.com/baoendemao/study-vue-source-code/tree/master/docs/h5-history.md)
+* [history](https://github.com/baoendemao/study-vue-source-code/tree/master/docs/router-history.md)
 * [vue-router](https://github.com/baoendemao/study-vue-source-code/tree/master/docs/router-link.md)
 
 #### vuex
