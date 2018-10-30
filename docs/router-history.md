@@ -28,6 +28,21 @@ var supportsPushState = inBrowser && (function () {
 
 ```
 
+#### vue-router的src/history目录
+
+```
+
+wl@wangli: ~/front-end/study-code/vue-router $ tree -L 1 src/history
+src/history
+├── abstract.js
+├── base.js
+├── hash.js
+└── html5.js
+
+0 directories, 4 files
+
+```
+
 #### History构造器
 ```
 
